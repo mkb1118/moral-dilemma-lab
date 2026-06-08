@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>道德困境实验室 | Moral Dilemma Lab</title>
+<style>
+  /* ============================================
+     CIRCUIT ELEGANCE DESIGN SYSTEM
+     ============================================ */
+  :root {
+    --bg-deep: #060b12;
+    --bg-card: #0c1520;
+    --bg-card-hover: #101c2a;
+    --cyan: #00e5ff;
+    --cyan-dim: rgba(0, 229, 255, 0.15);
+    --amber: #f5a623;
+    --amber-dim: rgba(245, 166, 35, 0.15);
+    --white: #f0f4f8;
+    --white-dim: rgba(240, 244, 248, 0.6);
+    --border: rgba(240, 244, 248, 0.08);
+    --border-active: rgba(240, 244, 248, 0.2);
+    --danger: #ff4d6a;
+    --success: #00e676;
+    --font-display: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--white);
+    font-family: var(--font-display);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+  }
+
+  /* Circuit trace background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      linear-gradient(90deg, var(--border) 1px, transparent 1px),
+      linear-gradient(0deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Animated node particles */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(2px 2px at 20% 30%, var(--cyan), transparent),
+      radial-gradient(2px 2px at 70% 20%, var(--amber), transparent),
+      radial-gradient(1px 1px at 40% 70%, var(--cyan), transparent),
+      radial-gradient(2px 2px at 80% 60%, var(--amber), transparent),
+      radial-gradient(1px 1px at 10% 80%, var(--cyan), transparent),
+      radial-gradient(2px 2px at 60% 40%, var(--cyan-dim), transparent),
+      radial-gradient(1px 1px at 30% 50%, var(--amber-dim), transparent),
+      radial-gradient(1px 1px at 90% 10%, var(--white-dim), transparent);
+    pointer-events: none;
+    z-index: 0;
+    animation: nodePulse 4s ease-in-out infinite alternate;
+  }
+
+  @keyframes nodePulse {
+    0% { opacity: 0.5; }
+    100% { opacity: 1; }
+  }
+
+  /* ============================================
+     MAIN CONTAINER
+     ============================================ */
+  .app {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 720px;
+    padding: 24px;
+  }
+
+  /* ============================================
+     SCREENS
+     ============================================ */
+  .screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    animation: fadeSlideIn 0.5s ease;
+  }
+  .screen.active {
+    display: flex;
+  }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============================================
+     WELCOME SCREEN
+     ============================================ */
+  .welcome-icon {
+    width: 80px; height: 80px;
+    border: 2px solid var(--cyan);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .welcome-icon::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border: 1px solid var(--cyan-dim);
+    border-radius: 50%;
+  }
+  .welcome-icon::after {
+    content: '';
+    position: absolute;
+    inset: -16px;
+    border: 1px solid rgba(0, 229, 255, 0.05);
+    border-radius: 50%;
+  }
+  .welcome-icon svg { width: 36px; height: 36px; fill: none; stroke: var(--cyan); stroke-width: 1.5; }
+
+  .title-block {
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .title-block .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .title-block h1 {
+    font-size: 42px;
+    font-weight: 200;
+    letter-spacing: 2px;
+    line-height: 1.2;
+    color: var(--white);
+  }
+  .title-block h1 span { color: var(--cyan); font-weight: 400; }
+
+  .subtitle {
+    color: var(--white-dim);
+    font-size: 16px;
+    font-weight: 300;
+    text-align: center;
+    max-width: 440px;
+    line-height: 1.6;
+    margin-bottom: 40px;
+  }
+
+  .dilemma-count-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 20px;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--white-dim);
+    margin-bottom: 36px;
+  }
+  .dilemma-count-badge .dot {
+    width: 6px; height: 6px;
+    background: var(--cyan);
+    border-radius: 50%;
+    animation: blink 2s ease-in-out infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ============================================
+     BUTTONS
+     ============================================ */
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 36px;
+    border: 1px solid var(--border-active);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--white);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--cyan);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+  }
+  .btn:hover {
+    border-color: var(--cyan);
+    transform: translateY(-1px);
+  }
+  .btn:hover::after { opacity: 0.1; }
+  .btn.primary {
+    background: var(--cyan-dim);
+    border-color: var(--cyan);
+  }
+  .btn.primary:hover::after { opacity: 0.2; }
+
+  /* ============================================
+     PROGRESS BAR
+     ============================================ */
+  .progress-wrap {
+    width: 100%;
+    margin-bottom: 32px;
+  }
+  .progress-info {
+    display: flex; justify-content: space-between;
+    margin-bottom: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--white-dim);
+    letter-spacing: 1px;
+  }
+  .progress-track {
+    width: 100%; height: 2px;
+    background: var(--border);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--cyan);
+    transition: width 0.5s ease;
+    border-radius: 1px;
+  }
+
+  /* ============================================
+     DILEMMA CARD
+     ============================================ */
+  .dilemma-card {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 40px;
+    margin-bottom: 28px;
+    position: relative;
+  }
+  .dilemma-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 40px; right: 40px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan-dim), transparent);
+  }
+
+  .dilemma-number {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--amber);
+    margin-bottom: 20px;
+  }
+
+  .dilemma-scenario {
+    font-size: 20px;
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--white);
+    margin-bottom: 12px;
+  }
+
+  .dilemma-context {
+    font-size: 14px;
+    color: var(--white-dim);
+    font-weight: 300;
+    line-height: 1.6;
+    font-style: italic;
+  }
+
+  /* Choice buttons */
+  .choices {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .choice-btn {
+    width: 100%;
+    padding: 20px 28px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--white);
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    position: relative;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .choice-btn:hover {
+    border-color: var(--cyan);
+    background: var(--bg-card-hover);
+    transform: translateX(4px);
+  }
+  .choice-btn .choice-marker {
+    width: 12px; height: 12px;
+    border: 2px solid var(--border-active);
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+  .choice-btn:hover .choice-marker {
+    border-color: var(--cyan);
+    background: var(--cyan-dim);
+  }
+  .choice-btn .choice-text {
+    flex: 1;
+  }
+  .choice-btn .choice-subtitle {
+    display: block;
+    font-size: 12px;
+    color: var(--white-dim);
+    font-weight: 300;
+    margin-top: 4px;
+  }
+
+  /* ============================================
+     RESULTS SCREEN
+     ============================================ */
+  .results-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .results-header .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .results-header h2 {
+    font-size: 32px;
+    font-weight: 200;
+    letter-spacing: 1px;
+    color: var(--white);
+  }
+
+  .archetype-card {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 36px;
+    text-align: center;
+    margin-bottom: 28px;
+    position: relative;
+  }
+  .archetype-card::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 8px;
+    padding: 1px;
+    background: linear-gradient(135deg, var(--cyan-dim), transparent, var(--amber-dim));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  .archetype-name {
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--cyan);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .archetype-desc {
+    color: var(--white-dim);
+    font-size: 15px;
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  /* Radar chart */
+  .chart-container {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 32px;
+    margin-bottom: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .chart-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--white-dim);
+    margin-bottom: 24px;
+  }
+  canvas#radarChart {
+    max-width: 340px;
+    width: 100%;
+  }
+
+  /* Dimension bars */
+  .dimensions {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .dimension-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px 24px;
+  }
+  .dimension-header {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .dimension-name {
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+  }
+  .dimension-value {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--cyan);
+  }
+  .dimension-bar-track {
+    width: 100%; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .dimension-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease 0.3s;
+  }
+  .dimension-bar-fill.cyan { background: var(--cyan); }
+  .dimension-bar-fill.amber { background: var(--amber); }
+  .dimension-labels {
+    display: flex; justify-content: space-between;
+    font-size: 11px;
+    color: var(--white-dim);
+    font-family: var(--font-mono);
+  }
+
+  /* Choice review */
+  .review-section {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px;
+    margin-bottom: 28px;
+  }
+  .review-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--white-dim);
+    margin-bottom: 20px;
+  }
+  .review-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .review-item:last-child { border-bottom: none; }
+  .review-marker {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .review-marker.utilitarian { background: var(--cyan); }
+  .review-marker.deontological { background: var(--amber); }
+  .review-label { flex: 1; font-weight: 300; }
+  .review-choice-text {
+    font-size: 12px;
+    color: var(--white-dim);
+    font-weight: 300;
+  }
+
+  /* Action buttons */
+  .action-row {
+    display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  /* Stats section */
+  .stats-section {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px;
+    margin-bottom: 28px;
+  }
+  .stats-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--white-dim);
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .stats-title .live-dot {
+    width: 6px; height: 6px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: blink 2s ease-in-out infinite;
+  }
+  .stat-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .stat-item:last-child { border-bottom: none; }
+  .stat-dilemma-label {
+    font-size: 12px;
+    color: var(--white-dim);
+    font-family: var(--font-mono);
+    min-width: 100px;
+    flex-shrink: 0;
+  }
+  .stat-bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+  .stat-bar-fill {
+    height: 100%;
+    background: var(--cyan-dim);
+    border-radius: 3px;
+    transition: width 1s ease;
+    position: relative;
+  }
+  .stat-bar-fill.majority {
+    background: rgba(0, 229, 255, 0.3);
+  }
+  .stat-bar-fill.minority {
+    background: rgba(245, 166, 35, 0.3);
+  }
+  .stat-pct {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    min-width: 44px;
+    text-align: right;
+  }
+  .stat-pct.cyan { color: var(--cyan); }
+  .stat-pct.amber { color: var(--amber); }
+  .stat-your-choice {
+    font-size: 10px;
+    color: var(--white-dim);
+    min-width: 60px;
+    text-align: right;
+    line-height: 1.3;
+  }
+
+  .archetype-dist {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px;
+  }
+  .archetype-tag {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--white-dim);
+    font-family: var(--font-mono);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .archetype-tag.highlight {
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+  .archetype-tag .tag-count {
+    font-weight: 600;
+  }
+
+  .stats-loading {
+    text-align: center;
+    color: var(--white-dim);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 20px;
+    letter-spacing: 1px;
+  }
+
+  .stats-error {
+    text-align: center;
+    color: var(--amber);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 12px;
+    opacity: 0.7;
+  }
+
+  .total-sessions {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--white-dim);
+    opacity: 0.6;
+    margin-top: 12px;
+    text-align: right;
+  }
+
+  /* Footer */
+  .footer-note {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--white-dim);
+    opacity: 0.5;
+    letter-spacing: 1px;
+    text-align: center;
+  }
+
+  /* ============================================
+     RESPONSIVE
+     ============================================ */
+  @media (max-width: 600px) {
+    .app { padding: 16px; }
+    .dilemma-card { padding: 24px; }
+    .dilemma-card::before { left: 24px; right: 24px; }
+    .dilemma-scenario { font-size: 17px; }
+    .title-block h1 { font-size: 30px; }
+    .archetype-card { padding: 24px; }
+    .choice-btn { padding: 16px 20px; font-size: 14px; }
+  }
+
+  /* ============================================
+     TOAST
+     ============================================ */
+  .toast {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+    background: var(--bg-card);
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    z-index: 100;
+    animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards;
+    pointer-events: none;
+  }
+  @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } }
+  @keyframes toastOut { to { opacity: 0; transform: translateX(-50%) translateY(-10px); } }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <!-- ============================================
+       WELCOME SCREEN
+       ============================================ -->
+  <div class="screen active" id="welcome">
+    <div class="welcome-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <div class="title-block">
+      <div class="label">Psychology × Ethics</div>
+      <h1>道德困境<br><span>实验室</span></h1>
+    </div>
+    <p class="subtitle">
+      面对 8 个经典道德困境，做出你的选择。
+      每个困境都没有"正确"答案——但你的选择会揭示你的道德人格画像。
+    </p>
+    <div class="dilemma-count-badge">
+      <span class="dot"></span> 8 个困境 · 约 5 分钟
+    </div>
+    <button class="btn primary" onclick="startQuiz()">
+      开始实验 →
+    </button>
+  </div>
+
+  <!-- ============================================
+       QUIZ SCREEN
+       ============================================ -->
+  <div class="screen" id="quiz">
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span id="progressLabel">困境 1 / 8</span>
+        <span id="progressPct">12.5%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+      </div>
+    </div>
+    <div class="dilemma-card" id="dilemmaCard">
+      <div class="dilemma-number" id="dilemmaNumber">DILEMMA 01</div>
+      <p class="dilemma-scenario" id="dilemmaScenario"></p>
+      <p class="dilemma-context" id="dilemmaContext"></p>
+    </div>
+    <div class="choices" id="choices"></div>
+  </div>
+
+  <!-- ============================================
+       RESULTS SCREEN
+       ============================================ -->
+  <div class="screen" id="results">
+    <div class="results-header">
+      <div class="label">Analysis Complete</div>
+      <h2>你的道德画像</h2>
+    </div>
+
+    <div class="archetype-card">
+      <div class="archetype-name" id="archetypeName"></div>
+      <p class="archetype-desc" id="archetypeDesc"></p>
+    </div>
+
+    <div class="chart-container">
+      <div class="chart-title">道德维度剖面图</div>
+      <canvas id="radarChart" width="340" height="340"></canvas>
+    </div>
+
+    <div class="dimensions" id="dimensions"></div>
+
+    <div class="review-section">
+      <div class="review-title">你的选择回顾</div>
+      <div id="reviewList"></div>
+    </div>
+
+    <div class="stats-section" id="statsSection">
+      <div class="stats-title">
+        <span class="live-dot"></span> 全体数据对比
+      </div>
+      <div id="statsContent" class="stats-loading">正在加载统计数据...</div>
+      <div class="total-sessions" id="totalSessions"></div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn primary" onclick="restartQuiz()">重新测试</button>
+      <button class="btn" onclick="shareResults()">复制分享链接</button>
+    </div>
+    <p class="footer-note">Moral Dilemma Lab · 仅供反思参考，非临床诊断</p>
+  </div>
+</div>
+
+<script>
+// ============================================
+// DATA: 8 Moral Dilemmas
+// ============================================
+const DILEMMAS = [
+  {
+    id: 1,
+    title: 'DILEMMA 01 · 电车难题',
+    scenario: '一辆失控的电车正冲向轨道上的 5 个工人，他们无法及时逃离。你可以拉动一个拉杆，让电车转向另一条轨道——但那条轨道上有 1 个工人。',
+    context: '你是否应该拉动拉杆，牺牲 1 个人来拯救 5 个人？',
+    choiceA: {
+      text: '拉动拉杆',
+      subtitle: '牺牲 1 人，拯救 5 人',
+      scores: { utilitarian: 3, personal: -1, universal: 1, liberty: 0 }
+    },
+    choiceB: {
+      text: '不拉动拉杆',
+      subtitle: '不主动干预，接受既有结果',
+      scores: { utilitarian: -2, personal: 1, universal: -1, liberty: 1 }
+    }
+  },
+  {
+    id: 2,
+    title: 'DILEMMA 02 · 天桥困境',
+    scenario: '还是那辆失控的电车冲向 5 个人。但这次你站在天桥上，身边有一个身材魁梧的陌生人。如果你把他推下去，他的身体足以挡住电车。',
+    context: '亲手推一个人下去和拉动拉杆，性质一样吗？',
+    choiceA: {
+      text: '推下陌生人',
+      subtitle: '直接行动，牺牲 1 人救 5 人',
+      scores: { utilitarian: 4, personal: -4, universal: 1, liberty: -2 }
+    },
+    choiceB: {
+      text: '不推',
+      subtitle: '无法亲手伤害一个人，即使能救更多人',
+      scores: { utilitarian: -3, personal: 3, universal: -1, liberty: 1 }
+    }
+  },
+  {
+    id: 3,
+    title: 'DILEMMA 03 · 善意的谎言',
+    scenario: '你的好朋友精心准备了一场演出，邀请你来看。演出结束后，她兴奋地问你觉得怎么样。说实话——演出真的很糟糕，但你知道如果说出真相，她会深受打击。',
+    context: '诚实的残酷 vs 善意的谎言，你选哪个？',
+    choiceA: {
+      text: '善意地说"很好"',
+      subtitle: '保护朋友的感受，维护关系',
+      scores: { utilitarian: 1, personal: 2, universal: -2, liberty: 0 }
+    },
+    choiceB: {
+      text: '温和但诚实地表达',
+      subtitle: '尊重真相，相信朋友能承受',
+      scores: { utilitarian: -1, personal: -1, universal: 2, liberty: 1 }
+    }
+  },
+  {
+    id: 4,
+    title: 'DILEMMA 04 · 举报还是忠诚',
+    scenario: '你发现关系很好的同事偷偷将公司数据卖给竞争对手。这件事只有你知道。如果举报，同事会失业并可能面临法律后果；如果沉默，公司会持续受损。',
+    context: '正义的原则 vs 对朋友的情义，哪个更重要？',
+    choiceA: {
+      text: '匿名举报',
+      subtitle: '维护规则和更大的利益',
+      scores: { utilitarian: 2, personal: -1, universal: 3, liberty: -1 }
+    },
+    choiceB: {
+      text: '私下劝说他停止',
+      subtitle: '给朋友一个改正的机会',
+      scores: { utilitarian: 0, personal: 2, universal: -1, liberty: 1 }
+    }
+  },
+  {
+    id: 5,
+    title: 'DILEMMA 05 · 器官移植',
+    scenario: '医院里有 5 位病人分别需要心、肺、肝、肾、胰腺移植，否则会死亡。这时来了一个健康的流浪者做常规体检——如果"牺牲"他，5 个人都能活下来。',
+    context: '这只是一个思想实验，但你的直觉是什么？',
+    choiceA: {
+      text: '不会牺牲流浪者',
+      subtitle: '个人的权利不可侵犯',
+      scores: { utilitarian: -4, personal: 2, universal: 2, liberty: 2 }
+    },
+    choiceB: {
+      text: '考虑最大化生命数',
+      subtitle: '5 条生命 > 1 条生命',
+      scores: { utilitarian: 4, personal: -3, universal: 0, liberty: -2 }
+    }
+  },
+  {
+    id: 6,
+    title: 'DILEMMA 06 · 自动驾驶',
+    scenario: '一辆自动驾驶汽车刹车失灵，前方有 5 个行人。它可以转向撞墙——但这样车内唯一的乘客（你）会死。你是这辆车的算法设计者。',
+    context: '你会把程序设定为优先保护乘客，还是优先最小化总伤亡？',
+    choiceA: {
+      text: '优先保护乘客',
+      subtitle: '买了这辆车的人理应被保护',
+      scores: { utilitarian: -2, personal: 1, universal: -2, liberty: 1 }
+    },
+    choiceB: {
+      text: '优先最小化伤亡',
+      subtitle: '5 条生命比你 1 条生命更重',
+      scores: { utilitarian: 3, personal: -1, universal: 2, liberty: -1 }
+    }
+  },
+  {
+    id: 7,
+    title: 'DILEMMA 07 · 隐私监控',
+    scenario: '政府提出一项法案：全面监控所有人的通讯记录，以预防恐怖袭击。数据显示这将阻止 70% 的潜在袭击，但每个人的隐私将不复存在。',
+    context: '安全 vs 自由，你如何权衡？',
+    choiceA: {
+      text: '支持监控法案',
+      subtitle: '安全比隐私更重要',
+      scores: { utilitarian: 2, personal: 0, universal: -1, liberty: -3 }
+    },
+    choiceB: {
+      text: '反对监控法案',
+      subtitle: '隐私是基本权利，不容妥协',
+      scores: { utilitarian: -1, personal: 1, universal: 1, liberty: 3 }
+    }
+  },
+  {
+    id: 8,
+    title: 'DILEMMA 08 · 昂贵药物',
+    scenario: '一种罕见病的新药造价 200 万/人，能救一个孩子。但同样 200 万，可以在贫困地区建一个基础诊所，每年救几百人的命，只是每个人"救得没那么彻底"。',
+    context: '你会把捐款用于救那个孩子，还是建诊所？',
+    choiceA: {
+      text: '救那个孩子',
+      subtitle: '每个生命都有名字，都有故事',
+      scores: { utilitarian: -3, personal: 3, universal: 1, liberty: 0 }
+    },
+    choiceB: {
+      text: '建诊所',
+      subtitle: '理性地说，这样救的人多得多',
+      scores: { utilitarian: 3, personal: -2, universal: 1, liberty: 1 }
+    }
+  }
+];
+
+// ============================================
+// ARCHETYPES
+// ============================================
+const ARCHETYPES = {
+  strongUtilitarian: {
+    name: '冷静的计算者',
+    desc: '你倾向于用结果来衡量行为的对错。5 > 1 对你来说是一个有力的论据。你能在情感上抽离，做出"最大利益"的判断——这是你的天赋，但有时也是你的盲点。'
+  },
+  strongDeontological: {
+    name: '原则的守护者',
+    desc: '你相信有些事情本身就有对错，不取决于结果。不能为了更大的利益而践踏个体的权利。你的道德指南针稳定而清晰，但也可能在复杂世界中显得有些"固执"。'
+  },
+  balanced: {
+    name: '思辨的平衡者',
+    desc: '你在功利计算和道德原则之间走得游刃有余。面对困境，你不会简单地选边站——而是根据情境的细微差别做出判断。这种灵活性让你能看到问题的多个层面。'
+  },
+  compassionate: {
+    name: '共情的联结者',
+    desc: '对你来说，道德的核心是人与人的关系。你会被具体的人的故事打动，厌恶那些把生命抽象成"数字"的冷酷逻辑。你的力量在于你能感受到他人的痛苦。'
+  },
+  libertarian: {
+    name: '自由的捍卫者',
+    desc: '你高度警惕任何对个人权利的侵犯——即使打着"更大的善"的旗号。自由和自主权是你道德框架的核心。你会为弱势者的声音被听到而战斗。'
+  }
+};
+
+// ============================================
+// STATE
+// ============================================
+let currentDilemma = 0;
+let answers = [];
+let sessionId = '';
+
+// ============================================
+// API HELPERS
+// ============================================
+const API_BASE = window.location.origin;
+
+function generateSessionId() {
+  return 'sess_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+}
+
+async function submitToAPI() {
+  const totalScores = calculateScores();
+  const archetype = getArchetype(totalScores);
+  const payload = {
+    session_id: sessionId,
+    answers: answers.map(a => ({
+      dilemma_id: a.dilemmaId,
+      dilemma_title: a.title,
+      choice: a.choice,
+      choice_text: a.choiceText,
+      scores: a.scores
+    })),
+    total_scores: totalScores,
+    archetype: archetype.name
+  };
+
+  try {
+    await fetch(`${API_BASE}/api/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return true;
+  } catch (e) {
+    console.warn('Failed to submit results:', e.message);
+    return false;
+  }
+}
+
+async function fetchStats() {
+  try {
+    const res = await fetch(`${API_BASE}/api/stats`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (e) {
+    console.warn('Failed to fetch stats:', e.message);
+    return null;
+  }
+}
+
+function renderStats(stats) {
+  const contentEl = document.getElementById('statsContent');
+  const sessionsEl = document.getElementById('totalSessions');
+
+  if (!stats || stats.total_sessions === 0) {
+    contentEl.innerHTML = `
+      <div class="stats-error">
+        暂无足够数据 · 数据越多，对比越有意思
+      </div>
+    `;
+    sessionsEl.textContent = '';
+    return;
+  }
+
+  sessionsEl.textContent = `基于 ${stats.total_sessions} 人次的匿名数据`;
+
+  // ── Per-dilemma comparison ──
+  let html = '';
+  stats.dilemma_stats.forEach(ds => {
+    const myAnswer = answers.find(a => a.dilemmaId === ds.id);
+    if (!myAnswer) return;
+
+    const sameChoicePct = myAnswer.choice === 'A' ? ds.choice_a.pct : ds.choice_b.pct;
+    const isMajority = sameChoicePct >= 50;
+    const barClass = isMajority ? 'majority' : 'minority';
+    const pctClass = isMajority ? 'cyan' : 'amber';
+
+    html += `
+      <div class="stat-item">
+        <span class="stat-dilemma-label">困境 ${ds.id}</span>
+        <div class="stat-bar-wrap">
+          <div class="stat-bar-fill ${barClass}" style="width: ${Math.max(sameChoicePct, 3)}%;"></div>
+        </div>
+        <span class="stat-pct ${pctClass}">${sameChoicePct}%</span>
+        <span class="stat-your-choice">${isMajority ? '多数派' : '少数派'}</span>
+      </div>
+    `;
+  });
+  contentEl.innerHTML = html;
+
+  // Animate bars
+  requestAnimationFrame(() => {
+    contentEl.querySelectorAll('.stat-bar-fill').forEach(bar => {
+      const w = bar.style.width;
+      bar.style.width = '0%';
+      requestAnimationFrame(() => { bar.style.width = w; });
+    });
+  });
+}
+
+// ============================================
+// NAVIGATION
+// ============================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ============================================
+// QUIZ LOGIC
+// ============================================
+function startQuiz() {
+  currentDilemma = 0;
+  answers = [];
+  sessionId = generateSessionId();
+  showScreen('quiz');
+  renderDilemma();
+}
+
+function renderDilemma() {
+  const d = DILEMMAS[currentDilemma];
+  const pct = Math.round((currentDilemma / DILEMMAS.length) * 100);
+
+  document.getElementById('progressLabel').textContent = `困境 ${currentDilemma + 1} / ${DILEMMAS.length}`;
+  document.getElementById('progressPct').textContent = `${pct}%`;
+  document.getElementById('progressFill').style.width = `${pct}%`;
+  document.getElementById('dilemmaNumber').textContent = d.title;
+  document.getElementById('dilemmaScenario').textContent = d.scenario;
+  document.getElementById('dilemmaContext').textContent = d.context;
+
+  const choicesEl = document.getElementById('choices');
+  choicesEl.innerHTML = `
+    <button class="choice-btn" onclick="choose('A')">
+      <span class="choice-marker"></span>
+      <span class="choice-text">
+        ${d.choiceA.text}
+        <span class="choice-subtitle">${d.choiceA.subtitle}</span>
+      </span>
+    </button>
+    <button class="choice-btn" onclick="choose('B')">
+      <span class="choice-marker"></span>
+      <span class="choice-text">
+        ${d.choiceB.text}
+        <span class="choice-subtitle">${d.choiceB.subtitle}</span>
+      </span>
+    </button>
+  `;
+
+  // Animate card in
+  const card = document.getElementById('dilemmaCard');
+  card.style.opacity = '0';
+  card.style.transform = 'translateY(10px)';
+  requestAnimationFrame(() => {
+    card.style.transition = 'all 0.4s ease';
+    card.style.opacity = '1';
+    card.style.transform = 'translateY(0)';
+  });
+}
+
+function choose(choice) {
+  const d = DILEMMAS[currentDilemma];
+  const selected = choice === 'A' ? d.choiceA : d.choiceB;
+  answers.push({
+    dilemmaId: d.id,
+    title: d.title,
+    choice: choice,
+    choiceText: selected.text,
+    scores: selected.scores
+  });
+
+  currentDilemma++;
+
+  if (currentDilemma >= DILEMMAS.length) {
+    // Update progress to 100%
+    document.getElementById('progressLabel').textContent = `困境 ${DILEMMAS.length} / ${DILEMMAS.length}`;
+    document.getElementById('progressPct').textContent = '100%';
+    document.getElementById('progressFill').style.width = '100%';
+
+    setTimeout(() => showResults(), 400);
+  } else {
+    renderDilemma();
+  }
+}
+
+// ============================================
+// RESULTS CALCULATION
+// ============================================
+function calculateScores() {
+  const totals = { utilitarian: 0, personal: 0, universal: 0, liberty: 0 };
+  answers.forEach(a => {
+    for (const [key, val] of Object.entries(a.scores)) {
+      totals[key] += val;
+    }
+  });
+  return totals;
+}
+
+function normalize(score, min, max) {
+  return Math.max(0, Math.min(100, ((score - min) / (max - min)) * 100));
+}
+
+function getArchetype(scores) {
+  const u = scores.utilitarian;
+  const p = scores.personal;
+  const l = scores.liberty;
+
+  if (l >= 5 && u <= 0) return ARCHETYPES.libertarian;
+  if (u >= 5) return ARCHETYPES.strongUtilitarian;
+  if (p >= 4 && u <= 1) return ARCHETYPES.compassionate;
+  if (u <= -4) return ARCHETYPES.strongDeontological;
+  return ARCHETYPES.balanced;
+}
+
+// ============================================
+// RADAR CHART
+// ============================================
+function drawRadar(scores) {
+  const canvas = document.getElementById('radarChart');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+  const cx = W / 2;
+  const cy = H / 2;
+  const r = 130;
+
+  const dims = [
+    { key: 'utilitarian', label: '功利主义', max: 14, min: -14 },
+    { key: 'personal', label: '个人情感', max: 8, min: -8 },
+    { key: 'universal', label: '普遍原则', max: 8, min: -8 },
+    { key: 'liberty', label: '自由至上', max: 8, min: -8 },
+    { key: 'utilitarian', label: '功利主义', max: 14, min: -14 } // repeat to close polygon
+  ];
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid circles
+  for (let i = 1; i <= 4; i++) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * (i / 4), 0, Math.PI * 2);
+    ctx.strokeStyle = i === 4 ? 'rgba(240,244,248,0.12)' : 'rgba(240,244,248,0.04)';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  }
+
+  // Axis lines
+  for (let i = 0; i < 4; i++) {
+    const angle = (Math.PI * 2 * i) / 4 - Math.PI / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + r * Math.cos(angle), cy + r * Math.sin(angle));
+    ctx.strokeStyle = 'rgba(240,244,248,0.06)';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  }
+
+  // Data polygon
+  ctx.beginPath();
+  for (let i = 0; i < 4; i++) {
+    const d = dims[i];
+    const normalized = (scores[d.key] - d.min) / (d.max - d.min);
+    const val = Math.max(0.05, Math.min(0.95, normalized));
+    const angle = (Math.PI * 2 * i) / 4 - Math.PI / 2;
+    const x = cx + r * val * Math.cos(angle);
+    const y = cy + r * val * Math.sin(angle);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(0, 229, 255, 0.08)';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0, 229, 255, 0.4)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Data points
+  for (let i = 0; i < 4; i++) {
+    const d = dims[i];
+    const normalized = (scores[d.key] - d.min) / (d.max - d.min);
+    const val = Math.max(0.05, Math.min(0.95, normalized));
+    const angle = (Math.PI * 2 * i) / 4 - Math.PI / 2;
+    const x = cx + r * val * Math.cos(angle);
+    const y = cy + r * val * Math.sin(angle);
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#00e5ff';
+    ctx.fill();
+  }
+
+  // Labels
+  ctx.fillStyle = '#f0f4f8';
+  ctx.font = '11px "Segoe UI", system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  const labelOffset = r + 22;
+  const labelNames = ['功利主义', '个人情感', '普遍原则', '自由至上'];
+  for (let i = 0; i < 4; i++) {
+    const angle = (Math.PI * 2 * i) / 4 - Math.PI / 2;
+    const x = cx + labelOffset * Math.cos(angle);
+    const y = cy + labelOffset * Math.sin(angle) + 4;
+    ctx.fillText(labelNames[i], x, y);
+  }
+
+  // Center dot
+  ctx.beginPath();
+  ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(240,244,248,0.3)';
+  ctx.fill();
+}
+
+// ============================================
+// RESULTS RENDER
+// ============================================
+function showResults() {
+  const rawScores = calculateScores();
+  const archetype = getArchetype(rawScores);
+  document.getElementById('archetypeName').textContent = archetype.name;
+  document.getElementById('archetypeDesc').textContent = archetype.desc;
+
+  // Draw radar
+  drawRadar(rawScores);
+
+  // Dimension bars
+  const dimDefs = [
+    {
+      key: 'utilitarian',
+      name: '功利主义',
+      desc: '你多大程度上认同「结果决定对错」',
+      min: -14, max: 14,
+      left: '道义论', right: '功利主义'
+    },
+    {
+      key: 'personal',
+      name: '个人情感',
+      desc: '你的道德判断多大程度上受情感和关系影响',
+      min: -8, max: 8,
+      left: '抽象理性', right: '情感驱动'
+    },
+    {
+      key: 'universal',
+      name: '普遍原则',
+      desc: '你多大程度上坚持普适的道德规则',
+      min: -8, max: 8,
+      left: '情境主义', right: '原则至上'
+    },
+    {
+      key: 'liberty',
+      name: '自由至上',
+      desc: '你对个人权利和自由的捍卫程度',
+      min: -8, max: 8,
+      left: '集体优先', right: '自由至上'
+    }
+  ];
+
+  const dimsEl = document.getElementById('dimensions');
+  dimsEl.innerHTML = dimDefs.map(d => {
+    const n = normalize(rawScores[d.key], d.min, d.max);
+    const barClass = rawScores[d.key] >= 0 ? 'cyan' : 'amber';
+    return `
+      <div class="dimension-item">
+        <div class="dimension-header">
+          <span class="dimension-name">${d.name}</span>
+          <span class="dimension-value">${rawScores[d.key] > 0 ? '+' : ''}${rawScores[d.key]}</span>
+        </div>
+        <div class="dimension-bar-track">
+          <div class="dimension-bar-fill ${barClass}" style="width: ${n}%; transition: width 1s ease 0.3s;"></div>
+        </div>
+        <div class="dimension-labels">
+          <span>${d.left}</span>
+          <span>${d.right}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+  // Trigger bar animation after render
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.dimension-bar-fill').forEach(bar => {
+      const w = bar.style.width;
+      bar.style.width = '0%';
+      requestAnimationFrame(() => { bar.style.width = w; });
+    });
+  });
+
+  // Review list
+  const reviewEl = document.getElementById('reviewList');
+  reviewEl.innerHTML = answers.map((a, i) => {
+    const isA = a.choice === 'A';
+    return `
+      <div class="review-item">
+        <span class="review-marker ${isA ? 'utilitarian' : 'deontological'}"></span>
+        <span class="review-label">${a.title}</span>
+        <span class="review-choice-text">${a.choiceText}</span>
+      </div>
+    `;
+  }).join('');
+
+  showScreen('results');
+
+  // Re-draw radar after visible (canvas needs to be visible to draw correctly)
+  setTimeout(() => drawRadar(rawScores), 100);
+
+  // Submit to database + fetch comparison stats
+  submitAndLoadStats();
+}
+
+async function submitAndLoadStats() {
+  const submitted = await submitToAPI();
+  if (submitted) {
+    const stats = await fetchStats();
+    renderStats(stats);
+  } else {
+    // Backend not available — show graceful message
+    const contentEl = document.getElementById('statsContent');
+    if (contentEl) {
+      contentEl.innerHTML = `
+        <div class="stats-error">
+          启动后端服务即可看到全体数据对比：<br>
+          <code style="color:var(--cyan);">python backend.py</code>
+        </div>
+      `;
+    }
+    document.getElementById('totalSessions').textContent = '';
+  }
+}
+
+// ============================================
+// SHARE
+// ============================================
+function shareResults() {
+  const name = document.getElementById('archetypeName').textContent;
+  const desc = document.getElementById('archetypeDesc').textContent;
+
+  const shareText = `🧠 我的道德画像：${name}\n\n${desc.substring(0, 80)}...\n\n你也来测测？道德困境实验室 →`;
+
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(shareText).then(() => {
+      showToast('已复制分享文案到剪贴板 ✓');
+    });
+  } else {
+    showToast('分享文案已生成，请手动复制');
+  }
+}
+
+function restartQuiz() {
+  currentDilemma = 0;
+  answers = [];
+  showScreen('welcome');
+}
+
+// ============================================
+// TOAST
+// ============================================
+function showToast(msg) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2500);
+}
+
+// ============================================
+// KEYBOARD SHORTCUTS
+// ============================================
+document.addEventListener('keydown', (e) => {
+  const quizScreen = document.getElementById('quiz');
+  if (!quizScreen.classList.contains('active')) return;
+  if (e.key === 'a' || e.key === 'A') choose('A');
+  if (e.key === 'b' || e.key === 'B') choose('B');
+});
+</script>
+
+</body>
+</html>
