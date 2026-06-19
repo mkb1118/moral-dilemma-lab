@@ -1,6 +1,1 @@
-﻿data.db
-__pycache__/
-*.pyc
-.env
-screenshot-*.png
-答题记录.json
+.netlify

@@ -930,25 +930,10 @@
       <div id="reviewList"></div>
     </div>
 
-    <div class="stats-section" id="statsSection">
-      <div class="stats-title">
-        <span class="live-dot"></span> 全体数据对比
-      </div>
-      <div id="statsContent" class="stats-loading">正在加载统计数据...</div>
-      <div class="total-sessions" id="totalSessions"></div>
-    </div>
-
     <div class="action-row">
       <button class="btn primary" onclick="restartQuiz()">重新测试</button>
       <button class="btn" onclick="shareResults()">📤 转发给朋友</button>
     </div>
-    <details class="data-manager" style="margin-top:16px; text-align:center;">
-      <summary style="font-family:var(--font-mono); font-size:11px; color:var(--white-dim); cursor:pointer; opacity:0.5;">🔧 数据管理</summary>
-      <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
-        <button class="btn" style="font-size:11px; padding:8px 18px;" onclick="viewRawData()">查看原始数据</button>
-        <button class="btn" style="font-size:11px; padding:8px 18px; border-color:var(--danger);" onclick="clearAllData()">清空全部记录</button>
-      </div>
-    </details>
     <p class="footer-note" style="margin-top:8px;">Moral Dilemma Lab · 仅供反思参考，非临床诊断</p>
   </div>
 </div>
@@ -1159,113 +1144,6 @@ const ARCHETYPES = {
 // ============================================
 let currentDilemma = 0;
 let answers = [];
-let sessionId = '';
-let userName = '';
-
-// ============================================
-// API HELPERS
-// ============================================
-// 自动识别：本地用 localhost，localtunnel 用同源，公网用 loca.lt
-const API_BASE = window.location.hostname === 'localhost'
-  ? window.location.origin
-  : window.location.hostname.endsWith('loca.lt')
-    ? window.location.origin   // 同源，绕过 511
-    : 'https://moral-dilemma-mkb.loca.lt';
-
-function generateSessionId() {
-  return 'sess_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-}
-
-async function submitToAPI() {
-  const totalScores = calculateScores();
-  const archetype = getArchetype(totalScores);
-  const payload = {
-    session_id: sessionId,
-    name: userName || '匿名',
-    answers: answers.map(a => ({
-      dilemma_id: a.dilemmaId,
-      dilemma_title: a.title,
-      choice: a.choice,
-      choice_text: a.choiceText,
-      scores: a.scores
-    })),
-    total_scores: totalScores,
-    archetype: archetype.name
-  };
-
-  try {
-    await fetch(`${API_BASE}/api/submit`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    return true;
-  } catch (e) {
-    console.warn('Failed to submit results:', e.message);
-    return false;
-  }
-}
-
-async function fetchStats() {
-  try {
-    const res = await fetch(`${API_BASE}/api/stats`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
-  } catch (e) {
-    console.warn('Failed to fetch stats:', e.message);
-    return null;
-  }
-}
-
-function renderStats(stats) {
-  const contentEl = document.getElementById('statsContent');
-  const sessionsEl = document.getElementById('totalSessions');
-
-  if (!stats || stats.total_sessions === 0) {
-    contentEl.innerHTML = `
-      <div class="stats-error">
-        暂无足够数据 · 数据越多，对比越有意思
-      </div>
-    `;
-    sessionsEl.textContent = '';
-    return;
-  }
-
-  sessionsEl.textContent = `基于 ${stats.total_sessions} 人次的匿名数据`;
-
-  // ── Per-dilemma comparison ──
-  let html = '';
-  stats.dilemma_stats.forEach(ds => {
-    const myAnswer = answers.find(a => a.dilemmaId === ds.id);
-    if (!myAnswer) return;
-
-    const sameChoicePct = myAnswer.choice === 'A' ? ds.choice_a.pct : ds.choice_b.pct;
-    const isMajority = sameChoicePct >= 50;
-    const barClass = isMajority ? 'majority' : 'minority';
-    const pctClass = isMajority ? 'cyan' : 'amber';
-
-    html += `
-      <div class="stat-item">
-        <span class="stat-dilemma-label">困境 ${ds.id}</span>
-        <div class="stat-bar-wrap">
-          <div class="stat-bar-fill ${barClass}" style="width: ${Math.max(sameChoicePct, 3)}%;"></div>
-        </div>
-        <span class="stat-pct ${pctClass}">${sameChoicePct}%</span>
-        <span class="stat-your-choice">${isMajority ? '多数派' : '少数派'}</span>
-      </div>
-    `;
-  });
-  contentEl.innerHTML = html;
-
-  // Animate bars
-  requestAnimationFrame(() => {
-    contentEl.querySelectorAll('.stat-bar-fill').forEach(bar => {
-      const w = bar.style.width;
-      bar.style.width = '0%';
-      requestAnimationFrame(() => { bar.style.width = w; });
-    });
-  });
-}
 
 // ============================================
 // NAVIGATION
@@ -1281,8 +1159,6 @@ function showScreen(id) {
 function startQuiz() {
   currentDilemma = 0;
   answers = [];
-  sessionId = generateSessionId();
-  userName = document.getElementById('userName').value.trim();
   showScreen('quiz');
   renderDilemma();
 }
@@ -1584,28 +1460,6 @@ function showResults() {
   // Re-draw radar after visible
   setTimeout(() => drawRadar(rawScores), 100);
 
-  // Submit + fetch stats
-  submitAndLoadStats();
-}
-
-async function submitAndLoadStats() {
-  const submitted = await submitToAPI();
-  if (submitted) {
-    const stats = await fetchStats();
-    renderStats(stats);
-  } else {
-    // Backend not available — show graceful message
-    const contentEl = document.getElementById('statsContent');
-    if (contentEl) {
-      contentEl.innerHTML = `
-        <div class="stats-error">
-          启动后端服务即可看到全体数据对比：<br>
-          <code style="color:var(--cyan);">python backend.py</code>
-        </div>
-      `;
-    }
-    document.getElementById('totalSessions').textContent = '';
-  }
 }
 
 // ============================================
@@ -1652,23 +1506,6 @@ function restartQuiz() {
 // ============================================
 // TOAST
 // ============================================
-function viewRawData() {
-  window.open(`${API_BASE}/api/raw`, '_blank');
-}
-
-async function clearAllData() {
-  if (!confirm('确定要清空所有答题记录吗？\n\n此操作不可恢复。')) return;
-  try {
-    await fetch(`${API_BASE}/api/clear`, { method: 'POST' });
-    showToast('所有记录已清空');
-    // Refresh stats
-    const stats = await fetchStats();
-    renderStats(stats);
-  } catch (e) {
-    showToast('清空失败，请检查后端是否在运行');
-  }
-}
-
 function showToast(msg) {
   const existing = document.querySelector('.toast');
   if (existing) existing.remove();
