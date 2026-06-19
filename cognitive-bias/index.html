@@ -73,6 +73,15 @@
   .dot.filled { background: var(--cyan); }
   .bias-desc { font-size: 13px; color: var(--dim); line-height: 1.6; font-weight: 300; margin-top: 8px; }
 
+  .awareness-meter { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+  .awareness-label { font-family: var(--mono); font-size: 10px; color: var(--dim); opacity: 0.6; min-width: 36px; }
+  .awareness-label.right { min-width: auto; text-align: right; font-size: 11px; opacity: 1; }
+  .awareness-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .awareness-bar-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+  .awareness-bar-fill.high { background: var(--cyan); }
+  .awareness-bar-fill.mid { background: rgba(0,229,255,0.4); }
+  .awareness-bar-fill.low { background: rgba(245,166,35,0.5); }
+
   .action-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 20px; margin-bottom: 12px; }
   .footer-note { font-family: var(--mono); font-size: 9px; color: var(--dim); opacity: 0.4; text-align: center; margin-top: 8px; }
 
@@ -121,7 +130,8 @@
     </div>
     <div class="score-card">
       <div class="score-number" id="totalScore"></div>
-      <div class="score-label" id="totalLabel"></div>
+      <div class="score-label">认知偏差抵抗力</div>
+      <div style="font-size:13px;color:var(--dim);margin-top:6px;line-height:1.6;font-weight:300;" id="totalLabel"></div>
     </div>
     <div id="biasList"></div>
     <div class="action-row">
@@ -418,56 +428,92 @@ function showResults() {
   });
 
   // Overall: lower = less biased. 0 hits = great, 24 hits = every bias triggered.
-  const totalHits = Object.values(biasScores).reduce((s, b) => s + b.hits, 0);
+  const totalAvoided = Object.values(biasScores).reduce((s, b) => s + (b.total - b.hits), 0);
   const maxHits = 36;
-  const clarityScore = Math.max(0, Math.round((1 - totalHits / maxHits) * 100));
+  const awarenessScore = Math.round((totalAvoided / maxHits) * 100);
 
   let totalLabel;
-  if (clarityScore >= 85) totalLabel = '你展现出了很强的认知警惕性——你的思维很少被这些经典偏差绑架。你善于在判断前停顿、检视自己是否在被"大脑默认设置"牵着走。保持这个习惯，并帮助身边的人也培养这种觉察。';
-  else if (clarityScore >= 65) totalLabel = '你有不错的认知觉察力，但某些思维陷阱对你来说仍然容易中招。下面的报告会帮你精确找到那些"大脑在自动驾驶"的领域。认知偏差不是性格缺陷——它是可以被训练和改善的。';
-  else if (clarityScore >= 45) totalLabel = '你有中等程度的认知偏差倾向。这完全正常——Kahneman的研究表明，即使是受过训练的专家也难以完全免疫这些偏差。关键是：你已经意识到了。意识是改善的第一步。下面的具体训练方法会帮你逐步建立"认知刹车"。';
-  else totalLabel = '你坦诚地承认了不少"大脑默认行为"。这其实需要相当的自我觉察才能做到——很多偏差更严重的人恰恰是最否认自己有问题的人（这是达克效应的核心发现）。认识问题是改善的前提。下面的训练方法不是让你"不再犯错"，而是让你在关键时刻能停下来想一想。';
+  if (awarenessScore >= 85) totalLabel = '你在大多数情境中成功识别并绕开了思维陷阱。你的认知习惯非常健康——不仅能保护自己，也能在团队中成为那个"等一下，我们是不是在犯XX偏差"的提醒者。';
+  else if (awarenessScore >= 65) totalLabel = '整体来看，你对大部分认知偏差有相当的抵抗力，但在某些特定类型的思维陷阱面前，你的防御偶尔会失效。下面的报告会告诉你哪些偏差最需要安装"认知刹车"。';
+  else if (awarenessScore >= 45) totalLabel = '你的思维有大约一半的时候能避开这些经典陷阱，另一半时候会被它们悄悄影响。这不代表你"不理性"——Kahneman的研究表明，偏差是大脑的出厂设置，连专家都需要刻意训练才能减少。好消息是：你能做这个测试，说明你已经在路上了。';
+  else totalLabel = '你在这项测试中比较容易被各种认知偏差影响。但这恰恰说明你的自我觉察很诚实——达克效应告诉我们，最需要警惕的人恰恰是那些觉得"我完全没问题"的人。下面的具体训练方法会帮你从今天开始武装自己的思维。';
 
-  document.getElementById('totalScore').textContent = clarityScore + '%';
+  document.getElementById('totalScore').textContent = awarenessScore + '%';
   document.getElementById('totalLabel').textContent = totalLabel;
 
-  // Bias cards
+  // Show strong areas (biases they resisted) in a summary
+  const strongAreas = Object.keys(BIAS_INFO).filter(k => {
+    const s = biasScores[k];
+    return s && s.hits === 0;
+  }).map(k => BIAS_INFO[k].icon + BIAS_INFO[k].name);
+  const weakAreas = Object.keys(BIAS_INFO).filter(k => {
+    const s = biasScores[k];
+    return s && s.hits >= 2;
+  }).map(k => BIAS_INFO[k].icon + BIAS_INFO[k].name);
+
+  // Bias cards with intuitive labels
   const orderedKeys = Object.keys(BIAS_INFO);
   document.getElementById('biasList').innerHTML = orderedKeys.map(key => {
     const info = BIAS_INFO[key];
     const score = biasScores[key] || { hits: 0, total: 3 };
     const hits = score.hits, total = score.total;
-    const level = hits >= 2 ? '高' : (hits === 1 ? '中' : '低');
-    const cls = hits >= 2 ? 'high' : (hits === 1 ? 'mid' : 'low');
-    const dots = Array.from({length: total}, (_, i) => `<span class="dot${i < hits ? ' filled' : ''}"></span>`).join('');
+    const avoided = total - hits;
+
+    // Intuitive labels based on resistance, not bias level
+    let level, cls, fillPct;
+    if (hits === 0) { level = '影响很小'; cls = 'low'; fillPct = 100; }
+    else if (hits === 1) { level = '偶尔出现'; cls = 'mid'; fillPct = 66; }
+    else if (hits === 2) { level = '需要注意'; cls = 'mid'; fillPct = 33; }
+    else { level = '经常出现'; cls = 'high'; fillPct = 0; }
+
+    // Visual: resistance bar instead of hit dots
+    const barHtml = `
+      <div class="awareness-meter">
+        <div class="awareness-label">抵抗力</div>
+        <div class="awareness-bar-wrap">
+          <div class="awareness-bar-fill ${cls}" style="width:${fillPct}%;"></div>
+        </div>
+        <div class="awareness-label right">${level}</div>
+      </div>
+    `;
 
     return `
       <div class="bias-card">
         <div class="bias-header">
           <span class="bias-name">${info.icon} ${info.name}</span>
-          <span class="bias-score-tag ${cls}">${level}(${hits}/${total})</span>
         </div>
-        <div class="bias-dots">${dots}</div>
+        ${barHtml}
         <div class="bias-desc">${info.desc}</div>
-        <div class="bias-desc" style="margin-top:8px; color:rgba(0,229,255,0.6);"><b>💡 矫正策略：</b>${info.fix}</div>
+        <div class="bias-desc" style="margin-top:8px; color:rgba(0,229,255,0.6);"><b>💡 如何加强：</b>${info.fix}</div>
         <div style="font-family:var(--mono); font-size:9px; color:var(--dim); opacity:0.35; margin-top:8px;">📚 ${info.ref}</div>
       </div>
     `;
   }).join('');
 
+  // Add strength/weakness summary at top of bias list
+  const summaryHtml = [];
+  if (strongAreas.length > 0) summaryHtml.push('<div style="font-size:13px;color:var(--dim);margin-bottom:12px;line-height:1.6;">✅ <b>你抵抗力最强的领域：</b>' + strongAreas.join('、') + ' —— 在这些思维陷阱面前你有很好的觉察力。</div>');
+  if (weakAreas.length > 0) summaryHtml.push('<div style="font-size:13px;color:var(--dim);margin-bottom:16px;line-height:1.6;">⚠️ <b>你最需要关注的领域：</b>' + weakAreas.join('、') + ' —— 建议重点阅读下面的矫正策略。</div>');
+  document.getElementById('biasList').innerHTML = summaryHtml.join('') + document.getElementById('biasList').innerHTML;
+
   showScreen('results');
+
+  // Animate awareness bars
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.awareness-bar-fill').forEach(bar => {
+      const w = bar.style.width;
+      bar.style.width = '0%';
+      requestAnimationFrame(() => { bar.style.width = w; });
+    });
+  });
 }
 
 // ============================================
 // SHARE
 // ============================================
 function shareResults() {
-  const totalHits = Object.values(BIAS_INFO).reduce((s, b) => {
-    const bs = SCENARIOS.filter(q => q.biasKey === Object.keys(BIAS_INFO).find(k => BIAS_INFO[k].name === b.name));
-    return s; // simplified for share text
-  }, 0);
-  const clarity = document.getElementById('totalScore').textContent;
-  const text = `🔍 认知偏差检测报告\n\n我的认知清晰度：${clarity}\n\n24个情境题，测了8种经典认知偏差：确认偏误、锚定效应、可得性启发、框架效应、过度自信、沉没成本、从众效应、后见之明。\n\n你的大脑也有这些"思维捷径"吗？\n👉 来测测 https://mkb1118.github.io/cognitive-bias/`;
+  const score = document.getElementById('totalScore').textContent;
+  const text = `🔍 认知偏差检测——我对12种经典思维陷阱的抵抗力：${score}\n\n36个情境题，测了确认偏误、锚定效应、损失厌恶、达克效应、基本归因错误等12种认知偏差。\n\n你的大脑也有这些"思维捷径"吗？3分钟，看见自己的认知模式。\n👉 https://mkb1118.github.io/cognitive-bias/`;
 
   if (navigator.clipboard) { navigator.clipboard.writeText(text).then(() => showToast('已复制！')); }
 }
