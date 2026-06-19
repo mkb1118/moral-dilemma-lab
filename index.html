@@ -999,10 +999,12 @@ let userName = '';
 // ============================================
 // API HELPERS
 // ============================================
-// 本地调试用 localhost，公网用 localtunnel（运行 start.bat 后自动生效）
+// 自动识别：本地用 localhost，localtunnel 用同源，公网用 loca.lt
 const API_BASE = window.location.hostname === 'localhost'
   ? window.location.origin
-  : 'https://moral-dilemma-mkb.loca.lt';
+  : window.location.hostname.endsWith('loca.lt')
+    ? window.location.origin   // 同源，绕过 511
+    : 'https://moral-dilemma-mkb.loca.lt';
 
 function generateSessionId() {
   return 'sess_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
