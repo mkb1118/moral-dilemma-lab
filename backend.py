@@ -12,6 +12,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 # 数据文件就放在项目根目录，一眼就能看到
@@ -225,6 +226,11 @@ def cleanup_info():
 def raw_data():
     """查看原始数据（JSON格式，浏览器打开直接看）"""
     return read_data()
+
+
+# ── 静态文件（和API同源，避免跨域511） ─────────────────
+frontend_dir = Path(__file__).parent
+app.mount("/", StaticFiles(directory=str(frontend_dir), html=True), name="static")
 
 
 # ── 启动入口 ───────────────────────────────────────────────
