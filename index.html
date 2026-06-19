@@ -430,18 +430,112 @@
     mask-composite: exclude;
     pointer-events: none;
   }
+  .archetype-emoji {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
   .archetype-name {
     font-size: 28px;
     font-weight: 300;
     color: var(--cyan);
     letter-spacing: 2px;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
+  }
+  .archetype-subtitle {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--amber);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
   }
   .archetype-desc {
     color: var(--white-dim);
     font-size: 15px;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  /* Insight grid */
+  .insight-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 28px;
+    width: 100%;
+  }
+  .insight-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+  }
+  .insight-icon { font-size: 24px; margin-bottom: 8px; }
+  .insight-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--white-dim);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .insight-text {
+    color: var(--white);
+    font-size: 14px;
     line-height: 1.6;
     font-weight: 300;
+  }
+
+  /* Life sections */
+  .life-section {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 12px;
+    border-left: 2px solid var(--cyan-dim);
+  }
+  .life-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--amber);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+  .life-text {
+    color: var(--white-dim);
+    font-size: 14px;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  /* Quote */
+  .quote-section {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    text-align: center;
+    position: relative;
+  }
+  .quote-mark {
+    font-size: 60px;
+    font-family: Georgia, serif;
+    color: var(--cyan-dim);
+    line-height: 1;
+    margin-bottom: -10px;
+    opacity: 0.5;
+  }
+  .quote-text {
+    color: var(--white);
+    font-size: 16px;
+    line-height: 1.7;
+    font-weight: 300;
+    font-style: italic;
   }
 
   /* Radar chart */
@@ -701,6 +795,8 @@
     .title-block h1 { font-size: 30px; }
     .archetype-card { padding: 24px; }
     .choice-btn { padding: 16px 20px; font-size: 14px; }
+    .insight-grid { grid-template-columns: 1fr; }
+    .quote-section { padding: 20px; }
   }
 
   /* ============================================
@@ -788,8 +884,23 @@
     </div>
 
     <div class="archetype-card">
+      <div class="archetype-emoji" id="archetypeEmoji"></div>
       <div class="archetype-name" id="archetypeName"></div>
+      <div class="archetype-subtitle" id="archetypeSubtitle"></div>
       <p class="archetype-desc" id="archetypeDesc"></p>
+    </div>
+
+    <div class="insight-grid">
+      <div class="insight-box" id="insightSuperpower">
+        <div class="insight-icon">⚡</div>
+        <div class="insight-label">你的道德超能力</div>
+        <div class="insight-text" id="superpowerText"></div>
+      </div>
+      <div class="insight-box" id="insightBlindspot">
+        <div class="insight-icon">🔍</div>
+        <div class="insight-label">你可能忽略的盲区</div>
+        <div class="insight-text" id="blindspotText"></div>
+      </div>
     </div>
 
     <div class="chart-container">
@@ -798,6 +909,21 @@
     </div>
 
     <div class="dimensions" id="dimensions"></div>
+
+    <div class="life-section" id="lifeRelationships">
+      <div class="life-title">在关系中</div>
+      <p class="life-text" id="relationshipsText"></p>
+    </div>
+
+    <div class="life-section" id="lifeWork">
+      <div class="life-title">在职场中</div>
+      <p class="life-text" id="workText"></p>
+    </div>
+
+    <div class="quote-section">
+      <div class="quote-mark">"</div>
+      <p class="quote-text" id="moralQuote"></p>
+    </div>
 
     <div class="review-section">
       <div class="review-title">你的选择回顾</div>
@@ -814,7 +940,7 @@
 
     <div class="action-row">
       <button class="btn primary" onclick="restartQuiz()">重新测试</button>
-      <button class="btn" onclick="shareResults()">复制分享链接</button>
+      <button class="btn" onclick="shareResults()">📤 转发给朋友</button>
     </div>
     <details class="data-manager" style="margin-top:16px; text-align:center;">
       <summary style="font-family:var(--font-mono); font-size:11px; color:var(--white-dim); cursor:pointer; opacity:0.5;">🔧 数据管理</summary>
@@ -834,129 +960,129 @@
 const DILEMMAS = [
   {
     id: 1,
-    title: 'DILEMMA 01 · 电车难题',
-    scenario: '一辆失控的电车正冲向轨道上的 5 个工人，他们无法及时逃离。你可以拉动一个拉杆，让电车转向另一条轨道——但那条轨道上有 1 个工人。',
-    context: '你是否应该拉动拉杆，牺牲 1 个人来拯救 5 个人？',
+    title: '困境 01 · 失控的电车',
+    scenario: '一辆失控的电车正冲向铁轨上的五个人。他们完全不知情，来不及逃离。你的手边有一个拉杆——拉下它，电车会转向另一条铁轨，但那上面站着一个人，一个和你一样正在回家路上的人。',
+    context: '拉下它，你亲手改变了结果。不拉，你什么都没有做。但"什么都不做"也是一种选择——你选哪个？',
     choiceA: {
-      text: '拉动拉杆',
-      subtitle: '牺牲 1 人，拯救 5 人',
+      text: '拉下拉杆',
+      subtitle: '牺牲一人，拯救五人',
       scores: { utilitarian: 3, personal: -1, universal: 1, liberty: 0 }
     },
     choiceB: {
-      text: '不拉动拉杆',
-      subtitle: '不主动干预，接受既有结果',
+      text: '不拉',
+      subtitle: '不干预命运的轨迹',
       scores: { utilitarian: -2, personal: 1, universal: -1, liberty: 1 }
     }
   },
   {
     id: 2,
-    title: 'DILEMMA 02 · 天桥困境',
-    scenario: '还是那辆失控的电车冲向 5 个人。但这次你站在天桥上，身边有一个身材魁梧的陌生人。如果你把他推下去，他的身体足以挡住电车。',
-    context: '亲手推一个人下去和拉动拉杆，性质一样吗？',
+    title: '困境 02 · 天桥上的抉择',
+    scenario: '同一个场景——电车冲向五个人。但这次你站在天桥上，身边是一个陌生的健壮男子。如果把他推下去，他的身体足够挡住电车。这一次，你的手上会沾血。',
+    context: '拉杆是抽象的动作，推人是一次亲手的暴力。逻辑上结果一样——但你的身体拒绝执行。这种"拒绝"是软弱，还是人性？',
     choiceA: {
       text: '推下陌生人',
-      subtitle: '直接行动，牺牲 1 人救 5 人',
+      subtitle: '逻辑一致：一人换五人',
       scores: { utilitarian: 4, personal: -4, universal: 1, liberty: -2 }
     },
     choiceB: {
-      text: '不推',
-      subtitle: '无法亲手伤害一个人，即使能救更多人',
+      text: '无法下手',
+      subtitle: '亲手伤害是另一回事',
       scores: { utilitarian: -3, personal: 3, universal: -1, liberty: 1 }
     }
   },
   {
     id: 3,
-    title: 'DILEMMA 03 · 善意的谎言',
-    scenario: '你的好朋友精心准备了一场演出，邀请你来看。演出结束后，她兴奋地问你觉得怎么样。说实话——演出真的很糟糕，但你知道如果说出真相，她会深受打击。',
-    context: '诚实的残酷 vs 善意的谎言，你选哪个？',
+    title: '困境 03 · 白色谎言',
+    scenario: '你最好的朋友花了一个月准备的演出，今晚终于上台了。散场后她跑过来，眼里全是期待："怎么样怎么样！"——说实话，演出很糟糕。但你知道过去一个月她每天练到凌晨。',
+    context: '真相有时候是一种暴力，谎言有时候是一种温柔。你对谁说真话？对谁都一样吗？',
     choiceA: {
-      text: '善意地说"很好"',
-      subtitle: '保护朋友的感受，维护关系',
+      text: '"太棒了！"',
+      subtitle: '此刻她需要的是被看见，不是批评',
       scores: { utilitarian: 1, personal: 2, universal: -2, liberty: 0 }
     },
     choiceB: {
-      text: '温和但诚实地表达',
-      subtitle: '尊重真相，相信朋友能承受',
+      text: '温和地说出真实感受',
+      subtitle: '真正的朋友有权利听到真相',
       scores: { utilitarian: -1, personal: -1, universal: 2, liberty: 1 }
     }
   },
   {
     id: 4,
-    title: 'DILEMMA 04 · 举报还是忠诚',
-    scenario: '你发现关系很好的同事偷偷将公司数据卖给竞争对手。这件事只有你知道。如果举报，同事会失业并可能面临法律后果；如果沉默，公司会持续受损。',
-    context: '正义的原则 vs 对朋友的情义，哪个更重要？',
+    title: '困境 04 · 沉默的同事',
+    scenario: '你偶然发现一个平时对你很照顾的同事，在偷偷把公司核心数据卖给竞争对手。他家里有两个在上学的孩子，还有生病的母亲。你知道举报意味着什么——但公司里几百个无辜的同事也会因为数据泄露而受影响。',
+    context: '忠义两难——对一个人的忠诚，和对待更多人的公平，有时候无法兼得。',
     choiceA: {
       text: '匿名举报',
-      subtitle: '维护规则和更大的利益',
+      subtitle: '规则必须维护，无论代价多大',
       scores: { utilitarian: 2, personal: -1, universal: 3, liberty: -1 }
     },
     choiceB: {
-      text: '私下劝说他停止',
-      subtitle: '给朋友一个改正的机会',
+      text: '先私下和他谈谈',
+      subtitle: '给人留一条回头路',
       scores: { utilitarian: 0, personal: 2, universal: -1, liberty: 1 }
     }
   },
   {
     id: 5,
-    title: 'DILEMMA 05 · 器官移植',
-    scenario: '医院里有 5 位病人分别需要心、肺、肝、肾、胰腺移植，否则会死亡。这时来了一个健康的流浪者做常规体检——如果"牺牲"他，5 个人都能活下来。',
-    context: '这只是一个思想实验，但你的直觉是什么？',
+    title: '困境 05 · 五个病人和一个流浪者',
+    scenario: '医院里有五个病人，分别需要心脏、肺、肝脏、肾脏和胰腺移植，否则都会在短期内死亡。这天来了一个流浪汉做常规体检——他的所有器官恰好匹配。如果现在"解决"他，五条命就保住了。',
+    context: '这只是一个思想实验——但你的第一反应说明了很多。6条命和5条命——但额外的1条，你是"主动夺走的"。',
     choiceA: {
-      text: '不会牺牲流浪者',
-      subtitle: '个人的权利不可侵犯',
+      text: '保护流浪汉',
+      subtitle: '没有人应该成为别人的器官库',
       scores: { utilitarian: -4, personal: 2, universal: 2, liberty: 2 }
     },
     choiceB: {
-      text: '考虑最大化生命数',
-      subtitle: '5 条生命 > 1 条生命',
+      text: '五个人的命更重',
+      subtitle: '残酷的数学是残酷的，但它是真实的',
       scores: { utilitarian: 4, personal: -3, universal: 0, liberty: -2 }
     }
   },
   {
     id: 6,
-    title: 'DILEMMA 06 · 自动驾驶',
-    scenario: '一辆自动驾驶汽车刹车失灵，前方有 5 个行人。它可以转向撞墙——但这样车内唯一的乘客（你）会死。你是这辆车的算法设计者。',
-    context: '你会把程序设定为优先保护乘客，还是优先最小化总伤亡？',
+    title: '困境 06 · 你设计的自动驾驶',
+    scenario: '你是一个自动驾驶算法的设计者。刹车失灵了，前方突然出现五个行人。唯一的选择是转向撞墙——但这样，车里的唯一乘客会死。那位乘客，是你自己。',
+    context: '工程师的责任是保护"绝大多数人"——但你现在在写的就是决定自己生死的代码。你还会写"最小化伤亡"吗？',
     choiceA: {
-      text: '优先保护乘客',
-      subtitle: '买了这辆车的人理应被保护',
+      text: '设定为保护乘客',
+      subtitle: '买车的人有权被保护',
       scores: { utilitarian: -2, personal: 1, universal: -2, liberty: 1 }
     },
     choiceB: {
-      text: '优先最小化伤亡',
-      subtitle: '5 条生命比你 1 条生命更重',
+      text: '设定为最小化总伤亡',
+      subtitle: '原则面前人人平等，包括我自己',
       scores: { utilitarian: 3, personal: -1, universal: 2, liberty: -1 }
     }
   },
   {
     id: 7,
-    title: 'DILEMMA 07 · 隐私监控',
-    scenario: '政府提出一项法案：全面监控所有人的通讯记录，以预防恐怖袭击。数据显示这将阻止 70% 的潜在袭击，但每个人的隐私将不复存在。',
-    context: '安全 vs 自由，你如何权衡？',
+    title: '困境 07 · 安全与隐私',
+    scenario: '一项新法案声称，通过监控所有人的通讯记录，可以预防70%的恶性犯罪。支持者说"不做亏心事不怕鬼敲门"，反对者说"今天的监控，明天的镇压"。',
+    context: '你愿意交出多少自由，来换取多少安全？这个边界，由谁来划？',
     choiceA: {
-      text: '支持监控法案',
-      subtitle: '安全比隐私更重要',
+      text: '支持监控',
+      subtitle: '安全是自由的前提',
       scores: { utilitarian: 2, personal: 0, universal: -1, liberty: -3 }
     },
     choiceB: {
-      text: '反对监控法案',
-      subtitle: '隐私是基本权利，不容妥协',
+      text: '反对监控',
+      subtitle: '隐私权不容打折',
       scores: { utilitarian: -1, personal: 1, universal: 1, liberty: 3 }
     }
   },
   {
     id: 8,
-    title: 'DILEMMA 08 · 昂贵药物',
-    scenario: '一种罕见病的新药造价 200 万/人，能救一个孩子。但同样 200 万，可以在贫困地区建一个基础诊所，每年救几百人的命，只是每个人"救得没那么彻底"。',
-    context: '你会把捐款用于救那个孩子，还是建诊所？',
+    title: '困境 08 · 一张支票的两种写法',
+    scenario: '你有一笔200万的善款。选项A：为一个罕见病孩子支付一支救命药。他会活下去，你会看到他的笑容。选项B：在偏远地区建一个基础诊所，每年能救几百人——但你看不到那些脸。',
+    context: '一个你能看到眼泪，几百个只在统计表上。理性和情感，这道题的答案取决于你相信"善"是什么。',
     choiceA: {
       text: '救那个孩子',
-      subtitle: '每个生命都有名字，都有故事',
+      subtitle: '每一个生命都值得被全力拯救',
       scores: { utilitarian: -3, personal: 3, universal: 1, liberty: 0 }
     },
     choiceB: {
       text: '建诊所',
-      subtitle: '理性地说，这样救的人多得多',
+      subtitle: '几百条生命 > 一条生命',
       scores: { utilitarian: 3, personal: -2, universal: 1, liberty: 1 }
     }
   }
@@ -968,23 +1094,63 @@ const DILEMMAS = [
 const ARCHETYPES = {
   strongUtilitarian: {
     name: '冷静的计算者',
-    desc: '你倾向于用结果来衡量行为的对错。5 > 1 对你来说是一个有力的论据。你能在情感上抽离，做出"最大利益"的判断——这是你的天赋，但有时也是你的盲点。'
+    emoji: '🧮',
+    subtitle: 'THE CONSEQUENTIALIST',
+    desc: '在你眼中，一个行为的对错取决于它带来了什么结果。5比1大——这不是冷漠，而是你在混乱中寻找最优解的诚实。你愿意承担"看起来冷酷"的代价，去做真正能最大化善意的决定。你不容易被煽情的故事绑架，这让你在危机中格外清醒。',
+    superpower: '你有能力在情绪洪流中保持理性的锚点。当众人被恐惧和愤怒裹挟时，你是那个能够说"我们看看数据怎么说"的人。这种冷静不是无情——它是一种更深沉的责任感。',
+    blindspot: '有时候，你对"效率"和"最优解"的执着，会让你不经意间忽略了那些无法被数字化的东西——一个人的尊严、一个故事的重量、一种被看见的渴望。记得：不是所有重要的东西都数得清。',
+    relationships: '在关系中，你往往是那个"就事论事"的人。伴侣情绪低落时，你下意识想提供解决方案，而不是先共情。试着先说"我听到你了"，再说"也许可以试试..."——这会让爱你的人真正感受到你的温度。',
+    work: '职场是你的天然主场。你能在复杂决策中快速找到ROI最高的路径，这让同事和上级都依赖你的判断。但要小心：过度理性会让你低估"办公室政治"中人情的重要性。一份真诚的认可，比一份完美的KPI分析有时更能打动人。',
+    quote: '道德不是计算得失，而是问自己：我愿意生活在我做决定的那个世界里吗？',
+    shareEmoji: '🧮'
   },
   strongDeontological: {
     name: '原则的守护者',
-    desc: '你相信有些事情本身就有对错，不取决于结果。不能为了更大的利益而践踏个体的权利。你的道德指南针稳定而清晰，但也可能在复杂世界中显得有些"固执"。'
+    emoji: '⚔️',
+    subtitle: 'THE PRINCIPLED GUARDIAN',
+    desc: '你相信有些底线不容妥协——不是因为这样做"有用"，而是因为这样做本身是对的。你不会为了更大的利益而出卖一个无辜的人。这种坚定在浮躁的世界里如同一座灯塔，让人感到安全和信任。',
+    superpower: '你拥有一种罕见的道德清晰感。当群体在各种灰色地带中迷失时，你是那个能清晰地说出"这是对的，那是错的"的人。你的存在本身就是一种稳定的力量——人们知道，在你身边，有些底线永远不会被动摇。',
+    blindspot: '世界有时比你想象的更复杂。有些情境中，两条原则会发生冲突，而"坚持原则"本身也有成本。试着问自己：我是在捍卫原则，还是在捍卫"捍卫原则的感觉"？真正的原则主义不是僵硬，而是在每一个具体情境中重新审视和确认。',
+    relationships: '你在关系中让人感到安全——因为你是一个"言必行、行必果"的人。但有时你的黑白分明会让伴侣或朋友觉得没有空间去解释自己的"灰色"。记住：理解不等于妥协，倾听不等于背叛原则。',
+    work: '你是团队中那个"道德指南针"。当大家为了业绩开始走捷径时，你会是最早拉响警报的人。这种品质在长期来看极其珍贵，但在短期可能让你被视为"不够灵活"。找到那个既坚持原则又不被边缘化的表达方式，是你成长的课题。',
+    quote: '在这个世界上，唯一值得恐惧的，是自己的良知。',
+    shareEmoji: '⚔️'
   },
   balanced: {
     name: '思辨的平衡者',
-    desc: '你在功利计算和道德原则之间走得游刃有余。面对困境，你不会简单地选边站——而是根据情境的细微差别做出判断。这种灵活性让你能看到问题的多个层面。'
+    emoji: '⚖️',
+    subtitle: 'THE NUANCED DIALECTICIAN',
+    desc: '你拒绝简单的二元对立。电车难题？你觉得问题本身就值得质疑。你天生能看到问题的多个面向，这种能力让你在所有争论中都是最让人信服的声音——因为你真的理解了每一方。',
+    superpower: '你有能力同时持有两种对立的观点而不感到不适。这不是优柔寡断，而是一种更高的认知能力——你能看到"功利主义者说得有道理，但原则主义者也有道理"，然后在这个张力中做出最合适的抉择。',
+    blindspot: '过度思辨有时会让你陷入"分析瘫痪"。当需要快速决策时，你可能会花太多时间权衡，错过了最佳时机。另外，你可能会因为太过理解每一方而难以被任何一方视为"自己人"。在某个时刻，你需要选择立场——哪怕只是暂时的。',
+    relationships: '你是最好的倾听者，因为你能真正理解对方的处境，即使你不同意。但伴侣有时可能会困惑：你到底是站在我这边的，还是只是"理解"我？在关系中，有时候不需要完美的平衡，而是需要明确的"我站在你这边"。',
+    work: '你天生适合做调停者、产品经理、咨询师——任何需要"理解所有人需求然后找到平衡点"的角色。但注意：不要因为太擅长平衡而变成了"谁都不满意"的妥协。有时候，最好的平衡是明确地选择一个方向。',
+    quote: '智慧不是知道答案，而是理解问题本身。',
+    shareEmoji: '⚖️'
   },
   compassionate: {
     name: '共情的联结者',
-    desc: '对你来说，道德的核心是人与人的关系。你会被具体的人的故事打动，厌恶那些把生命抽象成"数字"的冷酷逻辑。你的力量在于你能感受到他人的痛苦。'
+    emoji: '💙',
+    subtitle: 'THE EMPATHIC CONNECTOR',
+    desc: '对你来说，道德不是抽象的原则或冷冰冰的数字——它是一个个有血有肉的人。你无法把一个人当作"牺牲品"来看待，即使是为了更大的利益。这种发自内心的不忍，是你最柔软也最坚强的力量。',
+    superpower: '你能感受到别人的痛苦，就像那是你自己的一样。这种能力让你成为天然的关怀者、最好的朋友、最让人信任的伙伴。在一个越来越把人"工具化"的世界里，你是那个提醒大家——每个人都是目的，不是手段。',
+    blindspot: '你的共情力有时会让你做出对个体最好、但对群体不是最优的选择。你可能会因为不忍心拒绝一个人而让更多人受影响。另外，过度的共情会耗尽你——你需要学会在某些时候说"不"，这不会让你变成一个坏人。',
+    relationships: '你是那种朋友半夜打电话一定会接的人。你的关系中充满了温度和深度，因为你能让对方感到被真正地"看见"。但要警惕：你可能会因为过度付出而吸引"情绪吸血鬼"。先照顾好自己，才能持续照顾别人。',
+    work: '你在护理、教育、心理咨询、NGO等"与人有关"的领域会如鱼得水。在商业环境中，你可能需要刻意提醒自己：有时候做一个艰难但正确的商业决策，长远来看对更多人更好。共情不应该是你做决定的唯一标准——但永远是最好的起点。',
+    quote: '每个人都是宇宙用了几十亿年才制造出来的独一无二的存在。',
+    shareEmoji: '💙'
   },
   libertarian: {
     name: '自由的捍卫者',
-    desc: '你高度警惕任何对个人权利的侵犯——即使打着"更大的善"的旗号。自由和自主权是你道德框架的核心。你会为弱势者的声音被听到而战斗。'
+    emoji: '🕊️',
+    subtitle: 'THE LIBERTY GUARDIAN',
+    desc: '你对自由有一种近乎本能的敏感。任何试图以"更大的善"为名侵犯个人权利的举动，都会触发你的警觉。你相信，一个社会的道德水平，取决于它如何对待最弱小的个体——而不是它如何最大化幸福的总量。',
+    superpower: '你能看到权力结构中那些容易被忽视的不公。当大多数人觉得"这没什么大不了的"时，你能预见这种妥协最终会导致什么。你是个人权利的最后一道防线，是弱者声音的天然放大器。',
+    blindspot: '有时候你会高估"绝对自由"的可行性。在一个需要秩序与合作的社会里，某些自由的让渡是必要的。关键在于"谁来决定"和"谁来监督"。另外，你可能会把每一个规则都视为压迫，而忽视了有些规则确实在保护弱者。',
+    relationships: '你非常尊重伴侣和朋友的独立性，讨厌控制或操纵。这让你成为一个不会"窒息"对方的人。但同时，你可能会在需要亲密和依赖的时候，不自觉地保持距离。真正的自由也包括——允许自己去需要别人。',
+    work: '你在创业、自由职业、创意工作中会找到最大的满足感——你无法忍受被无意义的规则束缚。但在等级森严的组织中，你可能会频繁碰壁。试着把你的自由精神转化为"推动组织变得更好"的力量，而不是单纯的对抗。',
+    quote: '生命诚可贵，爱情价更高。若为自由故，二者皆可抛。',
+    shareEmoji: '🕊️'
   }
 };
 
@@ -1316,41 +1482,56 @@ function drawRadar(scores) {
 function showResults() {
   const rawScores = calculateScores();
   const archetype = getArchetype(rawScores);
+
+  // ── Archetype card ──
+  document.getElementById('archetypeEmoji').textContent = archetype.emoji || '';
   document.getElementById('archetypeName').textContent = archetype.name;
+  document.getElementById('archetypeSubtitle').textContent = archetype.subtitle || '';
   document.getElementById('archetypeDesc').textContent = archetype.desc;
 
-  // Draw radar
+  // ── Superpower & blindspot ──
+  document.getElementById('superpowerText').textContent = archetype.superpower;
+  document.getElementById('blindspotText').textContent = archetype.blindspot;
+
+  // ── Life sections ──
+  document.getElementById('relationshipsText').textContent = archetype.relationships;
+  document.getElementById('workText').textContent = archetype.work;
+
+  // ── Quote ──
+  document.getElementById('moralQuote').textContent = archetype.quote;
+
+  // ── Radar ──
   drawRadar(rawScores);
 
-  // Dimension bars
+  // ── Dimension bars ──
   const dimDefs = [
     {
       key: 'utilitarian',
-      name: '功利主义',
-      desc: '你多大程度上认同「结果决定对错」',
+      name: '功利计算',
+      desc: '你在多大程度上用"结果"来衡量行为的对错',
       min: -14, max: 14,
-      left: '道义论', right: '功利主义'
+      left: '道义驱动的', right: '结果导向的'
     },
     {
       key: 'personal',
-      name: '个人情感',
-      desc: '你的道德判断多大程度上受情感和关系影响',
+      name: '情感参与',
+      desc: '你的道德判断多大程度上被个人情感和关系所塑造',
       min: -8, max: 8,
-      left: '抽象理性', right: '情感驱动'
+      left: '理性抽离的', right: '情感投入的'
     },
     {
       key: 'universal',
-      name: '普遍原则',
-      desc: '你多大程度上坚持普适的道德规则',
+      name: '原则坚持',
+      desc: '你多大程度上相信存在超越情境的普适道德规则',
       min: -8, max: 8,
-      left: '情境主义', right: '原则至上'
+      left: '情境灵活的', right: '原则至上的'
     },
     {
       key: 'liberty',
-      name: '自由至上',
-      desc: '你对个人权利和自由的捍卫程度',
+      name: '自由捍卫',
+      desc: '你对个人权利和自主权的敏感度和保护欲',
       min: -8, max: 8,
-      left: '集体优先', right: '自由至上'
+      left: '秩序优先的', right: '自由至上的'
     }
   ];
 
@@ -1371,10 +1552,12 @@ function showResults() {
           <span>${d.left}</span>
           <span>${d.right}</span>
         </div>
+        <div style="font-size:11px;color:var(--white-dim);margin-top:4px;opacity:0.5;">${d.desc}</div>
       </div>
     `;
   }).join('');
-  // Trigger bar animation after render
+
+  // Trigger bar animation
   requestAnimationFrame(() => {
     document.querySelectorAll('.dimension-bar-fill').forEach(bar => {
       const w = bar.style.width;
@@ -1383,7 +1566,7 @@ function showResults() {
     });
   });
 
-  // Review list
+  // ── Review list ──
   const reviewEl = document.getElementById('reviewList');
   reviewEl.innerHTML = answers.map((a, i) => {
     const isA = a.choice === 'A';
@@ -1398,10 +1581,10 @@ function showResults() {
 
   showScreen('results');
 
-  // Re-draw radar after visible (canvas needs to be visible to draw correctly)
+  // Re-draw radar after visible
   setTimeout(() => drawRadar(rawScores), 100);
 
-  // Submit to database + fetch comparison stats
+  // Submit + fetch stats
   submitAndLoadStats();
 }
 
@@ -1430,13 +1613,30 @@ async function submitAndLoadStats() {
 // ============================================
 function shareResults() {
   const name = document.getElementById('archetypeName').textContent;
-  const desc = document.getElementById('archetypeDesc').textContent;
+  const quote = document.getElementById('moralQuote').textContent;
+  const rawScores = calculateScores();
+  const dimSummary = [
+    rawScores.utilitarian >= 0 ? '结果导向' : '原则至上',
+    rawScores.personal >= 0 ? '情感充沛' : '理性克制',
+    rawScores.liberty >= 2 ? '自由至上' : (rawScores.liberty <= -2 ? '秩序优先' : '平衡')
+  ].join(' · ');
 
-  const shareText = `🧠 我的道德画像：${name}\n\n${desc.substring(0, 80)}...\n\n你也来测测？道德困境实验室 →`;
+  const shareText = `🧠 道德困境实验室——我的道德人格画像
+
+【${name}】
+
+"${quote}"
+
+我的道德光谱：${dimSummary}
+
+面对电车难题、善意谎言、安全与自由...8个经典困境，没有正确答案，只有真实的自己。
+
+👉 你也来测测？3分钟看见你的道德人格
+https://moral-dilemma-lab.netlify.app`;
 
   if (navigator.clipboard) {
     navigator.clipboard.writeText(shareText).then(() => {
-      showToast('已复制分享文案到剪贴板 ✓');
+      showToast('📋 已复制！去朋友圈/微信群粘贴发送吧');
     });
   } else {
     showToast('分享文案已生成，请手动复制');
