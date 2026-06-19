@@ -773,7 +773,14 @@
       <button class="btn primary" onclick="restartQuiz()">重新测试</button>
       <button class="btn" onclick="shareResults()">复制分享链接</button>
     </div>
-    <p class="footer-note">Moral Dilemma Lab · 仅供反思参考，非临床诊断</p>
+    <details class="data-manager" style="margin-top:16px; text-align:center;">
+      <summary style="font-family:var(--font-mono); font-size:11px; color:var(--white-dim); cursor:pointer; opacity:0.5;">🔧 数据管理</summary>
+      <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+        <button class="btn" style="font-size:11px; padding:8px 18px;" onclick="viewRawData()">查看原始数据</button>
+        <button class="btn" style="font-size:11px; padding:8px 18px; border-color:var(--danger);" onclick="clearAllData()">清空全部记录</button>
+      </div>
+    </details>
+    <p class="footer-note" style="margin-top:8px;">Moral Dilemma Lab · 仅供反思参考，非临床诊断</p>
   </div>
 </div>
 
@@ -1397,6 +1404,23 @@ function restartQuiz() {
 // ============================================
 // TOAST
 // ============================================
+function viewRawData() {
+  window.open(`${API_BASE}/api/raw`, '_blank');
+}
+
+async function clearAllData() {
+  if (!confirm('确定要清空所有答题记录吗？\n\n此操作不可恢复。')) return;
+  try {
+    await fetch(`${API_BASE}/api/clear`, { method: 'POST' });
+    showToast('所有记录已清空');
+    // Refresh stats
+    const stats = await fetchStats();
+    renderStats(stats);
+  } catch (e) {
+    showToast('清空失败，请检查后端是否在运行');
+  }
+}
+
 function showToast(msg) {
   const existing = document.querySelector('.toast');
   if (existing) existing.remove();

@@ -1,51 +1,45 @@
 """
 道德困境实验室 - 后端服务
-FastAPI + SQLite，收集匿名答题数据，提供统计对比
+FastAPI + JSON文件存储，数据文件在项目根目录，记事本就能打开看
 """
 import os
-import sqlite3
 import uuid
 import json
+import threading
 from pathlib import Path
+from datetime import datetime
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-DB_PATH = Path(__file__).parent / "data.db"
+# 数据文件就放在项目根目录，一眼就能看到
+DATA_FILE = Path(__file__).parent / "答题记录.json"
+LOCK = threading.Lock()
 
 
-# ── 数据库初始化 ───────────────────────────────────────────
-def init_db():
-    with sqlite3.connect(str(DB_PATH)) as conn:
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS submissions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                session_id TEXT NOT NULL,
-                dilemma_id INTEGER NOT NULL,
-                dilemma_title TEXT NOT NULL,
-                choice TEXT NOT NULL,
-                choice_text TEXT NOT NULL,
-                scores_json TEXT NOT NULL,
-                total_scores_json TEXT NOT NULL DEFAULT '{}',
-                archetype TEXT NOT NULL DEFAULT '',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        conn.execute("""
-            CREATE INDEX IF NOT EXISTS idx_dilemma ON submissions(dilemma_id, choice)
-        """)
-        conn.execute("""
-            CREATE INDEX IF NOT EXISTS idx_session ON submissions(session_id)
-        """)
-        conn.commit()
+# ── JSON 文件读写 ──────────────────────────────────────────
+def read_data():
+    """读取数据文件，没有则返回空结构"""
+    if not DATA_FILE.exists():
+        return {"submissions": []}
+    with open(DATA_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def write_data(data):
+    """写入数据文件"""
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 # ── 应用启动 ───────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()
+    # 首次启动创建空文件
+    if not DATA_FILE.exists():
+        write_data({"submissions": []})
     yield
 
 app = FastAPI(title="道德困境实验室 API", lifespan=lifespan)
@@ -62,9 +56,10 @@ app.add_middleware(
 class AnswerItem(BaseModel):
     dilemma_id: int
     dilemma_title: str
-    choice: str  # "A" or "B"
+    choice: str
     choice_text: str
-    scores: dict  # {utilitarian, personal, universal, liberty}
+    scores: dict
+
 
 class SubmitRequest(BaseModel):
     session_id: str
@@ -73,32 +68,24 @@ class SubmitRequest(BaseModel):
     archetype: str
 
 
-# ── API 路由 ───────────────────────────────────────────────
+# ── API ─────────────────────────────────────────────────────
 @app.post("/api/submit")
 def submit_results(req: SubmitRequest):
-    """提交一轮完整答题结果"""
+    """提交一轮答题结果"""
     sid = req.session_id or str(uuid.uuid4())
-    total_json = json.dumps(req.total_scores, ensure_ascii=False)
 
-    with sqlite3.connect(str(DB_PATH)) as conn:
-        for ans in req.answers:
-            conn.execute(
-                """INSERT INTO submissions
-                   (session_id, dilemma_id, dilemma_title, choice, choice_text,
-                    scores_json, total_scores_json, archetype)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                (
-                    sid,
-                    ans.dilemma_id,
-                    ans.dilemma_title,
-                    ans.choice,
-                    ans.choice_text,
-                    json.dumps(ans.scores, ensure_ascii=False),
-                    total_json,
-                    req.archetype,
-                ),
-            )
-        conn.commit()
+    record = {
+        "session_id": sid,
+        "archetype": req.archetype,
+        "total_scores": req.total_scores,
+        "answers": [a.model_dump() for a in req.answers],
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    }
+
+    with LOCK:
+        data = read_data()
+        data["submissions"].append(record)
+        write_data(data)
 
     return {"ok": True, "session_id": sid}
 
@@ -106,76 +93,51 @@ def submit_results(req: SubmitRequest):
 @app.get("/api/stats")
 def get_stats():
     """获取全局统计数据"""
-    with sqlite3.connect(str(DB_PATH)) as conn:
-        conn.row_factory = sqlite3.Row
+    data = read_data()
+    submissions = data["submissions"]
 
-        # ── 总提交数 ──
-        total_sessions = conn.execute(
-            "SELECT COUNT(DISTINCT session_id) FROM submissions"
-        ).fetchone()[0]
+    total_sessions = len(set(s["session_id"] for s in submissions))
 
-        # ── 每个困境的选择分布 ──
-        dilemma_stats = {}
-        rows = conn.execute("""
-            SELECT dilemma_id, dilemma_title, choice, COUNT(*) as cnt
-            FROM submissions
-            GROUP BY dilemma_id, dilemma_title, choice
-            ORDER BY dilemma_id, choice
-        """).fetchall()
-        for row in rows:
-            did = row["dilemma_id"]
+    # 每个困境的选择分布
+    dilemma_stats = {}
+    for sub in submissions:
+        for ans in sub["answers"]:
+            did = ans["dilemma_id"]
             if did not in dilemma_stats:
                 dilemma_stats[did] = {
-                    "title": row["dilemma_title"],
+                    "title": ans["dilemma_title"],
                     "A": 0, "B": 0,
                     "A_text": "", "B_text": "",
                 }
-            dilemma_stats[did][row["choice"]] = row["cnt"]
+            dilemma_stats[did][ans["choice"]] += 1
+            key = f"{ans['choice']}_text"
+            if not dilemma_stats[did][key]:
+                dilemma_stats[did][key] = ans["choice_text"]
 
-        # 获取每个选项的文本
-        text_rows = conn.execute("""
-            SELECT dilemma_id, choice, choice_text
-            FROM submissions
-            GROUP BY dilemma_id, choice
-            ORDER BY dilemma_id, choice
-        """).fetchall()
-        for row in text_rows:
-            did = row["dilemma_id"]
-            if did in dilemma_stats:
-                key = f"{row['choice']}_text"
-                dilemma_stats[did][key] = row["choice_text"]
+    # 人格类型分布
+    archetype_dist = {}
+    seen = set()
+    for sub in submissions:
+        if sub["session_id"] not in seen:
+            seen.add(sub["session_id"])
+            name = sub["archetype"]
+            archetype_dist[name] = archetype_dist.get(name, 0) + 1
 
-        # ── 人格类型分布 ──
-        archetype_dist = {}
-        rows = conn.execute("""
-            SELECT archetype, COUNT(DISTINCT session_id) as cnt
-            FROM submissions
-            WHERE archetype != ''
-            GROUP BY archetype
-            ORDER BY cnt DESC
-        """).fetchall()
-        for row in rows:
-            archetype_dist[row["archetype"]] = row["cnt"]
-
-        # ── 各维度平均分 ──
-        avg_scores = {"utilitarian": 0.0, "personal": 0.0, "universal": 0.0, "liberty": 0.0}
-        score_count = 0
-        rows = conn.execute(
-            "SELECT DISTINCT session_id, total_scores_json FROM submissions"
-        ).fetchall()
-        for row in rows:
-            try:
-                scores = json.loads(row["total_scores_json"])
-                for key in avg_scores:
-                    avg_scores[key] += scores.get(key, 0)
-                score_count += 1
-            except (json.JSONDecodeError, TypeError):
-                pass
-        if score_count > 0:
+    # 各维度平均分
+    avg_scores = {"utilitarian": 0.0, "personal": 0.0, "universal": 0.0, "liberty": 0.0}
+    score_count = 0
+    seen2 = set()
+    for sub in submissions:
+        if sub["session_id"] not in seen2:
+            seen2.add(sub["session_id"])
             for key in avg_scores:
-                avg_scores[key] = round(avg_scores[key] / score_count, 1)
+                avg_scores[key] += sub["total_scores"].get(key, 0)
+            score_count += 1
+    if score_count > 0:
+        for key in avg_scores:
+            avg_scores[key] = round(avg_scores[key] / score_count, 1)
 
-    # ── 组装返回 ──
+    # 组装
     dilemma_list = []
     for did in sorted(dilemma_stats.keys()):
         d = dilemma_stats[did]
@@ -202,6 +164,17 @@ def health():
     return {"status": "ok"}
 
 
+@app.post("/api/clear")
+def clear_data():
+    """清空所有答题记录"""
+    write_data({"submissions": []})
+    return {"ok": True, "message": "所有记录已清空"}
+
+
+@app.get("/api/raw")
+def raw_data():
+    """查看原始数据（JSON格式，浏览器打开直接看）"""
+    return read_data()
 
 
 # ── 启动入口 ───────────────────────────────────────────────
