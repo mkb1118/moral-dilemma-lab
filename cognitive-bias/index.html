@@ -98,14 +98,14 @@
       <h1>认知偏差<br><span>检测</span></h1>
     </div>
     <p class="subtitle">你的大脑有看不见的"思维捷径"——它们帮你快速决策，也让你系统性地犯错。24个情境题，看看哪些认知偏差在悄悄影响你。</p>
-    <div class="info-badge"><span></span> 24 题 · 约 5 分钟 · 情境判断</div>
+    <div class="info-badge"><span></span> 36 题 · 约 7 分钟 · 基于心理学经典研究</div>
     <button class="btn primary" onclick="startTest()">开始检测 →</button>
   </div>
 
   <!-- QUIZ -->
   <div class="screen" id="quiz">
     <div class="progress-wrap">
-      <div class="progress-info"><span id="progLabel">1 / 24</span><span id="progPct">0%</span></div>
+      <div class="progress-info"><span id="progLabel">1 / 36</span><span id="progPct">0%</span></div>
       <div class="progress-track"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
     </div>
     <div class="q-nav"><button class="btn-back" id="btnBack" onclick="goBack()" style="visibility:hidden;">← 上一题</button></div>
@@ -134,107 +134,219 @@
 
 <script>
 // ============================================
-// 24 SCENARIOS: 8 biases × 3 scenarios each
+// 36 SCENARIOS: 12 biases × 3 scenarios each
+// 基于 Tversky & Kahneman (1974), Arkes & Blumer (1985),
+// Ross (1977), Kruger & Dunning (1999), etc.
 // ============================================
 const SCENARIOS = [
-  // 1. Confirmation Bias / 确认偏误
+  // 1. Confirmation Bias (确认偏误) — Nickerson (1998)
   { id:1, bias:'确认偏误', biasKey:'confirmation', text:'你在考虑买哪款手机。已经看中A款后，你更可能怎么做？', opts:[
     {text:'主动搜索"为什么A款是最好的手机"', score:1},
     {text:'搜索"A款和B款的全面对比评测"', score:0}]},
-  { id:2, bias:'确认偏误', biasKey:'confirmation', text:'一个朋友深信某种饮食法有效。当你给他看一篇质疑该饮食法的科学研究时，你预测他更可能？', opts:[
+  { id:2, bias:'确认偏误', biasKey:'confirmation', text:'一个朋友深信某种饮食法有效。当你给他看一篇质疑该饮食法的科学研究时，他更可能？', opts:[
     {text:'质疑研究的方法论，找它的漏洞', score:1},
     {text:'认真阅读研究，重新评估自己的观点', score:0}]},
-  { id:3, bias:'确认偏误', biasKey:'confirmation', text:'在一次面试中，面试官在前5分钟就对你有了第一印象。你估计接下来他会？', opts:[
-    {text:'主要寻找支持第一印象的证据', score:1},
-    {text:'主动寻找与自己印象相反的信息来平衡判断', score:0}]},
+  { id:3, bias:'确认偏误', biasKey:'confirmation', text:'在社交媒体上，你刷到一篇和你观点完全相反的文章。你的第一反应更接近？', opts:[
+    {text:'跳过或快速找反驳点', score:1},
+    {text:'点进去认真读一遍，理解对方在说什么', score:0}]},
 
-  // 2. Anchoring / 锚定效应
-  { id:4, bias:'锚定效应', biasKey:'anchoring', text:'你去二手车市场买车。卖家开价15万。你觉得这辆车实际价值更接近？', opts:[
+  // 2. Anchoring (锚定效应) — Tversky & Kahneman (1974)
+  { id:4, bias:'锚定效应', biasKey:'anchoring', text:'卖家开价15万卖二手车。你觉得这辆车实际价值更接近？', opts:[
     {text:'14万左右——以卖家开价作为参考点来协商', score:1},
     {text:'先查市场价格，完全忽略卖家的开价来判断', score:0}]},
-  { id:5, bias:'锚定效应', biasKey:'anchoring', text:'一个慈善组织先问你："你愿意每月捐1000元吗？"被拒绝后问："那每月捐50元呢？"你会？', opts:[
-    {text:'觉得50元相比1000元很合理，更倾向于答应', score:1},
-    {text:'意识到这是一种策略，按自己原本的意愿决定', score:0}]},
-  { id:6, bias:'锚定效应', biasKey:'anchoring', text:'看到一个产品标价"原价999，现价399"。你的第一反应是？', opts:[
-    {text:'觉得省了600块，这是好机会——买！', score:1},
-    {text:'质疑"原价"是否真实，以399元本身的性价比来判断', score:0}]},
+  { id:5, bias:'锚定效应', biasKey:'anchoring', text:'慈善组织先问"每月捐1000？"被拒后问"那50呢？"你会？', opts:[
+    {text:'觉得50元相比1000元很合理，更可能答应', score:1},
+    {text:'意识到这是锚定策略，按自己原本的意愿决定', score:0}]},
+  { id:6, bias:'锚定效应', biasKey:'anchoring', text:'工资谈判中，对方先给了一个数字。接下来你的要求会？', opts:[
+    {text:'被对方给出的数字影响，围绕它来谈', score:1},
+    {text:'忽略对方给的数字，基于市场数据提出自己的预期', score:0}]},
 
-  // 3. Availability Heuristic / 可得性启发
-  { id:7, bias:'可得性启发', biasKey:'availability', text:'你最近看了一部关于鲨鱼袭击的电影。现在去海边游泳时，你感觉被鲨鱼攻击的风险比实际高多少？', opts:[
-    {text:'明显高很多——脑海中全是那些画面', score:1},
-    {text:'理性知道概率极低，不影响我的行为', score:0}]},
-  { id:8, bias:'可得性启发', biasKey:'availability', text:'朋友告诉你他认识的一个人创业失败。现在你对创业成功率的估计？', opts:[
-    {text:'比之前低了——那个故事很生动，让我印象深刻', score:1},
-    {text:'一个案例不能改变我对整体统计数据的理解', score:0}]},
-  { id:9, bias:'可得性启发', biasKey:'availability', text:'媒体的犯罪报道增多。你认为今年的犯罪率相比去年？', opts:[
-    {text:'上升了——因为经常看到这类报道', score:1},
-    {text:'需要看实际统计数据才能判断', score:0}]},
+  // 3. Availability (可得性启发) — Tversky & Kahneman (1973)
+  { id:7, bias:'可得性启发', biasKey:'availability', text:'你最近看了一部飞机失事的纪录片。现在坐飞机时，你的感受？', opts:[
+    {text:'比平时紧张——脑海中全是失事画面', score:1},
+    {text:'理性知道飞行是最安全的交通方式之一', score:0}]},
+  { id:8, bias:'可得性启发', biasKey:'availability', text:'朋友讲了一个他朋友被裁员后一蹶不振的故事。你对失业风险的判断？', opts:[
+    {text:'感觉失业风险更可怕了——那个故事很生动', score:1},
+    {text:'一个案例不改变我对劳动力市场整体的理解', score:0}]},
+  { id:9, bias:'可得性启发', biasKey:'availability', text:'媒体密集报道了一种罕见病案例。你对这种病的普遍性估计？', opts:[
+    {text:'觉得比报道前更普遍了', score:1},
+    {text:'媒体报道频率不等于发病率，我需要看实际数据', score:0}]},
 
-  // 4. Framing Effect / 框架效应
-  { id:10, bias:'框架效应', biasKey:'framing', text:'医生告诉你："这个手术有90%的存活率"vs"这个手术有10%的死亡率"。你的感受？', opts:[
+  // 4. Framing Effect (框架效应) — Tversky & Kahneman (1981)
+  { id:10, bias:'框架效应', biasKey:'framing', text:'医生："手术有90%存活率" vs "手术有10%死亡率"。你的感受？', opts:[
     {text:'听到90%存活时更愿意接受手术', score:1},
-    {text:'两种说法是一样的概率，我的决定不受措辞影响', score:0}]},
-  { id:11, bias:'框架效应', biasKey:'framing', text:'超市里，"含75%瘦肉"和"含25%肥肉"的标签，你会选哪个？', opts:[
+    {text:'两种说法概率相同，我的决定不受措辞影响', score:0}]},
+  { id:11, bias:'框架效应', biasKey:'framing', text:'"含75%瘦肉"和"含25%肥肉"的两个标签，你更倾向选哪个？', opts:[
     {text:'选"75%瘦肉"——听起来健康多了', score:1},
-    {text:'两者是一样的，我会看配料表判断', score:0}]},
-  { id:12, bias:'框架效应', biasKey:'framing', text:'你被要求评价一个政策："保护言论自由"vs"防止有害言论"。你的态度取决于？', opts:[
-    {text:'措辞会影响我的判断——"保护自由"听起来比"防止"更有吸引力', score:1},
-    {text:'我关注的是政策的具体内容，不是它怎么被包装', score:0}]},
+    {text:'两者成分一样，我会看配料表', score:0}]},
+  { id:12, bias:'框架效应', biasKey:'framing', text:'一个政策被描述为"保护言论自由"vs"防止有害言论"。你的态度？', opts:[
+    {text:'措辞会影响我的判断——"保护自由"听起来更有吸引力', score:1},
+    {text:'我关注的是政策的具体内容，不是包装方式', score:0}]},
 
-  // 5. Overconfidence / 过度自信
-  { id:13, bias:'过度自信', biasKey:'overconfidence', text:'一个你不太了解的话题，请估计你的知识水平在人群中的位置。你倾向于？', opts:[
-    {text:'觉得自己的理解"高于平均水平"', score:1},
-    {text:'诚实承认自己在这个话题上了解有限', score:0}]},
-  { id:14, bias:'过度自信', biasKey:'overconfidence', text:'你刚学会一项新技能。你觉得多久能精通它？', opts:[
-    {text:'比我以为的要快——我已经上手了', score:1},
-    {text:'参考他人的学习曲线，做好长期投入的准备', score:0}]},
-  { id:15, bias:'过度自信', biasKey:'overconfidence', text:'你做了一个重要的决定。事后回头看，你倾向于认为？', opts:[
-    {text:'我当时就知道这是正确的选择', score:1},
-    {text:'当时有很多不确定性，我只是运气好', score:0}]},
+  // 5. Overconfidence (过度自信) — Lichtenstein, Fischhoff & Phillips (1982)
+  { id:13, bias:'过度自信', biasKey:'overconfidence', text:'在一个你了解有限的领域，你估计自己的知识在人群中的位置？', opts:[
+    {text:'高于平均水平——我对自己有基本的信心', score:1},
+    {text:'诚实地说，在这个领域我了解有限', score:0}]},
+  { id:14, bias:'过度自信', biasKey:'overconfidence', text:'你刚学了一项新技能两周。你觉得多久能精通？', opts:[
+    {text:'应该很快——我已经上手了', score:1},
+    {text:'参考有经验的人，至少需要持续练习几个月', score:0}]},
+  { id:15, bias:'过度自信', biasKey:'overconfidence', text:'给你的答案准确性打分（自评）。在你不确定的题目上，你倾向于？', opts:[
+    {text:'觉得自己的答案大概率是对的', score:1},
+    {text:'主动标注"不确定"——承认不知道比假装知道更有用', score:0}]},
 
-  // 6. Sunk Cost / 沉没成本
-  { id:16, bias:'沉没成本', biasKey:'sunkcost', text:'你已经花200块买了一张演出票。演出当天天气很差，你也不太想去了。你会？', opts:[
-    {text:'还是去——"不能浪费那200块钱"', score:1},
-    {text:'不去——200块已经花掉了，去不去都不能拿回来', score:0}]},
-  { id:17, bias:'沉没成本', biasKey:'sunkcost', text:'你在一段关系中已经投入了三年，但你知道这段关系不健康。你的选择更可能是？', opts:[
-    {text:'继续坚持——"已经投入了三年，不想白费"', score:1},
-    {text:'结束它——过去的三年是沉默成本，未来的幸福才是决策依据', score:0}]},
-  { id:18, bias:'沉没成本', biasKey:'sunkcost', text:'一个项目已经投入了大量时间，但数据表明它很可能失败。你会？', opts:[
-    {text:'继续投入——已经投入了这么多，不能就这样放弃', score:1},
-    {text:'止损——过去的投入是沉没成本，只考虑未来的投入产出', score:0}]},
+  // 6. Sunk Cost (沉没成本) — Arkes & Blumer (1985)
+  { id:16, bias:'沉没成本', biasKey:'sunkcost', text:'已花200块买的演出票，当天天气很差你不想去了。你会？', opts:[
+    {text:'还是去——"不能浪费那200块"', score:1},
+    {text:'不去——200块已经花了，和去不去无关', score:0}]},
+  { id:17, bias:'沉没成本', biasKey:'sunkcost', text:'一段关系投入了三年但不健康。你的选择更可能是？', opts:[
+    {text:'继续坚持——"三年了，不甘心"', score:1},
+    {text:'结束——过去的投入是沉默成本，未来才是决策依据', score:0}]},
+  { id:18, bias:'沉没成本', biasKey:'sunkcost', text:'一个项目投入了大量时间和资源，但数据表明它大概率失败。你会？', opts:[
+    {text:'追加投入——"已经投了这么多，放弃就彻底亏了"', score:1},
+    {text:'止损——只考虑未来的投入产出比', score:0}]},
 
-  // 7. Bandwagon / 从众效应
-  { id:19, bias:'从众效应', biasKey:'bandwagon', text:'一家餐厅门口排着长队。你对这家餐厅的评价倾向？', opts:[
-    {text:'更多人排队=更好吃——我也会去排队', score:1},
+  // 7. Bandwagon (从众效应) — Asch (1951)
+  { id:19, bias:'从众效应', biasKey:'bandwagon', text:'餐厅门口排长队。你对它的评价倾向？', opts:[
+    {text:'更多人排队=大概率更好吃', score:1},
     {text:'排队可能是营销或跟风，我会独立判断', score:0}]},
-  { id:20, bias:'从众效应', biasKey:'bandwagon', text:'同事们都开始使用一个你认为不太好的工作方法。你会？', opts:[
-    {text:'随大流——既然大家都这样，应该没错', score:1},
-    {text:'坚持自己的判断，如果认为不对就提出来', score:0}]},
-  { id:21, bias:'从众效应', biasKey:'bandwagon', text:'在会议上，大家都举手表示同意。你有不同意见。你会？', opts:[
-    {text:'保持沉默——我不想成为唯一的反对者', score:1},
-    {text:'还是会表达——即使只有我一个人不同', score:0}]},
+  { id:20, bias:'从众效应', biasKey:'bandwagon', text:'同事们都在用某个工作方法，你觉得不太好。你会？', opts:[
+    {text:'随大流——大家都这样，应该有道理', score:1},
+    {text:'坚持自己的判断，如果认为不对就提出', score:0}]},
+  { id:21, bias:'从众效应', biasKey:'bandwagon', text:'会议上大家都赞同，你有不同意见。你会？', opts:[
+    {text:'保持沉默——不想做唯一的反对者', score:1},
+    {text:'还是会表达——即使只有我一个人', score:0}]},
 
-  // 8. Hindsight / 后见之明
-  { id:22, bias:'后见之明', biasKey:'hindsight', text:'一场球赛结束后，你听到有人说"我就知道他们会赢"。你觉得这个人？', opts:[
-    {text:'真的提前判断到了——他很有洞察力', score:1},
-    {text:'很可能只是在事后觉得"显而易见"——其实赛前他并不确定', score:0}]},
-  { id:23, bias:'后见之明', biasKey:'hindsight', text:'股市大跌后，有文章解释"为什么这次下跌是必然的"。你的反应？', opts:[
-    {text:'觉得这些解释很有道理——确实一切都很明显', score:1},
-    {text:'提醒自己：这些分析在大跌前并不存在，事后解释比事前预测容易得多', score:0}]},
-  { id:24, bias:'后见之明', biasKey:'hindsight', text:'你做了一个错误决定，事后回头看。你倾向于？', opts:[
-    {text:'责怪自己——"我当时就应该知道的，太蠢了"', score:1},
-    {text:'理解当时的信息是有限的——"以当时的条件，我的决策是合理的"', score:0}]},
+  // 8. Hindsight (后见之明) — Fischhoff (1975)
+  { id:22, bias:'后见之明', biasKey:'hindsight', text:'比赛结束后有人说"我早说他们会赢"。你觉得？', opts:[
+    {text:'他确实有洞察力', score:1},
+    {text:'很可能是事后"显而易见"——赛前他并不确定', score:0}]},
+  { id:23, bias:'后见之明', biasKey:'hindsight', text:'股市大跌后，到处是解释"为什么这次下跌是必然的"。你的反应？', opts:[
+    {text:'觉得这些分析很有道理——确实一切都很明显', score:1},
+    {text:'提醒自己：事前没人预测到，事后解释比预测容易得多', score:0}]},
+  { id:24, bias:'后见之明', biasKey:'hindsight', text:'你做错一个决定后回头看。你倾向于？', opts:[
+    {text:'责怪自己——"我当时就应该知道"', score:1},
+    {text:'理解当时信息有限——"以当时条件，我的决策是合理的"', score:0}]},
+
+  // 9. Loss Aversion (损失厌恶) — Kahneman & Tversky (1979)
+  { id:25, bias:'损失厌恶', biasKey:'lossaversion', text:'两个选择：A) 确定获得500元 B) 50%概率获得1000元，50%概率获得0元。你会？', opts:[
+    {text:'选A——确定的500比可能拿不到的1000更安心', score:1},
+    {text:'选B——两个选择的期望值相同，我愿意承担风险', score:0}]},
+  { id:26, bias:'损失厌恶', biasKey:'lossaversion', text:'你持有的股票跌了20%。你更可能？', opts:[
+    {text:'不卖——"卖了就真的亏了，等它涨回来"', score:1},
+    {text:'冷静评估：如果今天我第一次看到这只股票，我会买吗？不会就卖', score:0}]},
+  { id:27, bias:'损失厌恶', biasKey:'lossaversion', text:'一件东西你用了很久，有人出价是你当初买价的2倍。但你舍不得卖。为什么？', opts:[
+    {text:'它对我有特殊意义，失去它的痛苦大于赚到钱的快乐', score:1},
+    {text:'理性计算：2倍价格是个好交易，情感连接可以用别的方式保留', score:0}]},
+
+  // 10. Fundamental Attribution Error (基本归因错误) — Ross (1977)
+  { id:28, bias:'基本归因错误', biasKey:'attribution', text:'一个司机在高速上突然变道差点撞到你。你的第一反应？', opts:[
+    {text:'这人开车太没素质了', score:1},
+    {text:'也许他有什么紧急情况，我没看到全部', score:0}]},
+  { id:29, bias:'基本归因错误', biasKey:'attribution', text:'同事在会议上表现得脾气很差。你觉得是为什么？', opts:[
+    {text:'他性格就是这样，脾气不好', score:1},
+    {text:'也许他遇到了什么事——我不了解他的处境', score:0}]},
+  { id:30, bias:'基本归因错误', biasKey:'attribution', text:'你自己迟到了，为什么？别人的迟到呢？', opts:[
+    {text:'我迟到因为堵车（外部原因）；别人迟到因为不守时（性格问题）', score:1},
+    {text:'自己的和他人的迟到都可能有情境原因，不应轻易归咎性格', score:0}]},
+
+  // 11. Dunning-Kruger (达克效应) — Kruger & Dunning (1999)
+  { id:31, bias:'达克效应', biasKey:'dunningkruger', text:'在一个新领域只读了两本书，你对自己在这个领域的见解？', opts:[
+    {text:'已经有相当的见解了——我可以和别人讨论这个话题', score:1},
+    {text:'我只是刚入门——两本书远远不够形成可靠判断', score:0}]},
+  { id:32, bias:'达克效应', biasKey:'dunningkruger', text:'你遇到一个在某个观点上非常自信但明显不太了解的人。你觉得？', opts:[
+    {text:'越是不懂的人越自信——这是一种常见现象', score:0},
+    {text:'自信说明他应该有一定的了解', score:1}]},
+  { id:33, bias:'达克效应', biasKey:'dunningkruger', text:'评估你自己的某项能力：你觉得你在这个领域的表现？', opts:[
+    {text:'应该在中上水平——我对自己的评估比较乐观', score:1},
+    {text:'没有外部反馈的话，我不确定——自我评估往往不准确', score:0}]},
+
+  // 12. Status Quo Bias (现状偏好) — Samuelson & Zeckhauser (1988)
+  { id:34, bias:'现状偏好', biasKey:'statusquo', text:'你的手机套餐已经用了三年。新套餐更便宜且流量更多，但需要填一份表。你会？', opts:[
+    {text:'觉得麻烦——现在的也不是不能用', score:1},
+    {text:'花15分钟换套餐，省钱省流量', score:0}]},
+  { id:35, bias:'现状偏好', biasKey:'statusquo', text:'公司引进了新的工作流程，比旧的更高效但需要学。你的态度？', opts:[
+    {text:'先观望——旧流程虽然慢，但至少我会用', score:1},
+    {text:'愿意尝试——如果确实更好，学习成本是值得的', score:0}]},
+  { id:36, bias:'现状偏好', biasKey:'statusquo', text:'你的投资组合已经多年没有调整了。理财师建议优化配置。你会？', opts:[
+    {text:'维持现状——调整有不确定性，现在的至少不差', score:1},
+    {text:'评估新方案——如果优化方案有理有据就调整', score:0}]},
 ];
 
 const BIAS_INFO = {
-  confirmation: { name:'确认偏误', icon:'🔎', desc:'你倾向于寻找和记住支持自己已有观点的信息，而忽略相反的证据。这是最常见的认知偏差之一——它让你的世界观越来越窄。', fix:'下次当你要做重要判断时，故意去找三个"反对你观点"的证据。给自己布置一个作业：为对方写一段辩护词。这不是让你改变立场，而是让你的判断建立在更全面的信息之上。' },
-  anchoring: { name:'锚定效应', icon:'⚓', desc:'你容易被第一个接触到的信息"锚住"——之后的判断都会围绕这个锚点打转。商家利用这一点让你觉得"划算"，谈判对手利用这一点控制你的预期。', fix:'在接收任何价格或数字之前，先建立一个自己的参考范围。问自己："如果我没看到这个数字，我会怎么评估？"忽略锚点——用独立的尺度重新评估。' },
-  availability: { name:'可得性启发', icon:'📺', desc:'你倾向于高估那些"容易想到"的事件的概率。生动的画面、近期的经历、媒体的密集报道——这些都能扭曲你对风险的判断。飞机失事比车祸可怕，但实际上后者危险得多。', fix:'当评估风险时，不要依赖你的直觉和记忆。去查查数据。问自己："我的恐惧是因为真实的概率，还是因为我最近看了太多相关的画面？"' },
-  framing: { name:'框架效应', icon:'🖼️', desc:'同样的信息，不同的包装方式会极大地影响你的判断。"90%存活率"和"10%死亡率"在数学上完全一样，但你的大脑对它们的反应截然不同。广告、政治宣传、甚至医生的沟通——都在利用这个效应。', fix:'当面对一个有说服力的表述时，把它"反过来"想一遍。如果有人说"90%的成功率"，问自己：如果我听到的是"10%的失败率"，我的感受会不同吗？如果会，那就是框架在影响你。' },
-  overconfidence: { name:'过度自信', icon:'🎯', desc:'你倾向于高估自己的知识、判断和能力——尤其在你不太熟悉的领域。你以为你懂的比实际上多，你以为你的预测比实际上准。这不是自负，而是大脑的一种普遍性倾向。', fix:'在做出判断后，问自己一个校准问题："如果答案是相反的，可能是什么原因？"给你的预测加上一个"置信区间"——不是"我认为X会发生"，而是"我有60%的把握X会发生，40%的可能是其他结果"。' },
-  sunkcost: { name:'沉没成本', icon:'💸', desc:'你倾向于因为"已经投入了"而继续坚持——即使继续下去只会亏损更多。金钱、时间、感情——一旦被标记为"已投入"，你就很难放手。但这是一种错觉：过去的付出已经拿不回来了，它不应该影响你未来的决策。', fix:'在做继续/放弃的决定时，假装你是刚刚接手这个项目的"新人"。新人不知道过去了多少——她只会问：从今天开始，投入和回报是否合理？如果答案是"不合理"，那就放手。' },
-  bandwagon: { name:'从众效应', icon:'🐑', desc:'你倾向于相信"大家觉得对的就是对的"。当很多人和你持不同意见时，你会怀疑自己——哪怕你本来是对的。从众心理让你在群体压力下放弃独立思考。', fix:'当发现自己和群体不同时，先停下来。问自己："如果我是唯一知道真相的人，现在我的判断是什么？"不是因为大家都错了——而是因为"人数"和"正确"是两个不相关的维度。' },
-  hindsight: { name:'后见之明', icon:'🔮', desc:'你倾向于在事情发生后觉得"我早就知道会这样"——但事实上，你事前并不确定。这种偏差让你高估自己的预测能力，也让你对自己过去的"错误"过于苛刻。事后看起来明显的因果链，在当时可能是模糊不清的。', fix:'在重要决策前，写下你的预测和理由。事后拿出来对照——你会发现"事前"和"事后"的差距有多大。这个习惯能让你更准确地了解自己的判断力，也更宽容地对待自己过去的"错误"。' }
+  // 1-8: Original 8 (improved)
+  confirmation: {
+    name:'确认偏误', icon:'🔎',
+    ref:'Nickerson, R. S. (1998). Review of General Psychology, 2(2), 175-220.',
+    desc:'你在寻找和解释信息时，系统性地偏向支持自己已有的观点。你是自己观点的律师，而不是中立的侦探。这种偏差让你越来越确信自己是对的——但代价是越来越看不到真实的世界。研究显示，即使是科学家和医生也难以免疫这种偏差。',
+    fix:'建立"魔鬼代言人"习惯：每次做重要判断前，主动寻找三个反对你想法的证据。问自己："如果我的对手在这里，他会说什么？"这不是让你动摇立场——而是让你的信念经过压力测试。研究表明，预先承诺考虑对立证据的人，决策质量显著提高（Lord, Lepper & Preston, 1984）。'
+  },
+  anchoring: {
+    name:'锚定效应', icon:'⚓',
+    ref:'Tversky, A., & Kahneman, D. (1974). Science, 185(4157), 1124-1131.',
+    desc:'你接受到的第一个数字会像锚一样拖住你的后续判断。Kahneman和Tversky的经典实验发现，即使给出完全无关的锚点（如转盘随机数），人们的估计仍会被它显著影响。在谈判、购物、评估中，锚定效应都在静悄悄地限制你的思考范围。',
+    fix:'在任何涉及数字的判断前，先独立建立自己的参考范围——不要看对方的报价、不要看"原价"。问自己："如果我完全不知道这个数字，我会如何评估它？"研究表明，有意识地"考虑反锚"（想想为什么锚点可能是错的）可以显著削弱锚定效应（Mussweiler, Strack & Pfeiffer, 2000）。'
+  },
+  availability: {
+    name:'可得性启发', icon:'📺',
+    ref:'Tversky, A., & Kahneman, D. (1973). Cognitive Psychology, 5(2), 207-232.',
+    desc:'你用"脑海中多容易想到"来判断"实际上多可能发生"。生动的画面、近期的经历、媒体密集报道——这些都会扭曲你对风险的估计。空难比车祸可怕得多，但后者的实际死亡率是前者的数千倍。可得性启发让你为罕见但"生动"的风险过度焦虑，却忽视了真正高概率的日常风险。',
+    fix:'当评估风险或概率时，不要依赖直觉画面。查找实际的统计数据和基础概率（base rate）。问自己："我的担忧来自真实的概率，还是来自最近看过的画面？"养成在重要判断前查看数据而非依赖印象的习惯。'
+  },
+  framing: {
+    name:'框架效应', icon:'🖼️',
+    ref:'Tversky, A., & Kahneman, D. (1981). Science, 211(4481), 453-458.',
+    desc:'同一信息的不同表述方式会系统性地改变你的决策。Kahneman和Tversky的经典实验表明，"90%存活率"和"10%死亡率"在逻辑上等价，但人们的选择截然不同——前者让人趋避风险，后者让人愿意冒险。这不是逻辑问题，而是大脑的默认设置。政策、广告、甚至医疗决策都在利用框架效应塑造你的选择。',
+    fix:'面对任何重要决策时，主动把信息"反过来"看一遍。"90%的成功率"——那么"10%的失败率"听起来怎样？如果反过来描述让你的感受发生显著变化，说明框架正在影响你。在做决策前，确保你理解了信息的两种框架下的含义。'
+  },
+  overconfidence: {
+    name:'过度自信', icon:'🎯',
+    ref:'Lichtenstein, S., Fischhoff, B., & Phillips, L. D. (1982). In D. Kahneman, P. Slovic, & A. Tversky (Eds.), Judgment under uncertainty.',
+    desc:'你系统性地高估自己的知识准确性、判断质量和预测能力。研究发现，当人们表示"100%确定"时，实际正确率只有约80%。在你不熟悉的领域，过度自信尤其危险——因为你甚至不知道自己不知道什么。这不是性格问题（自负），而是认知系统的普遍特征。',
+    fix:'为你的判断加上"置信区间"——不是"我认为X是对的"，而是"我认为有70%的概率X是对的，30%的概率是其他"。定期回顾和校准自己的预测（写下来，事后对照）。研究表明，接受过校准训练的人（如气象预报员）的自我评估准确性显著提高。'
+  },
+  sunkcost: {
+    name:'沉没成本', icon:'💸',
+    ref:'Arkes, H. R., & Blumer, C. (1985). Organizational Behavior and Human Decision Processes, 35(1), 124-140.',
+    desc:'你因为"已经投入了"而继续坚持——即使继续下去只会带来更多损失。Arkes和Blumer的实验证明，即使是完全理性的个体，在被告知"已投入"后也会显著改变行为。金钱、时间、感情——一旦被标记为"成本"，放手就变得异常困难。但沉没成本是不可回收的：那200块门票钱无论你去不去都已经花了。',
+    fix:'在做"继续还是放弃"的决定时，用"零基思维"：假装你是今天刚接手这个决策的新人。新人不知道过去投入了多少——她只会评估：从今天开始，继续投入的预期收益是否大于成本？如果答案是否，就停止。研究发现，这个简单的思维转换能显著减少沉没成本效应。'
+  },
+  bandwagon: {
+    name:'从众效应', icon:'🐑',
+    ref:'Asch, S. E. (1951). In H. Guetzkow (Ed.), Groups, leadership and men.',
+    desc:'你倾向于相信"别人都这么做/这么想，一定有道理"。Asch的经典从众实验表明，即使面对明显错误的判断，约75%的人至少一次会选择附和群体。你不是在主动分析——你只是把"多数人"当成了"正确"的替代品。但人数和正确性是两个不相关的维度。',
+    fix:'当发现自己和群体意见不同时，先停下来独立思考再表态。"如果我是房间里唯一知道真相的人，现在我会做什么判断？"研究发现，只要有一个"异见者"打破一致性，从众率就会大幅下降（Asch, 1956）。你不需要对抗群体——你只需要在附议前，先给自己三秒钟独立思考的时间。'
+  },
+  hindsight: {
+    name:'后见之明', icon:'🔮',
+    ref:'Fischhoff, B. (1975). Journal of Experimental Psychology: Human Perception and Performance, 1(3), 288-299.',
+    desc:'事情发生后，你倾向于觉得"我早就知道会这样"——但事实上，事前你并不确定。Fischhoff的经典实验发现，当人们知道结果后，他们系统性地高估了自己事前预测到该结果的概率。这种偏差让你误以为世界是"可预测的"，也让你对自己的过去判断过于苛刻——"我当时怎么那么蠢"其实是不公平的自我评价。',
+    fix:'重要决策前，写下你的预测和推理过程。事后拿出对照——你会惊讶于"事前模糊"和"事后清晰"之间的差距。这个习惯有两个好处：①校准你对自己判断力的认知；②让你对自己和他人的"错误"更加宽容——因为当时的信息远不如现在清晰。'
+  },
+  // 9-12: New additions
+  lossaversion: {
+    name:'损失厌恶', icon:'⚖️',
+    ref:'Kahneman, D., & Tversky, A. (1979). Econometrica, 47(2), 263-291.',
+    desc:'失去100元的痛苦，大约是得到100元的快乐的两倍。Kahneman和Tversky的前景理论（Prospect Theory）发现，人类对损失的敏感度系统性地高于对等量收益的敏感度。这解释了为什么你会持有亏损的股票不愿割肉、为什么"限时优惠"会让你冲动消费——不是你在理性计算，而是你在本能地逃避损失的感觉。',
+    fix:'在面对"持有还是放弃"的决策时，把情境重新框架化：不要想"我会损失X"，而是想"我有机会用X换取什么"。问自己："如果今天是我第一次面对这个选择，我会怎么做？"研究表明，有意重新框架损失情境能显著减少损失厌恶对决策的扭曲（Sokol-Hessner et al., 2009）。'
+  },
+  attribution: {
+    name:'基本归因错误', icon:'👤',
+    ref:'Ross, L. (1977). In L. Berkowitz (Ed.), Advances in experimental social psychology (Vol. 10).',
+    desc:'当别人做错事时，你倾向于归因于他们的性格（"他没素质"）；当自己做错事时，你倾向于归因于情境（"我这次情况特殊"）。Ross的经典研究揭示，人们系统性地低估情境因素对他人行为的影响，而高估性格因素。这种偏差让你对他人过于苛刻，对自己过于宽容。',
+    fix:'当你发现自己在对某人的行为下结论时（"他就是这种人"），停下来问三个问题：①他可能面临什么我不知道的情境压力？②我自己在类似情况下做过类似的事吗？③如果我站在他的立场上，有哪些因素会影响我的行为？这个简单的"情境化"练习能显著减少归因错误。'
+  },
+  dunningkruger: {
+    name:'达克效应', icon:'📈',
+    ref:'Kruger, J., & Dunning, D. (1999). Journal of Personality and Social Psychology, 77(6), 1121-1134.',
+    desc:'在能力较低的领域，你倾向于高估自己；在能力较高的领域，你反而可能低估自己。Kruger和Dunning的获奖研究发现，得分最低的25%的人估计自己在62%的百分位——而实际得分只在12%的百分位。最危险的不是"不懂"，而是"不懂到自己不知道自己不懂"。',
+    fix:'在你刚接触的领域，不要轻易形成强烈的判断。主动寻求外部反馈——问有经验的人："我的理解到了什么程度？我还有多远的路要走？"研究表明，能力提升本身就伴随着自我认知的改善——当你变得更好，你会更清楚自己的局限。把"我不知道"从羞耻变成常态。'
+  },
+  statusquo: {
+    name:'现状偏好', icon:'🏠',
+    ref:'Samuelson, W., & Zeckhauser, R. (1988). Journal of Risk and Uncertainty, 1(1), 7-59.',
+    desc:'你倾向于维持现状，即使改变会带来明确的好处。Samuelson和Zeckhauser的研究发现，当人们面对选择时，现状选项被选中的概率远高于其他选项——仅仅因为它是"默认的"。换手机套餐、调整投资组合、改变生活习惯——你知道改变有好处，但"维持现状"的感觉更安全。',
+    fix:'定期进行"默认审查"：看看你那些"自动续期"的订阅、"一直如此"的习惯、"从来没有想过要改"的安排。问自己："如果今天是我第一次做这个选择，我还会选它吗？"如果答案是"不会"，那就值得花时间去改变。研究表明，有意识地定期重新评估能减少现状偏好的影响。'
+  }
 };
 
 // ============================================
@@ -307,14 +419,14 @@ function showResults() {
 
   // Overall: lower = less biased. 0 hits = great, 24 hits = every bias triggered.
   const totalHits = Object.values(biasScores).reduce((s, b) => s + b.hits, 0);
-  const maxHits = 24;
+  const maxHits = 36;
   const clarityScore = Math.max(0, Math.round((1 - totalHits / maxHits) * 100));
 
   let totalLabel;
-  if (clarityScore >= 80) totalLabel = '你的认知警惕性非常高——你的思维很少被这些常见的偏差绑架。保持这种自我觉察。';
-  else if (clarityScore >= 60) totalLabel = '你有不错的认知觉察力，但某些思维陷阱对你来说仍然容易中招。下面的分析会帮你找到你的"思维盲区"。';
-  else if (clarityScore >= 40) totalLabel = '你有中等程度的认知偏差倾向。这不是"笨"——这是大脑的默认设置。好消息是：认知偏差是可以被训练克服的。';
-  else totalLabel = '你承认了很多"大脑默认行为"。这其实需要相当的自我觉察才能做到——很多不承认的人其实偏差更严重。认识问题是第一步，下面的建议会帮你。';
+  if (clarityScore >= 85) totalLabel = '你展现出了很强的认知警惕性——你的思维很少被这些经典偏差绑架。你善于在判断前停顿、检视自己是否在被"大脑默认设置"牵着走。保持这个习惯，并帮助身边的人也培养这种觉察。';
+  else if (clarityScore >= 65) totalLabel = '你有不错的认知觉察力，但某些思维陷阱对你来说仍然容易中招。下面的报告会帮你精确找到那些"大脑在自动驾驶"的领域。认知偏差不是性格缺陷——它是可以被训练和改善的。';
+  else if (clarityScore >= 45) totalLabel = '你有中等程度的认知偏差倾向。这完全正常——Kahneman的研究表明，即使是受过训练的专家也难以完全免疫这些偏差。关键是：你已经意识到了。意识是改善的第一步。下面的具体训练方法会帮你逐步建立"认知刹车"。';
+  else totalLabel = '你坦诚地承认了不少"大脑默认行为"。这其实需要相当的自我觉察才能做到——很多偏差更严重的人恰恰是最否认自己有问题的人（这是达克效应的核心发现）。认识问题是改善的前提。下面的训练方法不是让你"不再犯错"，而是让你在关键时刻能停下来想一想。';
 
   document.getElementById('totalScore').textContent = clarityScore + '%';
   document.getElementById('totalLabel').textContent = totalLabel;
@@ -337,7 +449,8 @@ function showResults() {
         </div>
         <div class="bias-dots">${dots}</div>
         <div class="bias-desc">${info.desc}</div>
-        <div class="bias-desc" style="margin-top:8px; color:rgba(0,229,255,0.6);"><b>💡 训练方法：</b>${info.fix}</div>
+        <div class="bias-desc" style="margin-top:8px; color:rgba(0,229,255,0.6);"><b>💡 矫正策略：</b>${info.fix}</div>
+        <div style="font-family:var(--mono); font-size:9px; color:var(--dim); opacity:0.35; margin-top:8px;">📚 ${info.ref}</div>
       </div>
     `;
   }).join('');
