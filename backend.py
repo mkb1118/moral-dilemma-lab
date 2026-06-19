@@ -7,7 +7,7 @@ import uuid
 import json
 import threading
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -34,12 +34,43 @@ def write_data(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+# ── 自动清理过期数据 ────────────────────────────────────────
+def cleanup_old_records(days=7):
+    """删除超过指定天数的旧记录"""
+    data = read_data()
+    before = len(data["submissions"])
+    cutoff = datetime.now() - timedelta(days=days)
+
+    kept = []
+    deleted = 0
+    for sub in data["submissions"]:
+        try:
+            created = datetime.strptime(sub["created_at"], "%Y-%m-%d %H:%M:%S")
+            if created >= cutoff:
+                kept.append(sub)
+            else:
+                deleted += 1
+        except (ValueError, KeyError):
+            kept.append(sub)  # 无法解析日期的保留
+
+    data["submissions"] = kept
+    write_data(data)
+
+    after = len(kept)
+    return {"before": before, "after": after, "deleted": deleted}
+
+
 # ── 应用启动 ───────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # 首次启动创建空文件
     if not DATA_FILE.exists():
         write_data({"submissions": []})
+    else:
+        # 启动时自动清理 7 天前的记录
+        result = cleanup_old_records(days=7)
+        if result["deleted"] > 0:
+            print(f"[自动清理] 已删除 {result['deleted']} 条过期记录，剩余 {result['after']} 条")
     yield
 
 app = FastAPI(title="道德困境实验室 API", lifespan=lifespan)
@@ -171,6 +202,23 @@ def clear_data():
     """清空所有答题记录"""
     write_data({"submissions": []})
     return {"ok": True, "message": "所有记录已清空"}
+
+
+@app.post("/api/cleanup")
+def manual_cleanup(days: int = 7):
+    """手动清理过期记录（默认7天）"""
+    result = cleanup_old_records(days=days)
+    return {"ok": True, **result}
+
+
+@app.get("/api/cleanup/info")
+def cleanup_info():
+    """查看自动清理规则"""
+    return {
+        "rule": "每次启动后端时自动删除超过7天的记录",
+        "retention_days": 7,
+        "last_checked": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    }
 
 
 @app.get("/api/raw")
