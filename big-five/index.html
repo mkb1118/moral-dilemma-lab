@@ -127,7 +127,51 @@
   @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } }
   @keyframes toastOut { to { opacity: 0; transform: translateX(-50%) translateY(-10px); } }
 
+  /* Back button */
+  .q-nav { display: flex; align-items: center; margin-bottom: 12px; width: 100%; }
+  .btn-back {
+    background: transparent; border: 1px solid var(--border); border-radius: 4px;
+    color: var(--dim); font-family: var(--mono); font-size: 12px;
+    padding: 8px 16px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-back:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  /* Insight row */
+  .insight-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-bottom: 16px; }
+  .insight-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px 24px;
+  }
+  .insight-title {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 2px;
+    color: var(--amber); margin-bottom: 8px; text-transform: uppercase;
+  }
+  .insight-content {
+    color: var(--dim); font-size: 13px; line-height: 1.6; font-weight: 300;
+  }
+
+  /* Growth card */
+  .growth-card {
+    width: 100%; background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px 24px; margin-bottom: 28px;
+    border-left: 2px solid rgba(0,229,255,0.3);
+  }
+  .growth-title {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 2px;
+    color: var(--cyan); margin-bottom: 8px; text-transform: uppercase;
+  }
+  .growth-content {
+    color: var(--dim); font-size: 13px; line-height: 1.6; font-weight: 300;
+  }
+
+  .tag-inline {
+    display: inline-block; padding: 3px 10px; border-radius: 12px;
+    font-family: var(--mono); font-size: 10px; margin: 2px;
+    border: 1px solid rgba(0,229,255,0.2); color: var(--cyan);
+  }
+
   @media (max-width: 600px) {
+    .insight-row { grid-template-columns: 1fr; }
     .app { padding: 16px; }
     .q-card { padding: 24px; }
     .q-card::before { left: 24px; right: 24px; }
@@ -163,6 +207,10 @@
       <div class="progress-info"><span id="progLabel">1 / 20</span><span id="progPct">0%</span></div>
       <div class="progress-track"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
     </div>
+    <div class="q-nav">
+      <button class="btn-back" id="btnBack" onclick="goBack()" style="visibility:hidden;">← 上一题</button>
+      <div style="flex:1;"></div>
+    </div>
     <div class="q-card" id="qCard">
       <div class="q-trait" id="qTrait"></div>
       <p class="q-text" id="qText"></p>
@@ -181,6 +229,23 @@
       <p class="summary-text" id="summaryText"></p>
     </div>
     <div id="traitList"></div>
+
+    <div class="insight-row">
+      <div class="insight-card" id="insightCareer">
+        <div class="insight-title">💼 职业倾向</div>
+        <p class="insight-content" id="careerText"></p>
+      </div>
+      <div class="insight-card" id="insightRel">
+        <div class="insight-title">💛 关系模式</div>
+        <p class="insight-content" id="relText"></p>
+      </div>
+    </div>
+
+    <div class="growth-card">
+      <div class="growth-title">🌱 成长建议</div>
+      <p class="growth-content" id="growthText"></p>
+    </div>
+
     <div class="action-row">
       <button class="btn primary" onclick="restartTest()">重新测试</button>
       <button class="btn" onclick="shareResults()">📤 分享结果</button>
@@ -253,6 +318,8 @@ function renderQuestion() {
   document.getElementById('progLabel').textContent = `${currentQ + 1} / ${QUESTIONS.length}`;
   document.getElementById('progPct').textContent = `${pct}%`;
   document.getElementById('progFill').style.width = `${pct}%`;
+  // Show back button after first question
+  document.getElementById('btnBack').style.visibility = currentQ > 0 ? 'visible' : 'hidden';
   document.getElementById('qTrait').textContent = q.trait;
   document.getElementById('qText').textContent = q.text;
 
@@ -284,11 +351,27 @@ function answer(score, btn) {
       document.getElementById('progLabel').textContent = `20 / 20`;
       document.getElementById('progPct').textContent = '100%';
       document.getElementById('progFill').style.width = '100%';
+      document.getElementById('btnBack').style.visibility = 'hidden';
       setTimeout(showResults, 300);
     } else {
       renderQuestion();
     }
   }, 200);
+}
+
+function goBack() {
+  if (currentQ <= 0) return;
+  currentQ--;
+  renderQuestion();
+  // Pre-select previous answer if exists
+  const prev = answers[currentQ];
+  if (prev) {
+    setTimeout(() => {
+      const btns = document.querySelectorAll('.scale-btn');
+      btns.forEach(b => b.classList.remove('selected'));
+      if (btns[prev.score - 1]) btns[prev.score - 1].classList.add('selected');
+    }, 50);
+  }
 }
 
 // ============================================
@@ -359,17 +442,63 @@ function getLevel(score) {
 }
 
 function generateSummary(scores) {
-  const high = [], low = [];
-  for (const [key, info] of Object.entries(TRAIT_INFO)) {
-    if (scores[key] >= 65) high.push(info.name);
-    if (scores[key] <= 35) low.push(info.name);
-  }
-  let text = '你的人格组合中，';
-  if (high.length > 0) text += `最突出的维度是${high.join('、')}。`;
-  if (low.length > 0) text += `${high.length ? '相对' : '整体'}低调的维度是${low.join('、')}。`;
-  if (high.length === 0 && low.length === 0) text += '各维度得分较为均衡，展现出灵活和适应力强的人格特质。';
-  text += ' 每种人格组合都有其独特的优势——了解自己，不是为了改变，而是为了接纳和善用。';
-  return text;
+  const O=scores.O, C=scores.C, E=scores.E, A=scores.A, N=scores.N;
+  const parts = [];
+
+  // 核心人格画像
+  if (O >= 60 && E >= 55) parts.push('你是一个充满好奇心且乐于表达的人——新想法和新朋友都能让你兴奋。你喜欢探索未知，并且愿意把这种探索分享给身边的人。');
+  if (O >= 60 && E <= 40) parts.push('你拥有丰富的内心世界，但更享受独自探索而非大声宣告。你喜欢深度胜过广度，你的创造力在安静中生长。');
+  if (O <= 35 && C >= 60) parts.push('你务实而可靠，喜欢在熟悉和经过验证的领域深耕。你不太热衷新奇和冒险，但你把"做好眼下的事"变成了一种艺术。');
+  if (C >= 60 && N >= 60) parts.push('你既能掌控局面又保持情绪稳定——这种组合让你在面对压力和复杂任务时展现出超出常人的从容。');
+  if (C <= 35 && O >= 60) parts.push('你充满创意和灵感，但执行力是你的软肋。你喜欢"开始"但不一定"完成"——这不是缺点，而是一种发散型思维的特质。');
+  if (A >= 60 && E >= 55) parts.push('你温暖而外向，天然地吸引着人们靠近。你善于让每个人感到被接纳——这是你在人际关系中最宝贵的优势。');
+  if (A >= 60 && N >= 55) parts.push('你内心柔软，容易感受到他人的情绪波动。你天生是一个关怀者，但要记得：照顾好自己才能持续地温暖别人。');
+  if (E <= 35 && N <= 40) parts.push('你安静而稳定，不需要外界的喧嚣来证明自己的存在。你在独处中获得力量，在平静中找到答案。');
+  if (N <= 35) parts.push('你的情绪基调是稳定和平和的。在压力和混乱中，你是那种能保持清晰思路的人——这在任何团队中都是稀缺品质。');
+
+  if (parts.length === 0) parts.push('你的人格特质在多个维度上处于平衡状态——你灵活而适应，能在不同场合展现出不同的侧面。这种"均衡"本身是一种被低估的优势：你不太极端，因此能理解各种各样的人。');
+
+  return parts.join('<br><br>') + '<br><br>这五种特质的组合是你独一无二的心理指纹——它不是"好"或"不好"，而是你在这个世界上的存在方式。接纳它，善用它。';
+}
+
+function generateCareer(O, C, E, A, N) {
+  const fits = [];
+  if (O >= 55 && C <= 45) fits.push('创意类（设计、艺术、写作）');
+  if (O >= 55 && C >= 55) fits.push('研究类（科学、技术、战略分析）');
+  if (E >= 55 && A >= 55) fits.push('人际类（教育、咨询、销售、公关）');
+  if (C >= 60 && N >= 55) fits.push('组织类（管理、财务、项目执行）');
+  if (E >= 55 && N >= 50) fits.push('表现类（演讲、演艺、创业领袖）');
+  if (A >= 60 && N >= 50) fits.push('关怀类（医疗、心理、社会工作）');
+  if (C >= 55 && O >= 55) fits.push('创新工程类（产品设计、技术创业）');
+  if (E <= 40 && O >= 55) fits.push('独立创作类（写作、编程、研究）');
+
+  if (fits.length === 0) fits.push('灵活适配型——你能适应多种职业环境');
+  return fits.slice(0, 3).join('<br>');
+}
+
+function generateRelationship(O, E, A, N) {
+  if (A >= 55 && E >= 50) return '你在关系中温暖而主动——你享受与人建立连接的过程，善于让对方感到被在乎。你可能需要注意：有时候"讨好"和"真诚"之间的界限会模糊。';
+  if (A >= 55 && E <= 45) return '你在关系中细腻而忠诚——你不善于大张旗鼓地表达，但会在细节中体现关怀。你的伴侣可能需要学会"读"你，但读懂之后会发现一个深情而可靠的人。';
+  if (A <= 40 && N >= 50) return '你在关系中坦率而直接——你不会拐弯抹角，这让你的人际关系清澈透明。但有时候对方可能需要更多的"温度"而不是"真相"。';
+  if (E >= 55 && O >= 55) return '你追求有趣和新鲜的关系体验——你可能会让伴侣感到充满惊喜，但也要注意稳定性同样重要。';
+  if (N <= 40) return '你的情绪稳定性是关系中的定海神针——伴侣可能会依赖你的冷静和可靠。但要记得：偶尔展现脆弱也是一种亲密。';
+  return '你在关系中展现出灵活和平衡的姿态——能适应不同类型的伴侣，在给予和接受之间找到自己的节奏。';
+}
+
+function generateGrowth(O, C, E, A, N) {
+  const tips = [];
+  if (C >= 70) tips.push('你的尽责性如此之高，可能对自己和他人要求过严。试着允许一些"不完美"——有时候完成比完美更重要。');
+  if (C <= 30) tips.push('在自律方面，试着给自己设定小目标而不是大计划。每天只做一件事，积少成多。你不是"懒"——你需要的是"启动"的技巧。');
+  if (A >= 70) tips.push('你的宜人性让你广受欢迎，但也要警惕"过度付出"。善良需要边界——学会说"不"并不会让你变成一个坏人。');
+  if (A <= 30) tips.push('你的直率是力量，但可以试着在"真相"外面裹一层"共情"。不是说假话，而是选择表达的方式。');
+  if (N <= 30) tips.push('你的情绪非常稳定，但要注意：不要因为自己"扛得住"就忽视他人的情绪。有时候一个拥抱比一个解决方案更有效。');
+  if (N >= 60) tips.push('你的情绪敏感是天赋也是负担。试着练习正念或写情绪日记——看见自己的情绪，但不被它淹没。你不需要"变坚强"，你需要的是"变柔韧"。');
+  if (O >= 70) tips.push('你的好奇心让你充满魅力，但要注意"执行力"——把其中一个想法变成现实，比有一百个想法更重要。');
+  if (E >= 65) tips.push('你在人群中如鱼得水，但也给自己留一些独处的时间。真正的能量恢复来自于"安静"，而不是"更热闹"。');
+  if (E <= 30) tips.push('你的内向不是缺点。但如果社交是必须的，试着把它看作一种技能而非压力——你可以保持内向，同时掌握社交的"开关"。');
+
+  if (tips.length === 0) tips.push('你的人格在各维度上相对均衡，这本身就是一种力量。继续关注自我觉察——均衡者的成长来自于不断地微调，而非重大改变。');
+  return tips.slice(0, 2).join('<br><br>');
 }
 
 // ============================================
@@ -377,9 +506,10 @@ function generateSummary(scores) {
 // ============================================
 function showResults() {
   const scores = calcScores();
+  const O=scores.O, C=scores.C, E=scores.E, A=scores.A, N=scores.N;
 
   // Summary
-  document.getElementById('summaryText').textContent = generateSummary(scores);
+  document.getElementById('summaryText').innerHTML = generateSummary(scores);
 
   // Trait cards
   const traitList = document.getElementById('traitList');
@@ -402,6 +532,13 @@ function showResults() {
       </div>
     `;
   }).join('');
+
+  // Career + Relationship insights
+  document.getElementById('careerText').innerHTML = generateCareer(O,C,E,A,N);
+  document.getElementById('relText').textContent = generateRelationship(O,E,A,N);
+
+  // Growth
+  document.getElementById('growthText').innerHTML = generateGrowth(O,C,E,A,N);
 
   showScreen('results');
 
