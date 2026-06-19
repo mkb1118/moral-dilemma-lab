@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>认知偏差检测</title>
+<style>
+  :root {
+    --bg: #060b12; --card: #0c1520; --card-hover: #111d2c;
+    --cyan: #00e5ff; --amber: #f5a623; --white: #f0f4f8;
+    --dim: rgba(240,244,248,0.5); --border: rgba(240,244,248,0.06);
+    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --mono: 'Cascadia Code', 'Fira Code', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--white); font-family: var(--font); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  body::before { content: ''; position: fixed; inset: 0; background: linear-gradient(90deg, var(--border) 1px, transparent 1px), linear-gradient(0deg, var(--border) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%); pointer-events: none; z-index: 0; }
+  .app { position: relative; z-index: 1; width: 100%; max-width: 720px; padding: 24px; }
+  .screen { display: none; flex-direction: column; align-items: center; animation: fadeIn 0.5s; }
+  .screen.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } }
+
+  .welcome-icon { width: 72px; height: 72px; border: 2px solid var(--cyan); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 28px; font-size: 32px; }
+  .title-block { text-align: center; margin-bottom: 12px; }
+  .title-block .label { font-family: var(--mono); font-size: 10px; letter-spacing: 4px; color: var(--amber); margin-bottom: 12px; }
+  .title-block h1 { font-size: 38px; font-weight: 200; letter-spacing: 2px; }
+  .title-block h1 span { color: var(--cyan); font-weight: 400; }
+  .subtitle { color: var(--dim); font-size: 15px; font-weight: 300; text-align: center; max-width: 440px; line-height: 1.6; margin-bottom: 16px; }
+  .info-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; border: 1px solid var(--border); border-radius: 20px; font-family: var(--mono); font-size: 11px; color: var(--dim); margin-bottom: 32px; }
+  .info-badge span { width: 5px; height: 5px; background: var(--cyan); border-radius: 50%; }
+
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 32px; border: 1px solid rgba(240,244,248,0.15); border-radius: 4px; background: transparent; color: var(--white); font-family: var(--mono); font-size: 13px; letter-spacing: 1px; cursor: pointer; transition: all 0.3s; }
+  .btn:hover { border-color: var(--cyan); background: rgba(0,229,255,0.05); }
+  .btn.primary { background: rgba(0,229,255,0.08); border-color: var(--cyan); }
+  .btn.primary:hover { background: rgba(0,229,255,0.15); }
+
+  .progress-wrap { width: 100%; margin-bottom: 24px; }
+  .progress-info { display: flex; justify-content: space-between; margin-bottom: 6px; font-family: var(--mono); font-size: 10px; color: var(--dim); }
+  .progress-track { width: 100%; height: 2px; background: var(--border); border-radius: 1px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--cyan); transition: width 0.3s; border-radius: 1px; }
+
+  .q-card { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 32px; margin-bottom: 20px; }
+  .q-num { font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: var(--amber); margin-bottom: 14px; }
+  .q-scene { font-size: 18px; font-weight: 300; line-height: 1.7; margin-bottom: 20px; }
+
+  .choices { display: flex; flex-direction: column; gap: 10px; }
+  .choice-btn { width: 100%; padding: 16px 20px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: var(--white); text-align: left; font-size: 15px; font-weight: 300; cursor: pointer; transition: all 0.25s; display: flex; align-items: center; gap: 12px; }
+  .choice-btn:hover { border-color: var(--cyan); background: var(--card-hover); transform: translateX(4px); }
+  .choice-marker { width: 10px; height: 10px; border: 2px solid var(--border); border-radius: 50%; flex-shrink: 0; transition: all 0.3s; }
+  .choice-btn:hover .choice-marker { border-color: var(--cyan); background: rgba(0,229,255,0.15); }
+
+  .q-nav { display: flex; align-items: center; margin-bottom: 10px; width: 100%; }
+  .btn-back { background: transparent; border: 1px solid var(--border); border-radius: 4px; color: var(--dim); font-family: var(--mono); font-size: 12px; padding: 8px 16px; cursor: pointer; transition: all 0.2s; }
+  .btn-back:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  .results-header { text-align: center; margin-bottom: 28px; }
+  .results-header .label { font-family: var(--mono); font-size: 10px; letter-spacing: 4px; color: var(--amber); margin-bottom: 8px; }
+  .results-header h2 { font-size: 28px; font-weight: 200; }
+
+  .score-card { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 16px; text-align: center; border-left: 2px solid var(--cyan); }
+  .score-number { font-size: 48px; font-weight: 200; color: var(--cyan); }
+  .score-label { font-size: 14px; color: var(--dim); margin-top: 4px; }
+
+  .bias-card { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin-bottom: 12px; }
+  .bias-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .bias-name { font-size: 15px; font-weight: 400; display: flex; align-items: center; gap: 8px; }
+  .bias-score-tag { font-family: var(--mono); font-size: 11px; padding: 3px 10px; border-radius: 12px; }
+  .bias-score-tag.high { background: rgba(0,229,255,0.1); color: var(--cyan); border: 1px solid rgba(0,229,255,0.2); }
+  .bias-score-tag.mid { background: rgba(245,166,35,0.1); color: var(--amber); border: 1px solid rgba(245,166,35,0.2); }
+  .bias-score-tag.low { background: rgba(240,244,248,0.05); color: var(--dim); border: 1px solid rgba(240,244,248,0.1); }
+  .bias-dots { display: flex; gap: 4px; margin: 8px 0; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+  .dot.filled { background: var(--cyan); }
+  .bias-desc { font-size: 13px; color: var(--dim); line-height: 1.6; font-weight: 300; margin-top: 8px; }
+
+  .action-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 20px; margin-bottom: 12px; }
+  .footer-note { font-family: var(--mono); font-size: 9px; color: var(--dim); opacity: 0.4; text-align: center; margin-top: 8px; }
+
+  .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); background: var(--card); border: 1px solid var(--cyan); color: var(--cyan); padding: 10px 20px; border-radius: 6px; font-family: var(--mono); font-size: 12px; z-index: 100; animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards; pointer-events: none; }
+  @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } }
+  @keyframes toastOut { to { opacity: 0; transform: translateX(-50%) translateY(-10px); } }
+
+  @media (max-width: 600px) {
+    .app { padding: 16px; }
+    .q-card { padding: 20px; }
+    .q-scene { font-size: 16px; }
+    .title-block h1 { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- WELCOME -->
+  <div class="screen active" id="welcome">
+    <div class="welcome-icon">🔍</div>
+    <div class="title-block">
+      <div class="label">Cognitive Biases</div>
+      <h1>认知偏差<br><span>检测</span></h1>
+    </div>
+    <p class="subtitle">你的大脑有看不见的"思维捷径"——它们帮你快速决策，也让你系统性地犯错。24个情境题，看看哪些认知偏差在悄悄影响你。</p>
+    <div class="info-badge"><span></span> 24 题 · 约 5 分钟 · 情境判断</div>
+    <button class="btn primary" onclick="startTest()">开始检测 →</button>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="screen" id="quiz">
+    <div class="progress-wrap">
+      <div class="progress-info"><span id="progLabel">1 / 24</span><span id="progPct">0%</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+    <div class="q-nav"><button class="btn-back" id="btnBack" onclick="goBack()" style="visibility:hidden;">← 上一题</button></div>
+    <div class="q-card"><div class="q-num" id="qNum"></div><p class="q-scene" id="qScene"></p></div>
+    <div class="choices" id="choices"></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="screen" id="results">
+    <div class="results-header">
+      <div class="label">Bias Detection Complete</div>
+      <h2>你的认知偏差检测报告</h2>
+    </div>
+    <div class="score-card">
+      <div class="score-number" id="totalScore"></div>
+      <div class="score-label" id="totalLabel"></div>
+    </div>
+    <div id="biasList"></div>
+    <div class="action-row">
+      <button class="btn primary" onclick="restartTest()">重新检测</button>
+      <button class="btn" onclick="shareResults()">📤 分享结果</button>
+    </div>
+    <p class="footer-note">基于心理学经典研究改编 · 仅供自我觉察，非临床诊断</p>
+  </div>
+</div>
+
+<script>
+// ============================================
+// 24 SCENARIOS: 8 biases × 3 scenarios each
+// ============================================
+const SCENARIOS = [
+  // 1. Confirmation Bias / 确认偏误
+  { id:1, bias:'确认偏误', biasKey:'confirmation', text:'你在考虑买哪款手机。已经看中A款后，你更可能怎么做？', opts:[
+    {text:'主动搜索"为什么A款是最好的手机"', score:1},
+    {text:'搜索"A款和B款的全面对比评测"', score:0}]},
+  { id:2, bias:'确认偏误', biasKey:'confirmation', text:'一个朋友深信某种饮食法有效。当你给他看一篇质疑该饮食法的科学研究时，你预测他更可能？', opts:[
+    {text:'质疑研究的方法论，找它的漏洞', score:1},
+    {text:'认真阅读研究，重新评估自己的观点', score:0}]},
+  { id:3, bias:'确认偏误', biasKey:'confirmation', text:'在一次面试中，面试官在前5分钟就对你有了第一印象。你估计接下来他会？', opts:[
+    {text:'主要寻找支持第一印象的证据', score:1},
+    {text:'主动寻找与自己印象相反的信息来平衡判断', score:0}]},
+
+  // 2. Anchoring / 锚定效应
+  { id:4, bias:'锚定效应', biasKey:'anchoring', text:'你去二手车市场买车。卖家开价15万。你觉得这辆车实际价值更接近？', opts:[
+    {text:'14万左右——以卖家开价作为参考点来协商', score:1},
+    {text:'先查市场价格，完全忽略卖家的开价来判断', score:0}]},
+  { id:5, bias:'锚定效应', biasKey:'anchoring', text:'一个慈善组织先问你："你愿意每月捐1000元吗？"被拒绝后问："那每月捐50元呢？"你会？', opts:[
+    {text:'觉得50元相比1000元很合理，更倾向于答应', score:1},
+    {text:'意识到这是一种策略，按自己原本的意愿决定', score:0}]},
+  { id:6, bias:'锚定效应', biasKey:'anchoring', text:'看到一个产品标价"原价999，现价399"。你的第一反应是？', opts:[
+    {text:'觉得省了600块，这是好机会——买！', score:1},
+    {text:'质疑"原价"是否真实，以399元本身的性价比来判断', score:0}]},
+
+  // 3. Availability Heuristic / 可得性启发
+  { id:7, bias:'可得性启发', biasKey:'availability', text:'你最近看了一部关于鲨鱼袭击的电影。现在去海边游泳时，你感觉被鲨鱼攻击的风险比实际高多少？', opts:[
+    {text:'明显高很多——脑海中全是那些画面', score:1},
+    {text:'理性知道概率极低，不影响我的行为', score:0}]},
+  { id:8, bias:'可得性启发', biasKey:'availability', text:'朋友告诉你他认识的一个人创业失败。现在你对创业成功率的估计？', opts:[
+    {text:'比之前低了——那个故事很生动，让我印象深刻', score:1},
+    {text:'一个案例不能改变我对整体统计数据的理解', score:0}]},
+  { id:9, bias:'可得性启发', biasKey:'availability', text:'媒体的犯罪报道增多。你认为今年的犯罪率相比去年？', opts:[
+    {text:'上升了——因为经常看到这类报道', score:1},
+    {text:'需要看实际统计数据才能判断', score:0}]},
+
+  // 4. Framing Effect / 框架效应
+  { id:10, bias:'框架效应', biasKey:'framing', text:'医生告诉你："这个手术有90%的存活率"vs"这个手术有10%的死亡率"。你的感受？', opts:[
+    {text:'听到90%存活时更愿意接受手术', score:1},
+    {text:'两种说法是一样的概率，我的决定不受措辞影响', score:0}]},
+  { id:11, bias:'框架效应', biasKey:'framing', text:'超市里，"含75%瘦肉"和"含25%肥肉"的标签，你会选哪个？', opts:[
+    {text:'选"75%瘦肉"——听起来健康多了', score:1},
+    {text:'两者是一样的，我会看配料表判断', score:0}]},
+  { id:12, bias:'框架效应', biasKey:'framing', text:'你被要求评价一个政策："保护言论自由"vs"防止有害言论"。你的态度取决于？', opts:[
+    {text:'措辞会影响我的判断——"保护自由"听起来比"防止"更有吸引力', score:1},
+    {text:'我关注的是政策的具体内容，不是它怎么被包装', score:0}]},
+
+  // 5. Overconfidence / 过度自信
+  { id:13, bias:'过度自信', biasKey:'overconfidence', text:'一个你不太了解的话题，请估计你的知识水平在人群中的位置。你倾向于？', opts:[
+    {text:'觉得自己的理解"高于平均水平"', score:1},
+    {text:'诚实承认自己在这个话题上了解有限', score:0}]},
+  { id:14, bias:'过度自信', biasKey:'overconfidence', text:'你刚学会一项新技能。你觉得多久能精通它？', opts:[
+    {text:'比我以为的要快——我已经上手了', score:1},
+    {text:'参考他人的学习曲线，做好长期投入的准备', score:0}]},
+  { id:15, bias:'过度自信', biasKey:'overconfidence', text:'你做了一个重要的决定。事后回头看，你倾向于认为？', opts:[
+    {text:'我当时就知道这是正确的选择', score:1},
+    {text:'当时有很多不确定性，我只是运气好', score:0}]},
+
+  // 6. Sunk Cost / 沉没成本
+  { id:16, bias:'沉没成本', biasKey:'sunkcost', text:'你已经花200块买了一张演出票。演出当天天气很差，你也不太想去了。你会？', opts:[
+    {text:'还是去——"不能浪费那200块钱"', score:1},
+    {text:'不去——200块已经花掉了，去不去都不能拿回来', score:0}]},
+  { id:17, bias:'沉没成本', biasKey:'sunkcost', text:'你在一段关系中已经投入了三年，但你知道这段关系不健康。你的选择更可能是？', opts:[
+    {text:'继续坚持——"已经投入了三年，不想白费"', score:1},
+    {text:'结束它——过去的三年是沉默成本，未来的幸福才是决策依据', score:0}]},
+  { id:18, bias:'沉没成本', biasKey:'sunkcost', text:'一个项目已经投入了大量时间，但数据表明它很可能失败。你会？', opts:[
+    {text:'继续投入——已经投入了这么多，不能就这样放弃', score:1},
+    {text:'止损——过去的投入是沉没成本，只考虑未来的投入产出', score:0}]},
+
+  // 7. Bandwagon / 从众效应
+  { id:19, bias:'从众效应', biasKey:'bandwagon', text:'一家餐厅门口排着长队。你对这家餐厅的评价倾向？', opts:[
+    {text:'更多人排队=更好吃——我也会去排队', score:1},
+    {text:'排队可能是营销或跟风，我会独立判断', score:0}]},
+  { id:20, bias:'从众效应', biasKey:'bandwagon', text:'同事们都开始使用一个你认为不太好的工作方法。你会？', opts:[
+    {text:'随大流——既然大家都这样，应该没错', score:1},
+    {text:'坚持自己的判断，如果认为不对就提出来', score:0}]},
+  { id:21, bias:'从众效应', biasKey:'bandwagon', text:'在会议上，大家都举手表示同意。你有不同意见。你会？', opts:[
+    {text:'保持沉默——我不想成为唯一的反对者', score:1},
+    {text:'还是会表达——即使只有我一个人不同', score:0}]},
+
+  // 8. Hindsight / 后见之明
+  { id:22, bias:'后见之明', biasKey:'hindsight', text:'一场球赛结束后，你听到有人说"我就知道他们会赢"。你觉得这个人？', opts:[
+    {text:'真的提前判断到了——他很有洞察力', score:1},
+    {text:'很可能只是在事后觉得"显而易见"——其实赛前他并不确定', score:0}]},
+  { id:23, bias:'后见之明', biasKey:'hindsight', text:'股市大跌后，有文章解释"为什么这次下跌是必然的"。你的反应？', opts:[
+    {text:'觉得这些解释很有道理——确实一切都很明显', score:1},
+    {text:'提醒自己：这些分析在大跌前并不存在，事后解释比事前预测容易得多', score:0}]},
+  { id:24, bias:'后见之明', biasKey:'hindsight', text:'你做了一个错误决定，事后回头看。你倾向于？', opts:[
+    {text:'责怪自己——"我当时就应该知道的，太蠢了"', score:1},
+    {text:'理解当时的信息是有限的——"以当时的条件，我的决策是合理的"', score:0}]},
+];
+
+const BIAS_INFO = {
+  confirmation: { name:'确认偏误', icon:'🔎', desc:'你倾向于寻找和记住支持自己已有观点的信息，而忽略相反的证据。这是最常见的认知偏差之一——它让你的世界观越来越窄。', fix:'下次当你要做重要判断时，故意去找三个"反对你观点"的证据。给自己布置一个作业：为对方写一段辩护词。这不是让你改变立场，而是让你的判断建立在更全面的信息之上。' },
+  anchoring: { name:'锚定效应', icon:'⚓', desc:'你容易被第一个接触到的信息"锚住"——之后的判断都会围绕这个锚点打转。商家利用这一点让你觉得"划算"，谈判对手利用这一点控制你的预期。', fix:'在接收任何价格或数字之前，先建立一个自己的参考范围。问自己："如果我没看到这个数字，我会怎么评估？"忽略锚点——用独立的尺度重新评估。' },
+  availability: { name:'可得性启发', icon:'📺', desc:'你倾向于高估那些"容易想到"的事件的概率。生动的画面、近期的经历、媒体的密集报道——这些都能扭曲你对风险的判断。飞机失事比车祸可怕，但实际上后者危险得多。', fix:'当评估风险时，不要依赖你的直觉和记忆。去查查数据。问自己："我的恐惧是因为真实的概率，还是因为我最近看了太多相关的画面？"' },
+  framing: { name:'框架效应', icon:'🖼️', desc:'同样的信息，不同的包装方式会极大地影响你的判断。"90%存活率"和"10%死亡率"在数学上完全一样，但你的大脑对它们的反应截然不同。广告、政治宣传、甚至医生的沟通——都在利用这个效应。', fix:'当面对一个有说服力的表述时，把它"反过来"想一遍。如果有人说"90%的成功率"，问自己：如果我听到的是"10%的失败率"，我的感受会不同吗？如果会，那就是框架在影响你。' },
+  overconfidence: { name:'过度自信', icon:'🎯', desc:'你倾向于高估自己的知识、判断和能力——尤其在你不太熟悉的领域。你以为你懂的比实际上多，你以为你的预测比实际上准。这不是自负，而是大脑的一种普遍性倾向。', fix:'在做出判断后，问自己一个校准问题："如果答案是相反的，可能是什么原因？"给你的预测加上一个"置信区间"——不是"我认为X会发生"，而是"我有60%的把握X会发生，40%的可能是其他结果"。' },
+  sunkcost: { name:'沉没成本', icon:'💸', desc:'你倾向于因为"已经投入了"而继续坚持——即使继续下去只会亏损更多。金钱、时间、感情——一旦被标记为"已投入"，你就很难放手。但这是一种错觉：过去的付出已经拿不回来了，它不应该影响你未来的决策。', fix:'在做继续/放弃的决定时，假装你是刚刚接手这个项目的"新人"。新人不知道过去了多少——她只会问：从今天开始，投入和回报是否合理？如果答案是"不合理"，那就放手。' },
+  bandwagon: { name:'从众效应', icon:'🐑', desc:'你倾向于相信"大家觉得对的就是对的"。当很多人和你持不同意见时，你会怀疑自己——哪怕你本来是对的。从众心理让你在群体压力下放弃独立思考。', fix:'当发现自己和群体不同时，先停下来。问自己："如果我是唯一知道真相的人，现在我的判断是什么？"不是因为大家都错了——而是因为"人数"和"正确"是两个不相关的维度。' },
+  hindsight: { name:'后见之明', icon:'🔮', desc:'你倾向于在事情发生后觉得"我早就知道会这样"——但事实上，你事前并不确定。这种偏差让你高估自己的预测能力，也让你对自己过去的"错误"过于苛刻。事后看起来明显的因果链，在当时可能是模糊不清的。', fix:'在重要决策前，写下你的预测和理由。事后拿出来对照——你会发现"事前"和"事后"的差距有多大。这个习惯能让你更准确地了解自己的判断力，也更宽容地对待自己过去的"错误"。' }
+};
+
+// ============================================
+// STATE
+// ============================================
+let currentQ = 0;
+let answers = []; // {questionId, score (0 or 1)}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startTest() {
+  currentQ = 0; answers = [];
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = SCENARIOS[currentQ];
+  const pct = Math.round((currentQ / SCENARIOS.length) * 100);
+  document.getElementById('progLabel').textContent = `${currentQ + 1} / ${SCENARIOS.length}`;
+  document.getElementById('progPct').textContent = `${pct}%`;
+  document.getElementById('progFill').style.width = `${pct}%`;
+  document.getElementById('qNum').textContent = `SCENARIO ${q.id}`;
+  document.getElementById('qScene').textContent = q.text;
+  document.getElementById('btnBack').style.visibility = currentQ > 0 ? 'visible' : 'hidden';
+
+  document.getElementById('choices').innerHTML = q.opts.map((o, i) => `
+    <button class="choice-btn" onclick="answer(${o.score}, this)">
+      <span class="choice-marker"></span>
+      <span>${o.text}</span>
+    </button>
+  `).join('');
+
+  const card = document.querySelector('.q-card');
+  card.style.opacity = '0'; card.style.transform = 'translateY(8px)';
+  requestAnimationFrame(() => { card.style.transition = 'all 0.3s'; card.style.opacity = '1'; card.style.transform = 'translateY(0)'; });
+}
+
+function answer(score, btn) {
+  document.querySelectorAll('.choice-btn').forEach(b => b.style.opacity = '0.4');
+  btn.style.opacity = '1'; btn.style.borderColor = 'var(--cyan)';
+  answers[currentQ] = { questionId: SCENARIOS[currentQ].id, score: score };
+  setTimeout(() => {
+    currentQ++;
+    if (currentQ >= SCENARIOS.length) { document.getElementById('progPct').textContent = '100%'; document.getElementById('progFill').style.width = '100%'; setTimeout(showResults, 300); }
+    else renderQuestion();
+  }, 250);
+}
+
+function goBack() {
+  if (currentQ <= 0) return;
+  currentQ--;
+  renderQuestion();
+}
+
+// ============================================
+// RESULTS
+// ============================================
+function showResults() {
+  // Calculate scores per bias
+  const biasScores = {};
+  SCENARIOS.forEach((q, idx) => {
+    if (!biasScores[q.biasKey]) biasScores[q.biasKey] = { total: 0, hits: 0 };
+    biasScores[q.biasKey].total++;
+    if (answers[idx] && answers[idx].score === 1) biasScores[q.biasKey].hits++;
+  });
+
+  // Overall: lower = less biased. 0 hits = great, 24 hits = every bias triggered.
+  const totalHits = Object.values(biasScores).reduce((s, b) => s + b.hits, 0);
+  const maxHits = 24;
+  const clarityScore = Math.max(0, Math.round((1 - totalHits / maxHits) * 100));
+
+  let totalLabel;
+  if (clarityScore >= 80) totalLabel = '你的认知警惕性非常高——你的思维很少被这些常见的偏差绑架。保持这种自我觉察。';
+  else if (clarityScore >= 60) totalLabel = '你有不错的认知觉察力，但某些思维陷阱对你来说仍然容易中招。下面的分析会帮你找到你的"思维盲区"。';
+  else if (clarityScore >= 40) totalLabel = '你有中等程度的认知偏差倾向。这不是"笨"——这是大脑的默认设置。好消息是：认知偏差是可以被训练克服的。';
+  else totalLabel = '你承认了很多"大脑默认行为"。这其实需要相当的自我觉察才能做到——很多不承认的人其实偏差更严重。认识问题是第一步，下面的建议会帮你。';
+
+  document.getElementById('totalScore').textContent = clarityScore + '%';
+  document.getElementById('totalLabel').textContent = totalLabel;
+
+  // Bias cards
+  const orderedKeys = Object.keys(BIAS_INFO);
+  document.getElementById('biasList').innerHTML = orderedKeys.map(key => {
+    const info = BIAS_INFO[key];
+    const score = biasScores[key] || { hits: 0, total: 3 };
+    const hits = score.hits, total = score.total;
+    const level = hits >= 2 ? '高' : (hits === 1 ? '中' : '低');
+    const cls = hits >= 2 ? 'high' : (hits === 1 ? 'mid' : 'low');
+    const dots = Array.from({length: total}, (_, i) => `<span class="dot${i < hits ? ' filled' : ''}"></span>`).join('');
+
+    return `
+      <div class="bias-card">
+        <div class="bias-header">
+          <span class="bias-name">${info.icon} ${info.name}</span>
+          <span class="bias-score-tag ${cls}">${level}(${hits}/${total})</span>
+        </div>
+        <div class="bias-dots">${dots}</div>
+        <div class="bias-desc">${info.desc}</div>
+        <div class="bias-desc" style="margin-top:8px; color:rgba(0,229,255,0.6);"><b>💡 训练方法：</b>${info.fix}</div>
+      </div>
+    `;
+  }).join('');
+
+  showScreen('results');
+}
+
+// ============================================
+// SHARE
+// ============================================
+function shareResults() {
+  const totalHits = Object.values(BIAS_INFO).reduce((s, b) => {
+    const bs = SCENARIOS.filter(q => q.biasKey === Object.keys(BIAS_INFO).find(k => BIAS_INFO[k].name === b.name));
+    return s; // simplified for share text
+  }, 0);
+  const clarity = document.getElementById('totalScore').textContent;
+  const text = `🔍 认知偏差检测报告\n\n我的认知清晰度：${clarity}\n\n24个情境题，测了8种经典认知偏差：确认偏误、锚定效应、可得性启发、框架效应、过度自信、沉没成本、从众效应、后见之明。\n\n你的大脑也有这些"思维捷径"吗？\n👉 来测测 https://mkb1118.github.io/cognitive-bias/`;
+
+  if (navigator.clipboard) { navigator.clipboard.writeText(text).then(() => showToast('已复制！')); }
+}
+
+function showToast(msg) {
+  const old = document.querySelector('.toast'); if (old) old.remove();
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2500);
+}
+
+function restartTest() { currentQ = 0; answers = []; showScreen('welcome'); }
+</script>
+</body>
+</html>
