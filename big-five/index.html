@@ -164,6 +164,18 @@
     color: var(--dim); font-size: 13px; line-height: 1.6; font-weight: 300;
   }
 
+  /* Sub-facets */
+  .sub-facets { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
+  .sub-facet { margin-bottom: 8px; }
+  .sub-header { display: flex; justify-content: space-between; margin-bottom: 3px; }
+  .sub-name { font-size: 11px; color: var(--dim); }
+  .sub-score { font-family: var(--mono); font-size: 10px; color: var(--dim); opacity: 0.6; }
+  .sub-bar-wrap { width: 100%; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .sub-bar-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
+  .sub-bar-fill.high { background: var(--cyan); }
+  .sub-bar-fill.mid { background: rgba(0,229,255,0.4); }
+  .sub-bar-fill.low { background: rgba(245,166,35,0.4); }
+
   .tag-inline {
     display: inline-block; padding: 3px 10px; border-radius: 12px;
     font-family: var(--mono); font-size: 10px; margin: 2px;
@@ -197,7 +209,7 @@
       基于心理学界最受认可的人格模型，从五个核心维度描绘你的人格全貌。
       这不是"对号入座"，而是一面镜子。
     </p>
-    <div class="info-badge"><span></span> 20 题 · 约 4 分钟 · 科学量表</div>
+    <div class="info-badge"><span></span> 40 题 · 约 6 分钟 · IPIP科学量表</div>
     <button class="btn primary" onclick="startTest()">开始测评 →</button>
   </div>
 
@@ -257,38 +269,59 @@
 
 <script>
 // ============================================
-// QUESTIONS: IPIP-based, 4 items per trait, 20 total
+// QUESTIONS: IPIP-based, 8 items per trait, 40 total
+// Each trait has sub-facets for richer analysis
 // ============================================
 const QUESTIONS = [
-  // O = Openness (开放性)
-  { id:1,  trait:'开放性', text:'我经常有各种各样的新想法，喜欢天马行空地想象。',           key:'O', reverse:false },
-  { id:2,  trait:'开放性', text:'我对艺术、音乐和文学有强烈的感受力，容易被美打动。',       key:'O', reverse:false },
-  { id:3,  trait:'开放性', text:'我喜欢思考复杂的问题，享受智力上的挑战。',                 key:'O', reverse:false },
-  { id:4,  trait:'开放性', text:'我更喜欢熟悉的事物，而不是尝试新鲜和未知。',               key:'O', reverse:true },
+  // O = Openness (开放性) —— 创意想象 / 审美敏感 / 思辨深度
+  { id:1,  trait:'开放性', sub:'创意想象', text:'我的脑海中经常涌现出新的想法和可能性，喜欢天马行空的想象。',         key:'O', reverse:false },
+  { id:2,  trait:'开放性', sub:'创意想象', text:'我对新鲜和未知的事物充满好奇，喜欢尝试没做过的事。',               key:'O', reverse:false },
+  { id:3,  trait:'开放性', sub:'创意想象', text:'我喜欢用不同的角度看待熟悉的问题，寻找新的解决方式。',             key:'O', reverse:false },
+  { id:4,  trait:'开放性', sub:'审美敏感', text:'我对艺术、音乐和文学有强烈的感受力，容易被美好的事物打动。',       key:'O', reverse:false },
+  { id:5,  trait:'开放性', sub:'审美敏感', text:'大自然和艺术品常常让我感到敬畏和心潮澎湃。',                       key:'O', reverse:false },
+  { id:6,  trait:'开放性', sub:'思辨深度', text:'我喜欢思考抽象和复杂的问题，享受智力上的挑战。',                   key:'O', reverse:false },
+  { id:7,  trait:'开放性', sub:'思辨深度', text:'我对哲学、科学或社会议题有持续的探索兴趣。',                       key:'O', reverse:false },
+  { id:8,  trait:'开放性', sub:'创意想象', text:'相比冒险和变化，我更喜欢熟悉和可预测的生活方式。',                 key:'O', reverse:true },
 
-  // C = Conscientiousness (尽责性)
-  { id:5,  trait:'尽责性', text:'我做事有计划和条理，不喜欢临时抱佛脚。',                   key:'C', reverse:false },
-  { id:6,  trait:'尽责性', text:'我对自己承诺的事情会坚持到底，很少半途而废。',             key:'C', reverse:false },
-  { id:7,  trait:'尽责性', text:'我注重细节，追求把每件事做好而不仅仅是完成。',             key:'C', reverse:false },
-  { id:8,  trait:'尽责性', text:'有时我觉得自己缺乏自律，容易拖延重要的事情。',             key:'C', reverse:true },
+  // C = Conscientiousness (尽责性) —— 条理规划 / 坚持完成 / 细节完美
+  { id:9,  trait:'尽责性', sub:'条理规划', text:'我做事有计划有条理，会提前安排好时间和优先级。',                   key:'C', reverse:false },
+  { id:10, trait:'尽责性', sub:'条理规划', text:'我的房间和工作桌面通常保持整洁有序，我知道每样东西在哪。',         key:'C', reverse:false },
+  { id:11, trait:'尽责性', sub:'坚持完成', text:'我对自己承诺的事情会坚持到底，很少半途而废。',                     key:'C', reverse:false },
+  { id:12, trait:'尽责性', sub:'坚持完成', text:'即使任务变得困难或枯燥，我也能逼自己继续前进。',                   key:'C', reverse:false },
+  { id:13, trait:'尽责性', sub:'细节完美', text:'我注重细节，追求把每件事做到最好而不仅仅是"完成"。',              key:'C', reverse:false },
+  { id:14, trait:'尽责性', sub:'细节完美', text:'在提交工作之前，我会反复检查，确保没有错误。',                     key:'C', reverse:false },
+  { id:15, trait:'尽责性', sub:'条理规划', text:'我喜欢随心所欲地做事，不太喜欢被计划和日程约束。',                 key:'C', reverse:true },
+  { id:16, trait:'尽责性', sub:'坚持完成', text:'有时我觉得自己缺乏自律，会拖延那些需要长期坚持的事情。',           key:'C', reverse:true },
 
-  // E = Extraversion (外向性)
-  { id:9,  trait:'外向性', text:'在聚会或社交场合中，我通常充满活力，主动与人交谈。',       key:'E', reverse:false },
-  { id:10, trait:'外向性', text:'我喜欢成为人们关注的焦点，享受被注意的感觉。',             key:'E', reverse:false },
-  { id:11, trait:'外向性', text:'和很多人待在一起让我感到充电，而不是消耗。',               key:'E', reverse:false },
-  { id:12, trait:'外向性', text:'我更享受独处，嘈杂的社交环境让我感到疲惫。',               key:'E', reverse:true },
+  // E = Extraversion (外向性) —— 社交能量 / 主导表达 / 积极情绪
+  { id:17, trait:'外向性', sub:'社交能量', text:'在聚会或社交场合中，我充满活力，主动与人交谈。',                   key:'E', reverse:false },
+  { id:18, trait:'外向性', sub:'社交能量', text:'和很多人待在一起让我感到充电和兴奋，而不是消耗。',                 key:'E', reverse:false },
+  { id:19, trait:'外向性', sub:'主导表达', text:'在群体讨论中，我经常是那个首先发言或主导话题的人。',               key:'E', reverse:false },
+  { id:20, trait:'外向性', sub:'主导表达', text:'我喜欢成为人们关注的焦点，不介意在众人面前表现自己。',             key:'E', reverse:false },
+  { id:21, trait:'外向性', sub:'积极情绪', text:'我总体上是一个乐观开朗的人，经常感到快乐和满足。',                 key:'E', reverse:false },
+  { id:22, trait:'外向性', sub:'积极情绪', text:'我容易对生活充满热情，常常感染身边的人。',                         key:'E', reverse:false },
+  { id:23, trait:'外向性', sub:'社交能量', text:'我更享受独处或小范围的深度交流，嘈杂的社交让我感到疲惫。',         key:'E', reverse:true },
+  { id:24, trait:'外向性', sub:'主导表达', text:'在社交场合我通常比较安静，不太主动发起话题。',                     key:'E', reverse:true },
 
-  // A = Agreeableness (宜人性)
-  { id:13, trait:'宜人性', text:'看到别人遇到困难，我会本能地想要帮忙。',                   key:'A', reverse:false },
-  { id:14, trait:'宜人性', text:'我尽量避免冲突，即使牺牲自己的利益也会选择妥协。',         key:'A', reverse:false },
-  { id:15, trait:'宜人性', text:'我相信大多数人本质上是善良的，愿意给别人第二次机会。',     key:'A', reverse:false },
-  { id:16, trait:'宜人性', text:'有时候我会把自己的需求放在第一位，即使这会影响别人。',     key:'A', reverse:true },
+  // A = Agreeableness (宜人性) —— 共情关怀 / 合作妥协 / 信任善意
+  { id:25, trait:'宜人性', sub:'共情关怀', text:'看到别人遇到困难或伤心，我会本能地想要帮忙和安慰。',               key:'A', reverse:false },
+  { id:26, trait:'宜人性', sub:'共情关怀', text:'我很容易感受到他人的情绪状态，好像那是我自己的一样。',             key:'A', reverse:false },
+  { id:27, trait:'宜人性', sub:'合作妥协', text:'我尽量避免与人发生冲突，即使需要牺牲一些自己的利益也会选择妥协。', key:'A', reverse:false },
+  { id:28, trait:'宜人性', sub:'合作妥协', text:'在团队合作中，我乐于配合他人，不太计较个人得失。',                 key:'A', reverse:false },
+  { id:29, trait:'宜人性', sub:'信任善意', text:'我相信大多数人本质上是善良的，我愿意给别人第二次机会。',           key:'A', reverse:false },
+  { id:30, trait:'宜人性', sub:'信任善意', text:'即使陌生人向我求助，我也倾向于相信对方。',                         key:'A', reverse:false },
+  { id:31, trait:'宜人性', sub:'共情关怀', text:'有时候我会把自己的需求放在第一位，即使这会影响到别人的利益。',     key:'A', reverse:true },
+  { id:32, trait:'宜人性', sub:'合作妥协', text:'当别人做错事时，我不会轻易原谅，而是会让他们承担后果。',           key:'A', reverse:true },
 
-  // N = Neuroticism (神经质) — lower = more stable
-  { id:17, trait:'情绪稳定性', text:'我经常感到焦虑和紧张，即使事情并不严重。',             key:'N', reverse:true },
-  { id:18, trait:'情绪稳定性', text:'我的情绪起伏比较大，容易被小事影响心情。',             key:'N', reverse:true },
-  { id:19, trait:'情绪稳定性', text:'即使面对压力，我也能保持冷静和清晰的思考。',           key:'N', reverse:false },
-  { id:20, trait:'情绪稳定性', text:'我对自己的能力和生活总体上感到满意和自信。',           key:'N', reverse:false },
+  // N = Neuroticism/情绪稳定性 —— 焦虑倾向 / 情绪波动 / 自信抗压
+  { id:33, trait:'情绪稳定性', sub:'焦虑倾向', text:'我经常感到焦虑和紧张，即使事情本身并不严重。',                 key:'N', reverse:true },
+  { id:34, trait:'情绪稳定性', sub:'焦虑倾向', text:'我容易反复担忧未来，脑子里很难真正放松下来。',                 key:'N', reverse:true },
+  { id:35, trait:'情绪稳定性', sub:'情绪波动', text:'我的情绪起伏比较大，容易被小事影响一整天的心情。',             key:'N', reverse:true },
+  { id:36, trait:'情绪稳定性', sub:'情绪波动', text:'我会因为别人的一句话或一个表情而反复琢磨很久。',               key:'N', reverse:true },
+  { id:37, trait:'情绪稳定性', sub:'自信抗压', text:'即使面对很大的压力，我也能保持冷静和清晰的思考。',             key:'N', reverse:false },
+  { id:38, trait:'情绪稳定性', sub:'自信抗压', text:'我对自己的能力和生活总体上感到满意和自信。',                     key:'N', reverse:false },
+  { id:39, trait:'情绪稳定性', sub:'焦虑倾向', text:'我是一个心态平和的人，不太容易为小事感到紧张。',                 key:'N', reverse:false },
+  { id:40, trait:'情绪稳定性', sub:'自信抗压', text:'挫折和失败不会轻易打倒我，我能较快地从打击中恢复。',           key:'N', reverse:false },
 ];
 
 // ============================================
@@ -348,7 +381,7 @@ function answer(score, btn) {
   setTimeout(() => {
     currentQ++;
     if (currentQ >= QUESTIONS.length) {
-      document.getElementById('progLabel').textContent = `20 / 20`;
+      document.getElementById('progLabel').textContent = `40 / 40`;
       document.getElementById('progPct').textContent = '100%';
       document.getElementById('progFill').style.width = '100%';
       document.getElementById('btnBack').style.visibility = 'hidden';
@@ -380,22 +413,40 @@ function goBack() {
 function calcScores() {
   const traits = { O:0, C:0, E:0, A:0, N:0 };
   const counts = { O:0, C:0, E:0, A:0, N:0 };
+  // Sub-facets
+  const subs = {};
+  const subCounts = {};
 
   answers.forEach((a, idx) => {
     const q = QUESTIONS[idx];
     let raw = a.score;
-    if (q.reverse) raw = 6 - raw; // Reverse score for反向题
+    if (q.reverse) raw = 6 - raw;
     traits[q.key] += raw;
     counts[q.key]++;
+
+    // Sub-facet tracking
+    const subKey = q.key + '_' + q.sub;
+    if (!subs[subKey]) { subs[subKey] = 0; subCounts[subKey] = 0; }
+    subs[subKey] += raw;
+    subCounts[subKey]++;
   });
 
-  // Normalize to 0-100 (max per trait = 4*5=20, min=4)
+  // Normalize main traits to 0-100
   const result = {};
   for (const [key, total] of Object.entries(traits)) {
-    const min = counts[key];        // 4
-    const max = counts[key] * 5;    // 20
+    const min = counts[key];
+    const max = counts[key] * 5;
     result[key] = Math.round(((total - min) / (max - min)) * 100);
   }
+
+  // Normalize sub-facets
+  result._subs = {};
+  for (const [key, total] of Object.entries(subs)) {
+    const min = subCounts[key];
+    const max = subCounts[key] * 5;
+    result._subs[key] = Math.round(((total - min) / (max - min)) * 100);
+  }
+
   return result;
 }
 
@@ -406,32 +457,57 @@ const TRAIT_INFO = {
   O: {
     name: '开放性', icon: '🌅',
     desc: '对新鲜体验、想象力和智力探索的开放程度。',
-    high: '你对新思想、新体验持开放态度，充满好奇心。你喜欢探索未知，享受艺术和美，对复杂问题有天然的探索欲。你可能容易被新奇事物吸引，有时会显得"不切实际"——但这正是创造力的来源。',
-    low: '你更偏爱熟悉和可预测的事物。你务实、脚踏实地，不喜欢空想或过于抽象的东西。你珍视传统和经验，这让你在生活中保持稳定和可靠——但也别完全关上"试试看"的窗。'
+    high: '你对新思想、新体验持开放态度，充满好奇心。你喜欢探索未知，享受艺术和美，对复杂问题有天然的探索欲。你可能是那种"永远在学新东西"的人——这让你的人生充满了宽度和可能性。有时你会显得"不切实际"，但正是这种特质驱动着人类的进步。',
+    low: '你更偏爱熟悉和可预测的事物。务实、脚踏实地，不喜欢空想和过于抽象的东西。你珍视传统和经过验证的方法——这让你在生活中稳定可靠，是那种"别人在追风口，你在深耕"的人。偶尔试着打开一扇不熟悉的窗，可能会有意想不到的惊喜。',
+    subs: {
+      '创意想象': '产生新想法和拥抱变化的能力',
+      '审美敏感': '对艺术、美和自然的情感反应',
+      '思辨深度': '对抽象和复杂问题的探索意愿'
+    }
   },
   C: {
     name: '尽责性', icon: '📋',
     desc: '组织性、自律性和责任感的程度。',
-    high: '你做事有条理、有计划，能坚持完成承诺。你是那种"说到的就一定做到"的人。高尽责性与学业和职业成就显著相关——但也要注意：不要太苛求完美，偶尔的灵活和放松也是必要的。',
-    low: '你喜欢灵活和随性的生活方式。你不喜欢被日程表约束，有时候会拖延或半途而废——但这并不是"缺点"。你可能比高尽责性的人更擅长应对变化和不确定性，这是你的优势。'
+    high: '你做事有条理、有计划，能坚持完成承诺。你是那种"说到的就一定做到"的人——这在任何团队中都是宝贵的品质。高尽责性与职业成就显著相关。需要注意的是：不要因为追求完美而过度焦虑，偶尔的灵活和"随它去"也是健康的一部分。',
+    low: '你更喜欢灵活和随性的生活方式，不喜欢被日程表和规则束缚。你可能偶尔拖延——但你比高尽责性的人更擅长即兴发挥和应对变化。你的创造力在自由中茁壮成长。试着在"弹性"中加入一点点"结构"，可能会让你的潜力更好地兑现。',
+    subs: {
+      '条理规划': '制定计划并保持有序的倾向',
+      '坚持完成': '克服困难完成承诺的能力',
+      '细节完美': '追求精确和高质量的标准'
+    }
   },
   E: {
     name: '外向性', icon: '🔥',
-    desc: '社交活跃度、能量水平和寻求刺激的倾向。',
-    high: '你在人群中充满活力，社交让你充电而非消耗。你健谈、热情、喜欢成为注意力的中心。但注意：不是所有人都能跟上你的节奏——有时候安静地倾听比表达更重要。',
-    low: '你更喜欢独处或小范围的深入交流。你不是"不喜欢人"——你只是需要在安静中恢复能量。内向者往往更擅长深度思考和一对一的连接，这是你不张扬的力量。'
+    desc: '社交活跃度、能量水平和表达倾向。',
+    high: '你在人群中充满活力，社交让你充电而非消耗。你健谈、热情、享受聚光灯——你的存在感能让一个房间的气氛活跃起来。需要注意的是：并非所有人都以同样的节奏运转，有时候安静地倾听是你能做的最有力的事。',
+    low: '你更喜欢独处或小范围的深入交流。你不是"不喜欢人"——你只是在安静中恢复能量，在深度中寻找满足。内向者往往更擅长深入思考、专注工作和一对一的真诚连接。你的力量不在于音量，而在于深度。',
+    subs: {
+      '社交能量': '在群体中获得能量的程度',
+      '主导表达': '在社交中主动引领的倾向',
+      '积极情绪': '日常体验到的快乐和热情'
+    }
   },
   A: {
     name: '宜人性', icon: '🤝',
     desc: '对他人友善、合作和信任的程度。',
-    high: '你善于共情，关心他人的感受，愿意为了和谐而妥协。人们觉得你温暖、可靠、好相处。但要小心：不要因为太在意别人的感受而忽视了自己——善良需要边界，否则它会变成自我消耗。',
-    low: '你更关注事实而非情感，敢于表达不同意见，不害怕冲突。你的直率和独立令人尊重——但有时别人需要的是一个"我理解你"而不是"你怎么不这样想"。'
+    high: '你善于共情，关心他人的感受，愿意为了和谐而妥协。人们觉得你温暖、好相处——你是那种"朋友有困难第一个想到的人"。需要警惕的是：善良需要边界，否则它可能变成自我消耗。真正的善良包括对自己善良。',
+    low: '你更关注事实和逻辑而非情感，敢于表达不同意见，不害怕冲突。你的直率和独立令人尊重——你能在别人被情绪裹挟时保持清晰。有时候，给"真相"裹一层"共情"的外衣，会让你的影响力更深远。',
+    subs: {
+      '共情关怀': '感受并回应他人情绪的能力',
+      '合作妥协': '为维护和谐而让步的倾向',
+      '信任善意': '对他人动机的积极预期'
+    }
   },
   N: {
     name: '情绪稳定性', icon: '🧘',
-    desc: '情绪稳定性和抗压能力。得分越高=越稳定。',
-    high: '你的情绪稳定，能从容应对压力和挫折。你是风暴中的磐石——当周围人都慌乱时，你依然能保持冷静和理性。这种稳定性让你在工作和关系中都让人感到安心。',
-    low: '你容易感到焦虑和情绪波动，对压力比较敏感。这让你比"稳定"的人更细腻、更有自省力。你的敏感不是弱点——它让你能察觉到别人忽视的情感信号。学会接纳自己的情绪，而不是对抗它，是你成长的方向。'
+    desc: '情绪稳定性和抗压能力。得分越高=情绪越稳定。',
+    high: '你的情绪稳定，能从容应对压力和挫折。你是风暴中的磐石——当周围人都慌乱时，你依然保持冷静。这种稳定性让你在工作和关系中都让人安心。需要注意：偶尔展现脆弱反而让关系更亲近——不必总是"扛着"。',
+    low: '你容易感受到焦虑和情绪波动，对压力比较敏感。这份敏感让你比"稳定"的人更细腻、更善于自省、更能察觉别人忽视的情感信号。它不是弱点——而是一种需要驾驭的天赋。学会观察情绪而不被它淹没，是你成长的核心课题。',
+    subs: {
+      '焦虑倾向': '日常体验到的紧张和担忧程度',
+      '情绪波动': '情绪变化的幅度和频率',
+      '自信抗压': '面对挫折时的恢复力和自信'
+    }
   }
 };
 
@@ -445,20 +521,63 @@ function generateSummary(scores) {
   const O=scores.O, C=scores.C, E=scores.E, A=scores.A, N=scores.N;
   const parts = [];
 
-  // 核心人格画像
-  if (O >= 60 && E >= 55) parts.push('你是一个充满好奇心且乐于表达的人——新想法和新朋友都能让你兴奋。你喜欢探索未知，并且愿意把这种探索分享给身边的人。');
-  if (O >= 60 && E <= 40) parts.push('你拥有丰富的内心世界，但更享受独自探索而非大声宣告。你喜欢深度胜过广度，你的创造力在安静中生长。');
-  if (O <= 35 && C >= 60) parts.push('你务实而可靠，喜欢在熟悉和经过验证的领域深耕。你不太热衷新奇和冒险，但你把"做好眼下的事"变成了一种艺术。');
-  if (C >= 60 && N >= 60) parts.push('你既能掌控局面又保持情绪稳定——这种组合让你在面对压力和复杂任务时展现出超出常人的从容。');
-  if (C <= 35 && O >= 60) parts.push('你充满创意和灵感，但执行力是你的软肋。你喜欢"开始"但不一定"完成"——这不是缺点，而是一种发散型思维的特质。');
-  if (A >= 60 && E >= 55) parts.push('你温暖而外向，天然地吸引着人们靠近。你善于让每个人感到被接纳——这是你在人际关系中最宝贵的优势。');
-  if (A >= 60 && N >= 55) parts.push('你内心柔软，容易感受到他人的情绪波动。你天生是一个关怀者，但要记得：照顾好自己才能持续地温暖别人。');
-  if (E <= 35 && N <= 40) parts.push('你安静而稳定，不需要外界的喧嚣来证明自己的存在。你在独处中获得力量，在平静中找到答案。');
-  if (N <= 35) parts.push('你的情绪基调是稳定和平和的。在压力和混乱中，你是那种能保持清晰思路的人——这在任何团队中都是稀缺品质。');
+  // 多维组合分析
+  if (O >= 60 && E >= 55) parts.push('你是一个充满好奇心且乐于表达的人。新的想法和新的朋友都能让你兴奋——你天然是一个"探索者+分享者"，这种组合让你在社交和创意领域都充满魅力。你的挑战可能是"深度"——有时快速切换兴趣会让你错过深耕的机会。');
+  if (O >= 60 && E <= 40) parts.push('你拥有丰富的内心世界，但更享受独自探索而非大声宣告。你的创造力在安静中生长，像深夜里的灯火——不耀眼，但持久而有深度。你可能是那种"默默读了很多书、想了很多事，但只在信任的人面前才会展开"的人。');
+  if (O <= 35 && C >= 60) parts.push('你务实而可靠，喜欢在熟悉和经过验证的领域深耕。你不是那种追逐风口的人——你是那个在别人都跑了之后，还在原地把事做好的人。这种稳定性和可靠性在浮躁的世界里越来越珍贵。');
+  if (O <= 35 && C <= 35) parts.push('你对新奇和秩序都不太执着，这种"随遇而安"的态度让你在生活中灵活而低压力。你不太会被FOMO（错失恐惧）困扰——这是一种难得的内心自由。');
+  if (C >= 60 && N >= 60) parts.push('你既能掌控局面又保持情绪稳定——这种"高尽责+高稳定"的组合让你在面对压力和复杂任务时展现出超出常人的从容。你是团队在危机中最想依赖的那个人。');
+  if (C <= 35 && O >= 60) parts.push('你充满创意和灵感，脑中有无数精彩的点子——但让它们落地是你持续的挑战。你不是"懒"，你只是对"开始"比对"完成"更感兴趣。试着找一个能帮你"收尾"的搭档，你负责火花，TA负责燃烧。');
+  if (A >= 60 && E >= 55) parts.push('你温暖而外向，天然地吸引着人们靠近。你善于让每个人都感到被接纳——这种能力在越来越孤立的现代社会里是一种超能力。但注意：你不是所有人的"情绪树洞"，保护好自己的能量边界。');
+  if (A >= 60 && N >= 55) parts.push('你内心柔软，很容易感受到他人的情绪波动。你天生是一个关怀者——但这也意味着你比别人更容易被负面情绪影响。记住：你不能从空杯子里倒水。照顾好自己，才能持续温暖别人。');
+  if (E <= 35 && N >= 55) parts.push('你安静而稳定，内心有一个自足的宇宙。你不需要外界的喧嚣来确认自己的价值——这种独立和沉稳是很多人羡慕但无法拥有的。你的挑战可能是"表达"——不是改变自己，而是让别人更容易理解你。');
+  if (N <= 35) parts.push('你的情绪基调是稳定平和的。在压力和混乱中，你是那个能保持冷静的人——这在任何团队中都是稀缺品质。你可能需要更主动地去理解那些"不那么稳定"的人，因为对他们来说，你的稳定有时看起来像"不在乎"。');
 
-  if (parts.length === 0) parts.push('你的人格特质在多个维度上处于平衡状态——你灵活而适应，能在不同场合展现出不同的侧面。这种"均衡"本身是一种被低估的优势：你不太极端，因此能理解各种各样的人。');
+  if (parts.length === 0) parts.push('你的人格特质在多个维度上处于平衡状态——灵活而适应，能在不同场合展现出不同的侧面。这种均衡本身是一种被低估的优势：你不太极端，因此能理解各种各样的人。你的成长方向不是"成为某个极端"，而是继续深化这种灵活的智慧。');
 
-  return parts.join('<br><br>') + '<br><br>这五种特质的组合是你独一无二的心理指纹——它不是"好"或"不好"，而是你在这个世界上的存在方式。接纳它，善用它。';
+  return parts.join('<br><br>') + '<br><br>这五种特质以你独特的方式组合在一起，形成了你在这个世界上的存在方式。了解它，不是为了贴标签或设限制——而是为了更好地接纳自己，也更清醒地选择成长的方向。';
+}
+
+function generateCareer(O, C, E, A, N) {
+  const fits = [];
+  if (O >= 55 && C <= 45) fits.push('创意领域（设计、艺术、广告创意、内容创作）—— 你的灵感和好奇心是核心资产');
+  if (O >= 55 && C >= 55) fits.push('研究与战略（科研、数据分析、产品策略、技术架构）—— 创意+执行力，最适合把想法变成现实');
+  if (E >= 55 && A >= 55) fits.push('人际导向（教育、心理咨询、客户成功、公关）—— 你的温暖和社交力让每个和你接触的人感到被重视');
+  if (C >= 60 && N >= 55) fits.push('组织管理（项目管理、运营、财务、行政管理）—— 可靠+稳定，团队的中流砥柱');
+  if (E >= 55 && N >= 50) fits.push('公众表达（演讲、培训、创业、销售领导）—— 在聚光灯下你反而更有能量');
+  if (A >= 60 && N >= 50) fits.push('关怀服务（医疗护理、社会工作、非营利组织）—— 帮助他人是你价值感的重要来源');
+  if (C >= 55 && O >= 55) fits.push('创新工程（产品经理、技术创业、跨领域整合）—— 既能看到大局又能落地执行');
+  if (E <= 40 && O >= 55) fits.push('独立创作（写作、编程、学术研究、自由职业）—— 安静中的创造力是你最大的竞争力');
+
+  if (fits.length === 0) fits.push('灵活适配型 —— 你的人格组合能适应多种职业环境，关键在于找到让你感到有意义的领域');
+  return fits.slice(0, 3).join('<br><br>');
+}
+
+function generateRelationship(O, E, A, N) {
+  if (A >= 55 && E >= 50) return '你在关系中温暖而主动——享受与人建立连接的过程，善于让对方感到被在乎。你自然的热情和共情力让伴侣感到被"看见"。需要注意：有时候"讨好"和"真诚"的边界会模糊——确保你在关系中也在表达真实的自己，而不仅仅是对方想看到的你。';
+  if (A >= 55 && E <= 45) return '你在关系中细腻而忠诚——不善于大张旗鼓地表达，但会在细节中默默体现关怀。一顿你做的饭、一条"天冷了加衣服"的消息——这些都是你的爱语。你的伴侣可能需要学会"读"你，但读懂之后会发现一个深情而可靠的人。试着偶尔也直白地表达一下——对方不是读心者。';
+  if (A <= 40 && N >= 50) return '你在关系中坦率而直接——不会拐弯抹角，这让你的关系清澈透明，没有暗流。这种真实感是很多人求之不得的。但有时对方需要的不是"真相"而是"温度"——同一个意思，换一种说法，效果可能截然不同。';
+  if (E >= 55 && O >= 55) return '你追求有趣和新鲜的关系体验——你可能会带伴侣去尝试各种新奇的事物，让关系保持活力。但要注意：稳定性同样是长期关系中不可或缺的。偶尔的"无聊"和"日常"才是真正的亲密。';
+  if (N <= 40) return '你的情绪稳定性是关系中的定海神针——当伴侣慌乱时，你是那个能说"没事的，我在"的人。这份安全感是无价的。需要注意的是：偶尔展现脆弱反而让关系更亲近——不必永远做那个"没问题"的人。';
+  if (N >= 55) return '你在关系中敏感而投入——你能察觉到最细微的情绪变化，这让你的伴侣感到被深度理解。但这份敏感也意味着你容易在关系中焦虑。试着区分"真实的威胁"和"想象的威胁"——大多数时候，事情没有你担心的那么糟。';
+  return '你在关系中展现出灵活和平衡的姿态——能适应不同类型的伴侣，在给予和接受之间找到自己的节奏。你的挑战不是"改变自己"，而是"更清楚地表达自己的需求"。';
+}
+
+function generateGrowth(O, C, E, A, N) {
+  const tips = [];
+  if (C >= 70) tips.push('你的尽责性非常高——你可能是那种对自己比对别人更严苛的人。试着练习"策略性不完美"：有些事做到80分就够了，把那20分精力留给对你真正重要的事。完美主义是效率的敌人，也是快乐的杀手。');
+  if (C <= 30) tips.push('在自律方面，不要试图一下子"变成另一个人"。从微小的习惯开始——比如每天只做5分钟的任务起步，让"启动"的门槛低到无法拒绝。你不是缺乏意志力——你需要的是正确的启动策略。');
+  if (A >= 70) tips.push('你的宜人性是你的光芒，但也可能是你的负担。练习说"不"是一门必修课——拒绝别人并不会让你变成一个坏人。一个不会拒绝的人，她的"是"也没有意义。从拒绝一个小的、不太重要的请求开始练习。');
+  if (A <= 30) tips.push('你的直率是力量。但可以试着在"坦诚"外面裹一层理解——不是改变你的立场，而是调整表达的方式。"我觉得你的方案有三个问题"和"我觉得这个方向很好，有三个地方可以再想想"——内容一样，效果不同。');
+  if (N <= 30) tips.push('你的情绪非常稳定——这是巨大的优势。但要注意：不要因为自己"扛得住"就认为别人也应该扛得住。你的冷静在压力中是无价的——但你的共情在日常中同样重要。');
+  if (N >= 60) tips.push('你的情绪敏感让你能看到别人看不见的风景——但也让你更容易被暴风雨淋湿。试着练习正念冥想或写情绪日记：看见情绪，命名情绪，然后让它流过你——而不是被它卷走。你不需要"变得坚强"，你需要的是"变得柔韧"。');
+  if (O >= 70) tips.push('你的好奇心让你的人生充满宽度——但要警惕"宽度一公里，深度一厘米"。选一个领域深耕下去，把好奇心从"探索"转化为"创造"。一个完成的作品胜过一百个未开始的灵感。');
+  if (E >= 65) tips.push('你在人群中如鱼得水——但也给自己留一些真正的独处时间。外向者的能量恢复往往被忽视，因为你看起来"永远有电"。安静不是你的敌人——它是你持续发光的前提。');
+  if (E <= 30) tips.push('你的内向不是需要被"修复"的问题。但如果某些社交场合无法避免，试着把它看作一种可以掌握的技能而非性格的背叛——你可以保持内向的核心，同时学会一个社交的"开关"。');
+
+  if (tips.length === 0) tips.push('你的人格各维度相对均衡，这本身就是一种力量。均衡者的成长不在于"突破短板"，而在于持续微调——像调音一样，一点一点把自己调整到最舒服的频率。');
+  if (tips.length === 1) tips.push('另外，定期进行自我反思是有益的习惯——问自己"我最近做得怎么样"比任何外部反馈都更有价值。');
+  return tips.join('<br><br>');
 }
 
 function generateCareer(O, C, E, A, N) {
@@ -511,13 +630,32 @@ function showResults() {
   // Summary
   document.getElementById('summaryText').innerHTML = generateSummary(scores);
 
-  // Trait cards
+  // Trait cards with sub-facets
   const traitList = document.getElementById('traitList');
   const order = ['O','C','E','A','N'];
   traitList.innerHTML = order.map(key => {
     const info = TRAIT_INFO[key];
     const lvl = getLevel(scores[key]);
     const desc = scores[key] >= 50 ? info.high : info.low;
+
+    // Sub-facets
+    let subHtml = '';
+    if (info.subs) {
+      subHtml = '<div class="sub-facets">';
+      for (const [subName, subDesc] of Object.entries(info.subs)) {
+        const subKey = key + '_' + subName;
+        const subScore = (scores._subs && scores._subs[subKey]) ? scores._subs[subKey] : 50;
+        const subCls = subScore >= 65 ? 'high' : (subScore <= 35 ? 'low' : 'mid');
+        subHtml += `
+          <div class="sub-facet">
+            <div class="sub-header"><span class="sub-name">${subName}</span><span class="sub-score">${subScore}</span></div>
+            <div class="sub-bar-wrap"><div class="sub-bar-fill ${subCls}" style="width:${subScore}%;"></div></div>
+          </div>
+        `;
+      }
+      subHtml += '</div>';
+    }
+
     return `
       <div class="trait-card">
         <div class="trait-header">
@@ -529,6 +667,7 @@ function showResults() {
         </div>
         <div class="trait-labels"><span>低</span><span>高</span></div>
         <div class="trait-desc">${desc}</div>
+        ${subHtml}
       </div>
     `;
   }).join('');
@@ -542,9 +681,9 @@ function showResults() {
 
   showScreen('results');
 
-  // Animate bars
+  // Animate all bars (main + sub)
   requestAnimationFrame(() => {
-    document.querySelectorAll('.trait-bar-fill').forEach(bar => {
+    document.querySelectorAll('.trait-bar-fill, .sub-bar-fill').forEach(bar => {
       const w = bar.style.width;
       bar.style.width = '0%';
       requestAnimationFrame(() => { bar.style.width = w; });
