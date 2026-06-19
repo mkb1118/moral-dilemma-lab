@@ -2,6 +2,7 @@
 道德困境实验室 - 后端服务
 FastAPI + SQLite，收集匿名答题数据，提供统计对比
 """
+import os
 import sqlite3
 import uuid
 import json
@@ -10,7 +11,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 DB_PATH = Path(__file__).parent / "data.db"
@@ -202,12 +202,10 @@ def health():
     return {"status": "ok"}
 
 
-# ── 静态文件（前端） ─────────────────────────────────────
-frontend_dir = Path(__file__).parent
-app.mount("/", StaticFiles(directory=str(frontend_dir), html=True), name="static")
 
 
 # ── 启动入口 ───────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
