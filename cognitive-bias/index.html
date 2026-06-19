@@ -459,14 +459,38 @@ function showResults() {
     const hits = score.hits, total = score.total;
     const avoided = total - hits;
 
-    // Intuitive labels based on resistance, not bias level
-    let level, cls, fillPct;
-    if (hits === 0) { level = '影响很小'; cls = 'low'; fillPct = 100; }
-    else if (hits === 1) { level = '偶尔出现'; cls = 'mid'; fillPct = 66; }
-    else if (hits === 2) { level = '需要注意'; cls = 'mid'; fillPct = 33; }
-    else { level = '经常出现'; cls = 'high'; fillPct = 0; }
+    // Intuitive labels + dynamic feedback
+    let level, cls, fillPct, feedbackLabel, feedbackText, feedbackColor;
+    if (hits === 0) {
+      level = '完全避开了';
+      cls = 'low';
+      fillPct = 100;
+      feedbackLabel = '👏 做得很好';
+      feedbackColor = 'rgba(0,229,255,0.7)';
+      feedbackText = '在这类思维陷阱面前，你展现出了出色的觉察力。你没有被它牵着走——这说明你在做判断时习惯性地在"检查自己的思考"。保持这个习惯，也可以在关键时刻提醒身边的人："我们会不会在犯XX偏差？"';
+    } else if (hits === 1) {
+      level = '基本能避开';
+      cls = 'mid';
+      fillPct = 66;
+      feedbackLabel = '👍 还不错';
+      feedbackColor = 'rgba(0,229,255,0.5)';
+      feedbackText = '你在大多数情况下能抵抗这个偏差，但偶尔还是会被它悄悄影响。下面这条策略不是为了"改正错误"——而是帮你把那"偶尔"变得更少。';
+    } else if (hits === 2) {
+      level = '容易被影响';
+      cls = 'mid';
+      fillPct = 33;
+      feedbackLabel = '💡 值得留意';
+      feedbackColor = 'rgba(245,166,35,0.7)';
+      feedbackText = '这个偏差对你来说是一个真实的挑战——它确实在影响你的判断。不过这完全正常：这些偏差本来就是大脑的出厂设置。下面的策略不是批评，而是一套经过研究验证的训练方法，帮你建立更强的"认知刹车"。';
+    } else {
+      level = '影响很明显';
+      cls = 'high';
+      fillPct = 0;
+      feedbackLabel = '🌟 成长空间';
+      feedbackColor = 'rgba(245,166,35,0.5)';
+      feedbackText = '这个偏差在目前阶段对你影响较大。但请记得——承认自己被偏差影响，本身就是一种高级的自我觉察。大多数人甚至不会意识到自己在犯这些错误。你现在看到了它，就已经迈出了最重要的一步。下面这套方法，可以从今天开始改变。';
+    }
 
-    // Visual: resistance bar instead of hit dots
     const barHtml = `
       <div class="awareness-meter">
         <div class="awareness-label">抵抗力</div>
@@ -484,8 +508,8 @@ function showResults() {
         </div>
         ${barHtml}
         <div class="bias-desc">${info.desc}</div>
-        <div class="bias-desc" style="margin-top:8px; color:rgba(0,229,255,0.6);"><b>💡 如何加强：</b>${info.fix}</div>
-        <div style="font-family:var(--mono); font-size:9px; color:var(--dim); opacity:0.35; margin-top:8px;">📚 ${info.ref}</div>
+        <div class="bias-desc" style="margin-top:8px; color:${feedbackColor};"><b>${feedbackLabel}：</b>${feedbackText}</div>
+        <div class="bias-desc" style="margin-top:8px; color:${feedbackColor}; opacity:0.8;">${hits === 0 ? '<b>🔬 背后的研究：</b>' + info.ref.split('.')[0] + '。继续保持你的认知习惯。' : '<b>🔧 研究验证的改善方法：</b>' + info.fix}</div>
       </div>
     `;
   }).join('');
