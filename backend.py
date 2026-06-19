@@ -63,6 +63,7 @@ class AnswerItem(BaseModel):
 
 class SubmitRequest(BaseModel):
     session_id: str
+    name: str = "匿名"
     answers: list[AnswerItem]
     total_scores: dict
     archetype: str
@@ -76,6 +77,7 @@ def submit_results(req: SubmitRequest):
 
     record = {
         "session_id": sid,
+        "name": req.name or "匿名",
         "archetype": req.archetype,
         "total_scores": req.total_scores,
         "answers": [a.model_dump() for a in req.answers],
