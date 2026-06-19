@@ -15,7 +15,7 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: var(--bg); color: var(--white); font-family: var(--font); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
   body::before { content: ''; position: fixed; inset: 0; background: linear-gradient(90deg, var(--border) 1px, transparent 1px), linear-gradient(0deg, var(--border) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%); pointer-events: none; z-index: 0; }
-  .app { position: relative; z-index: 1; width: 100%; max-width: 720px; padding: 24px; }
+  .app { position: relative; z-index: 1; width: 100%; max-width: 760px; padding: 24px; }
   .screen { display: none; flex-direction: column; align-items: center; animation: fadeIn 0.5s; }
   .screen.active { display: flex; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } }
@@ -25,48 +25,59 @@
   .title-block .label { font-family: var(--mono); font-size: 10px; letter-spacing: 4px; color: var(--amber); margin-bottom: 12px; }
   .title-block h1 { font-size: 38px; font-weight: 200; letter-spacing: 2px; }
   .title-block h1 span { color: var(--cyan); font-weight: 400; }
-  .subtitle { color: var(--dim); font-size: 15px; font-weight: 300; text-align: center; max-width: 440px; line-height: 1.6; margin-bottom: 20px; }
-  .step-hint { font-family: var(--mono); font-size: 11px; color: var(--cyan); margin-bottom: 24px; text-align: center; }
+  .subtitle { color: var(--dim); font-size: 15px; font-weight: 300; text-align: center; max-width: 460px; line-height: 1.6; margin-bottom: 20px; }
 
   .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 32px; border: 1px solid rgba(240,244,248,0.15); border-radius: 4px; background: transparent; color: var(--white); font-family: var(--mono); font-size: 13px; letter-spacing: 1px; cursor: pointer; transition: all 0.3s; }
   .btn:hover { border-color: var(--cyan); background: rgba(0,229,255,0.05); }
   .btn.primary { background: rgba(0,229,255,0.08); border-color: var(--cyan); }
   .btn.primary:hover { background: rgba(0,229,255,0.15); }
-  .btn:disabled { opacity: 0.3; pointer-events: none; }
+  .btn:disabled { opacity: 0.25; pointer-events: none; }
 
-  /* Value grid */
-  .value-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; width: 100%; margin-bottom: 24px; }
-  .value-card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-    padding: 18px 14px; cursor: pointer; transition: all 0.25s; text-align: center;
-    user-select: none;
-  }
-  .value-card:hover { border-color: var(--cyan); background: var(--card-hover); transform: translateY(-2px); }
-  .value-card.selected { border-color: var(--cyan); background: rgba(0,229,255,0.08); }
-  .value-card.ranked { border-color: var(--amber); background: rgba(245,166,35,0.06); pointer-events: auto; }
-  .value-card .v-icon { font-size: 28px; margin-bottom: 6px; display: block; }
-  .value-card .v-name { font-size: 15px; font-weight: 400; }
-  .value-card .v-rank { font-family: var(--mono); font-size: 20px; color: var(--amber); display: none; }
-  .value-card.ranked .v-rank { display: block; }
-  .value-card.ranked .v-icon { display: none; }
-  .value-card .v-desc { font-size: 11px; color: var(--dim); margin-top: 4px; line-height: 1.4; display: none; }
-  .value-card.ranked .v-desc { display: block; }
+  /* Tier zones */
+  .tier-section { width: 100%; margin-bottom: 16px; }
+  .tier-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .tier-icon { font-size: 16px; }
+  .tier-name { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--amber); text-transform: uppercase; }
+  .tier-count { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+  .tier-zone { min-height: 70px; border: 1px dashed rgba(240,244,248,0.08); border-radius: 10px; padding: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; transition: all 0.3s; }
+  .tier-zone.core { border-color: rgba(0,229,255,0.2); background: rgba(0,229,255,0.02); }
+  .tier-zone.important { border-color: rgba(240,244,248,0.06); }
+  .tier-zone.less { border-color: rgba(240,244,248,0.03); }
+  .tier-zone.full { border-style: solid; border-color: rgba(0,229,255,0.15); }
+
+  .value-chip { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; cursor: pointer; transition: all 0.2s; user-select: none; }
+  .value-chip:hover { border-color: var(--cyan); background: var(--card-hover); transform: translateY(-1px); }
+  .value-chip .vc-icon { font-size: 18px; }
+  .value-chip .vc-name { font-size: 13px; }
+  .value-chip .vc-desc { font-size: 10px; color: var(--dim); margin-left: 4px; display: none; }
+  .pool-item .vc-desc { display: inline; }
+
+  .pool { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  /* Rank step */
+  .rank-hint { font-family: var(--mono); font-size: 11px; color: var(--cyan); margin-bottom: 16px; }
+  .rank-zone { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .rank-card { display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+  .rank-card:hover { border-color: var(--cyan); }
+  .rank-pos { font-family: var(--mono); font-size: 18px; color: var(--amber); min-width: 28px; }
 
   /* Results */
-  .results-header { text-align: center; margin-bottom: 28px; }
+  .results-header { text-align: center; margin-bottom: 24px; }
   .results-header .label { font-family: var(--mono); font-size: 10px; letter-spacing: 4px; color: var(--amber); margin-bottom: 8px; }
   .results-header h2 { font-size: 28px; font-weight: 200; }
 
-  .rank-list { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
-  .rank-item { display: flex; align-items: center; gap: 14px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; }
-  .rank-num { font-family: var(--mono); font-size: 24px; color: var(--amber); min-width: 30px; }
-  .rank-icon { font-size: 28px; }
-  .rank-info { flex: 1; }
-  .rank-name { font-size: 16px; font-weight: 400; }
-  .rank-short { font-size: 12px; color: var(--dim); margin-top: 2px; }
+  .full-rank { width: 100%; display: flex; flex-direction: column; gap: 6px; margin-bottom: 24px; }
+  .full-rank-item { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 8px; }
+  .full-rank-item.core { background: rgba(0,229,255,0.04); border: 1px solid rgba(0,229,255,0.1); }
+  .full-rank-item.important { background: rgba(240,244,248,0.02); border: 1px solid rgba(240,244,248,0.05); }
+  .full-rank-item.less { opacity: 0.5; }
+  .full-rank-num { font-family: var(--mono); font-size: 14px; min-width: 28px; }
+  .full-rank-icon { font-size: 20px; }
+  .full-rank-name { font-size: 14px; }
+  .full-rank-desc { font-size: 11px; color: var(--dim); margin-left: auto; }
 
   .insight-block { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin-bottom: 12px; }
-  .insight-block .i-title { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--amber); margin-bottom: 8px; text-transform: uppercase; }
+  .insight-block .i-title { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--amber); margin-bottom: 8px; }
   .insight-block .i-text { font-size: 14px; color: var(--dim); line-height: 1.7; font-weight: 300; }
 
   .action-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 16px; margin-bottom: 8px; }
@@ -78,8 +89,8 @@
 
   @media (max-width: 600px) {
     .app { padding: 16px; }
-    .value-grid { grid-template-columns: repeat(2, 1fr); }
     .title-block h1 { font-size: 28px; }
+    .value-chip .vc-desc { display: none; }
   }
 </style>
 </head>
@@ -90,74 +101,87 @@
   <div class="screen active" id="welcome">
     <div class="welcome-icon">🧭</div>
     <div class="title-block">
-      <div class="label">Core Values</div>
+      <div class="label">Core Values · Schwartz Framework</div>
       <h1>核心价值观<br><span>排序</span></h1>
     </div>
-    <p class="subtitle">安全、自由、成就、关系、意义……当这些价值发生冲突时，你会如何排序？这个测试帮你看见自己真正的优先级。</p>
-    <button class="btn primary" onclick="startTest()">开始排序 →</button>
+    <p class="subtitle">基于Schwartz价值观理论，将12个普世价值分入三个层级。不是选最重要的——而是诚实地看见：在不同价值冲突时，你内心真正的优先级是什么。</p>
+    <button class="btn primary" onclick="startTest()">开始 →</button>
   </div>
 
-  <!-- FIRST ROUND: pick top 5 -->
-  <div class="screen" id="select">
-    <div class="step-hint" id="stepHint">👇 从下面 12 个价值观中，点击选出对你最重要的 <b>5 个</b></div>
-    <div class="value-grid" id="valueGrid"></div>
-    <button class="btn primary" id="btnConfirm" disabled onclick="goToRank()">确认选择 →</button>
+  <!-- STEP 1: Three-tier sorting -->
+  <div class="screen" id="sort">
+    <div class="rank-hint" style="margin-bottom:20px;">👇 把 12 个价值观拖入对应的层级（点击切换层级）</div>
+
+    <div class="tier-section">
+      <div class="tier-header"><span class="tier-icon">⭐</span><span class="tier-name">核心价值</span><span class="tier-count">（选 4 个 —— 定义你的人生方向）</span></div>
+      <div class="tier-zone core" id="zoneCore"></div>
+    </div>
+    <div class="tier-section">
+      <div class="tier-header"><span class="tier-icon">👍</span><span class="tier-name">重要价值</span><span class="tier-count">（选 4 个 —— 你也在乎但不会放在首位的东西）</span></div>
+      <div class="tier-zone important" id="zoneImportant"></div>
+    </div>
+    <div class="tier-section">
+      <div class="tier-header"><span class="tier-icon">👋</span><span class="tier-name">一般价值</span><span class="tier-count">（剩余 4 个 —— 目前优先级较低）</span></div>
+      <div class="tier-zone less" id="zoneLess"></div>
+    </div>
+    <button class="btn primary" id="btnNext" disabled onclick="goToRank()">下一步：排序核心价值 →</button>
   </div>
 
-  <!-- SECOND ROUND: rank the 5 -->
+  <!-- STEP 2: Rank core values -->
   <div class="screen" id="rank">
-    <div class="step-hint">👇 按重要性排序你的 5 个价值观（点击两个卡片交换位置）</div>
-    <div class="value-grid" id="rankGrid" style="grid-template-columns:1fr;max-width:400px;margin:0 auto 24px;"></div>
+    <div class="rank-hint">👇 点击两个卡片交换位置，排出你最重要的顺序</div>
+    <div class="rank-zone" id="rankZone"></div>
     <button class="btn primary" onclick="showResults()">查看结果 →</button>
-    <button class="btn" onclick="backToSelect()" style="margin-top:8px;">← 重新选择</button>
+    <button class="btn" onclick="backToSort()">← 重新分层</button>
   </div>
 
   <!-- RESULTS -->
   <div class="screen" id="results">
     <div class="results-header">
-      <div class="label">Your Core Values</div>
-      <h2>你的价值观排序</h2>
+      <div class="label">Your Value Hierarchy</div>
+      <h2>你的价值体系</h2>
     </div>
-    <div class="rank-list" id="rankList"></div>
+    <div class="full-rank" id="fullRank"></div>
     <div class="insight-block">
-      <div class="i-title">🔍 你的价值驱动力</div>
+      <div class="i-title">🔍 你的核心驱动力</div>
       <div class="i-text" id="driveText"></div>
     </div>
     <div class="insight-block">
-      <div class="i-title">⚠️ 你愿意牺牲的</div>
-      <div class="i-text" id="sacrificeText"></div>
+      <div class="i-title">⚠️ 张力与平衡</div>
+      <div class="i-text" id="tensionText"></div>
     </div>
     <div class="insight-block">
-      <div class="i-title">🌱 觉察与平衡</div>
-      <div class="i-text" id="balanceText"></div>
+      <div class="i-title">🌱 自我觉察</div>
+      <div class="i-text" id="awareText"></div>
     </div>
     <div class="action-row">
       <button class="btn primary" onclick="restartTest()">重新排序</button>
       <button class="btn" onclick="shareResults()">📤 分享结果</button>
     </div>
-    <div style="text-align:center;margin-bottom:16px;"><a href="../index.html" style="color:var(--dim);font-family:var(--mono);font-size:11px;text-decoration:none;opacity:0.5;">🏠 返回测试广场</a></div>
-    <p class="footer-note">价值观没有优劣——只有优先级。看见它，尊重它。</p>
+    <div style="text-align:center;margin-bottom:16px;"><a href="../index.html" style="color:var(--dim);font-family:var(--mono);font-size:11px;text-decoration:none;border:1px solid rgba(240,244,248,0.1);padding:6px 16px;border-radius:4px;">🏠 返回测试广场</a></div>
+    <p class="footer-note">基于 Schwartz (1992) 价值观理论改编 · 价值观无优劣，只有优先级</p>
   </div>
 </div>
 
 <script>
-// 12 core values with descriptions
 const VALUES = [
-  { id:'growth', name:'成长', icon:'🌱', short:'持续学习和自我提升', desc:'你追求个人成长和进步。学习新事物、提升自我、不断突破舒适区——这些是你人生的重要驱动力。对你来说，"停滞"比"失败"更可怕。' },
-  { id:'freedom', name:'自由', icon:'🕊️', short:'自主掌控自己的生活', desc:'你不喜欢被束缚。自己做决定、自己负责、自己定义"成功"——这对你来说比任何外部奖励都重要。你可能会在传统体制中感到窒息，在创业或自由职业中找到归属。' },
-  { id:'security', name:'安全', icon:'🏠', short:'稳定、可预测的保障', desc:'你需要一个稳固的基础。经济安全、身体健康、可预期的未来——这些不是"保守"，而是你敢于去冒险的前提。有了安全感，你才能真正绽放。' },
-  { id:'achievement', name:'成就', icon:'🏆', short:'设定并达成有挑战性的目标', desc:'你需要看到自己的进步。目标、里程碑、认可——这些不是虚荣，而是你衡量自己"有没有在往前走"的标尺。完成一件有难度的事带来的满足感，是你重要的能量来源。' },
-  { id:'relationships', name:'关系', icon:'💛', short:'深刻的连接与归属', desc:'人是你世界的中心。亲情、友情、爱情——这些关系是你安全感和意义的来源。你愿意为你在乎的人付出时间和精力，因为你知道，最终留下的不是成就，而是和你一起走过的人。' },
-  { id:'meaning', name:'意义', icon:'🌟', short:'为比自身更大的东西做出贡献', desc:'你需要知道自己在做"重要的事"。不是随便一份工作、不是随便一段关系——你需要感觉自己在为某种超越自身的事物做出贡献。这种意义感让你在困难面前也能坚持下去。' },
-  { id:'balance', name:'平衡', icon:'⚖️', short:'工作与生活的和谐', desc:'你不相信"要么全部要么没有"。健康、家庭、工作、休闲——你想要的是和谐的配置，而不是某一方面压倒一切。对你来说，成功不只是"做到了什么"，更是"以什么状态做到的"。' },
-  { id:'pleasure', name:'快乐', icon:'🎉', short:'享受当下的美好体验', desc:'你认为生活是用来享受的。美食、旅行、音乐、有趣的人和事——这些不是"浪费时间"，而是生活本身。你拒绝那种"现在吃苦、将来享福"的叙事——快乐应该被分布在每一天里。' },
-  { id:'authenticity', name:'真实', icon:'💎', short:'诚实面对自己和他人', desc:'你厌恶虚伪。对自己诚实、对他人真诚——这比"让别人喜欢我"更重要。你宁愿被少数人真正理解，也不愿意被大多数人误解为一个"讨人喜欢"的假象。' },
-  { id:'contribution', name:'贡献', icon:'🤲', short:'帮助他人、回馈社会', desc:'你需要感到自己对他人有正面影响。帮助别人、服务社会、让某个角落因为你的存在而变得更好——这不是"高尚"，而是你内在的价值需求。你可能会在公益、教育、医疗等领域找到归属。' },
-  { id:'recognition', name:'认可', icon:'⭐', short:'被尊重和赞赏', desc:'你在乎别人怎么看你。被认可、被尊重、被视为"专业"——这些不是肤浅的虚荣，而是你确认自己价值的方式之一。适度的认可追求激励你变得更好。' },
-  { id:'comfort', name:'舒适', icon:'🛋️', short:'物质充裕与生活品质', desc:'你珍视物质上的舒适和安全感。好的居住环境、不用为钱焦虑的生活、享受精致的事物——这些是你努力工作的重要动力。你不觉得"物质"是贬义词——它代表了对自己生活的尊重。' },
+  { id:'growth', name:'成长', icon:'🌱', short:'持续学习和自我提升', desc:'你追求个人进步。学习新事物、突破舒适区——"停滞"比"失败"更让你不安。' },
+  { id:'freedom', name:'自由', icon:'🕊️', short:'自主掌控生活', desc:'自己做决定、自己负责。你会在传统体制中感到窒息。' },
+  { id:'security', name:'安全', icon:'🏠', short:'稳定与可预测', desc:'经济安全、身体健康——这是你敢于去冒险的前提。' },
+  { id:'achievement', name:'成就', icon:'🏆', short:'达成挑战性目标', desc:'你需要看到自己的进步。完成有难度的事是你重要的能量来源。' },
+  { id:'relationships', name:'关系', icon:'💛', short:'深刻的连接与归属', desc:'亲情、友情、爱情——最终留下的不是成就，而是和你一起走过的人。' },
+  { id:'meaning', name:'意义', icon:'🌟', short:'为更大的事做贡献', desc:'你需要感觉自己在做"重要的事"——这种意义感让你在困难面前坚持。' },
+  { id:'balance', name:'平衡', icon:'⚖️', short:'工作与生活的和谐', desc:'你要的是健康的配置，而非某方面压倒一切。成功不只是"做到了什么"。' },
+  { id:'pleasure', name:'快乐', icon:'🎉', short:'享受当下的美好', desc:'美食、旅行、有趣的人——生活是用来享受的，不是用来"苦尽甘来"的。' },
+  { id:'authenticity', name:'真实', icon:'💎', short:'诚实面对自己和他人', desc:'你厌恶虚伪。宁愿被少数人真正理解，也不做讨人喜欢的假象。' },
+  { id:'contribution', name:'贡献', icon:'🤲', short:'帮助他人与社会', desc:'你需要感到自己对他人有正面影响——让某个角落因你而变好。' },
+  { id:'recognition', name:'认可', icon:'⭐', short:'被尊重和赞赏', desc:'被认可、被视为"专业"——这些是你确认自己价值的方式。' },
+  { id:'comfort', name:'舒适', icon:'🛋️', short:'物质充裕与品质', desc:'好的居住环境、不用为钱焦虑——这是你尊重自己生活的表达。' },
 ];
 
-let selected = []; // ordered list of selected value ids
+// State: each value is in one of 3 tiers: 'core', 'important', 'less'
+let tiers = { core: [], important: [], less: VALUES.map(v => v.id) };
+let coreRank = []; // ordered core IDs
 
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -165,178 +189,175 @@ function showScreen(id) {
 }
 
 function startTest() {
-  selected = [];
-  showScreen('select');
-  renderValueGrid();
+  tiers = { core: [], important: [], less: VALUES.map(v => v.id) };
+  coreRank = [];
+  showScreen('sort');
+  renderTiers();
 }
 
-function renderValueGrid() {
-  const grid = document.getElementById('valueGrid');
-  grid.innerHTML = VALUES.map(v => {
-    const isSel = selected.includes(v.id);
-    return `
-      <div class="value-card${isSel ? ' selected' : ''}" id="card-${v.id}" onclick="toggleValue('${v.id}')">
-        <span class="v-icon">${v.icon}</span>
-        <div class="v-name">${v.name}</div>
-      </div>
-    `;
-  }).join('');
-  updateStepHint();
-  document.getElementById('btnConfirm').disabled = selected.length !== 5;
+function getV(id) { return VALUES.find(v => v.id === id); }
+
+function renderTiers() {
+  ['core','important','less'].forEach(tier => {
+    const zone = document.getElementById(`zone${tier[0].toUpperCase()+tier.slice(1)}`);
+    const ids = tiers[tier];
+    const max = tier === 'less' ? 99 : 4;
+    const isFull = ids.length >= max && tier !== 'less';
+
+    zone.className = `tier-zone ${tier}${isFull ? ' full' : ''}`;
+    zone.innerHTML = ids.map(id => {
+      const v = getV(id);
+      return `<div class="value-chip" onclick="cycleTier('${id}')">${v.icon} ${v.name}</div>`;
+    }).join('') + (tier !== 'less' && ids.length < max
+      ? `<div class="value-chip" style="border-style:dashed;opacity:0.3;pointer-events:none;">+ 点击下方添加</div>` : '');
+  });
+
+  document.getElementById('btnNext').disabled = tiers.core.length !== 4 || tiers.important.length !== 4;
 }
 
-function toggleValue(id) {
-  const idx = selected.indexOf(id);
-  if (idx >= 0) {
-    selected.splice(idx, 1);
-  } else if (selected.length < 5) {
-    selected.push(id);
+function cycleTier(id) {
+  // Find which tier the value is in
+  let current;
+  for (const [t, ids] of Object.entries(tiers)) {
+    if (ids.includes(id)) { current = t; break; }
   }
-  renderValueGrid();
-}
 
-function updateStepHint() {
-  const hint = document.getElementById('stepHint');
-  if (selected.length < 5) {
-    hint.innerHTML = `👇 点击选出对你最重要的价值观（已选 <b>${selected.length}/5</b>）`;
-  } else {
-    hint.innerHTML = `✅ 已选择 5 个 —— 点击卡片可取消替换`;
+  // Cycle: less -> important -> core -> less
+  const cycle = ['less', 'important', 'core'];
+  const nextIdx = (cycle.indexOf(current) + 1) % 3;
+  let next = cycle[nextIdx];
+
+  // Enforce limits: core max 4, important max 4
+  if (next === 'core' && tiers.core.length >= 4) next = 'less';
+  if (next === 'important' && tiers.important.length >= 4) {
+    next = 'core';
+    if (tiers.core.length >= 4) next = 'less';
   }
+
+  // Move
+  tiers[current] = tiers[current].filter(x => x !== id);
+  tiers[next].push(id);
+  renderTiers();
 }
 
 function goToRank() {
-  if (selected.length !== 5) return;
+  coreRank = [...tiers.core];
   showScreen('rank');
-  renderRankGrid();
+  renderRank();
 }
 
-function renderRankGrid() {
-  const grid = document.getElementById('rankGrid');
-  grid.innerHTML = selected.map((id, i) => {
-    const v = VALUES.find(v => v.id === id);
-    return `
-      <div class="value-card ranked" onclick="swapRank(${i})">
-        <span class="v-rank">#${i + 1}</span>
-        <div class="v-name">${v.icon} ${v.name}</div>
-        <div class="v-desc">${v.short}</div>
-      </div>
-    `;
+function renderRank() {
+  document.getElementById('rankZone').innerHTML = coreRank.map((id, i) => {
+    const v = getV(id);
+    return `<div class="rank-card" onclick="swapCoreRank(${i})">
+      <span class="rank-pos">#${i + 1}</span>
+      <span>${v.icon} ${v.name}</span>
+      <span style="font-size:11px;color:var(--dim);margin-left:auto;">${v.short}</span>
+    </div>`;
   }).join('');
 }
 
-function swapRank(i) {
-  // Click to move up: swap with item above
+function swapCoreRank(i) {
   if (i > 0) {
-    [selected[i], selected[i - 1]] = [selected[i - 1], selected[i]];
-    renderRankGrid();
+    [coreRank[i], coreRank[i - 1]] = [coreRank[i - 1], coreRank[i]];
+    renderRank();
   }
 }
 
-function backToSelect() {
-  showScreen('select');
-  renderValueGrid();
-}
+function backToSort() { showScreen('sort'); renderTiers(); }
 
 // ============================================
-// RESULTS & INTERPRETATION
+// RESULTS
 // ============================================
 function showResults() {
-  // Rank list
-  document.getElementById('rankList').innerHTML = selected.map((id, i) => {
-    const v = VALUES.find(v => v.id === id);
-    return `
-      <div class="rank-item">
-        <span class="rank-num">#${i + 1}</span>
-        <span class="rank-icon">${v.icon}</span>
-        <div class="rank-info">
-          <div class="rank-name">${v.name}</div>
-          <div class="rank-short">${v.short}</div>
-        </div>
-      </div>
-    `;
+  // Full hierarchy: core (ranked) + important + less
+  const fullOrder = [
+    ...coreRank.map(id => ({ id, tier: 'core' })),
+    ...tiers.important.map(id => ({ id, tier: 'important' })),
+    ...tiers.less.map(id => ({ id, tier: 'less' })),
+  ];
+
+  document.getElementById('fullRank').innerHTML = fullOrder.map((item, i) => {
+    const v = getV(item.id);
+    return `<div class="full-rank-item ${item.tier}">
+      <span class="full-rank-num">#${i + 1}</span>
+      <span class="full-rank-icon">${v.icon}</span>
+      <span class="full-rank-name">${v.name}</span>
+      <span class="full-rank-desc">${v.short}</span>
+      <span style="font-size:10px;color:var(--dim);opacity:0.4;margin-left:6px;">${item.tier === 'core' ? '核心' : item.tier === 'important' ? '重要' : '一般'}</span>
+    </div>`;
   }).join('');
 
-  const top = VALUES.find(v => v.id === selected[0]);
-  const second = VALUES.find(v => v.id === selected[1]);
-  const last = VALUES.find(v => v.id === selected[4]);
-  const unselected = VALUES.filter(v => !selected.includes(v.id));
+  const top = getV(coreRank[0]);
+  const coreNames = coreRank.map(id => getV(id).icon + getV(id).name).join(' ');
+  const sacrifice = tiers.less.map(id => getV(id).name).join('、');
 
   // Drive analysis
-  const driveText = generateDrive(top, second);
-  document.getElementById('driveText').innerHTML = driveText;
+  document.getElementById('driveText').innerHTML = generateDrive(top);
 
-  // Sacrifice analysis
-  const sacrificeText = generateSacrifice(last, unselected);
-  document.getElementById('sacrificeText').innerHTML = sacrificeText;
+  // Tension analysis
+  document.getElementById('tensionText').innerHTML = generateTension();
 
-  // Balance advice
-  const balanceText = generateBalance(top, unselected);
-  document.getElementById('balanceText').innerHTML = balanceText;
+  // Awareness
+  document.getElementById('awareText').innerHTML = generateAwareness();
 
   showScreen('results');
 }
 
-function generateDrive(top, second) {
-  const pairs = {
-    'freedom_achievement': '你是一个追求"自主成功"的人——你想赢，但想按自己的方式赢。你不太可能在大机构里安稳度日，更可能在创业、自由职业或创意领域找到兴奋感。驱动你的不是"我要比别人好"，而是"我要证明给自己看"。',
-    'freedom_meaning': '你追求的是"有意义的自由"。你不想被任何系统束缚，但你也不只是想玩——你想做重要的事。你可能会被社会创新、独立研究、艺术创作吸引。对你来说，最可怕的人生不是"失败"，而是"无聊且无意义"。',
-    'freedom_relationships': '你在自由和关系中寻求一种微妙的平衡——你想保持独立，但你也需要深刻的连接。你可能会被"既能各自独立又能深度连接"的关系模式吸引。传统的捆绑式关系会让你窒息。',
-    'freedom_growth': '你是一个"终身探索者"。你不太在意物质的积累，更在意的是"我有没有比昨天更自由、更强大、更了解自己"。你的理想生活是不断学习、不断尝试、不被任何框架定义。',
-    'security_meaning': '你是一个"踏实而有使命感的建设者"。你需要安全感作为基础，但光有安全不够——你还需要感到自己在做有意义的事。你可能会在稳定的职业中寻找能"改变一些什么"的机会。',
-    'security_relationships': '你是一个"守护者"。安全对你来说不只是钱——更是和在乎的人在一起的那种笃定。你愿意为了关系的稳定而做很多事。家庭、伴侣、亲密朋友是你的核心。',
-    'security_growth': '你相信"稳中求进"。你不太会裸辞去追梦，但你会在稳定的基础上持续提升自己。你的成长曲线可能不那么戏剧化，但它是持续的、扎实的。',
-    'achievement_meaning': '你追求"有意义的卓越"。你要的不仅仅是赢——你要的是在值得的事情上赢。你可能会被那些"既能证明自己又能改变世界"的事业吸引：社会企业、影响力投资、前沿科技。',
-    'achievement_recognition': '你是一个"奋斗者"。你渴望被认可和尊重，这让你不断挑战更高的目标。驱动你的部分原因是"让别人看到我的价值"。这不是虚荣——这是你确认自己存在感的方式。但要警惕：过度追求外在认可可能会让你忽视内心真正想要的东西。',
-    'relationships_meaning': '你是一个"以爱为信仰的人"。你最深层的驱动力不是成就或财富——而是和重要的人一起经历有意义的人生。你可能会被教育、心理咨询、社区建设等能"连接人"的领域吸引。',
-    'relationships_growth': '你相信"最好的成长是和在乎的人一起成长"。你不会为了个人成功而牺牲关系——你希望身边的人和你一起变好。在亲密关系中，你是一个重视共同成长的伴侣。',
-    'balance_growth': '你追求的是"持续的、健康的优秀"。你不相信"燃烧自己来照亮别人"，你要的是一种可持续的成长方式——既往前走，又不透支。这在当下这个"内卷"的时代显得格外清醒。',
+function generateDrive(top) {
+  const mappings = {
+    'freedom': '你把<b>自由</b>放在首位——这意味着自主权是你最核心的需求。你不喜欢被束缚，无论是制度上的、关系上的还是社会期望上的。这让你在人群中显得独立和有主见，但也可能在需要"坚持"和"妥协"的时候感到困难。你的课题是：如何在不放弃自由的前提下，建立深刻而持久的连接与承诺。',
+    'security': '你把<b>安全</b>放在首位——你需要一个稳固的地基。这不是"保守"或"胆小"，而是一种清醒：你知道只有在安全的基础上，其他追求才有意义。你可能会在职业选择、理财习惯、人际交往中都体现出这种谨慎。你的课题是：在确保安全的同时，不要错过那些值得适度冒险的机会。',
+    'achievement': '你把<b>成就</b>放在首位——你需要看到自己"在往前走"。设定目标、达成目标、获得认可——这个循环是你重要的动力来源。你不是为了别人而优秀，你是为了确认自己"活得有分量"。你的课题是：在追逐成就时，别忘了问自己"这是我想赢的游戏吗？"',
+    'relationships': '你把<b>关系</b>放在首位——你是以爱为中心来组织人生的。你不是不在乎成就或自由，而是你觉得：如果没有人分享，那些有什么意义？这让你成为一个温暖而有深度的人。你的课题是：在关系中保持完整的自己，而不是为了关系的和谐而牺牲自我。',
+    'meaning': '你把<b>意义</b>放在首位——你需要感到自己在做"重要的事"。不是任何事都值得投入——你的人生必须指向某个超越自身的目标。这让你在浮躁的世界里有一种罕见的笃定。你的课题是：意义不总在远处，它也藏在日常的细节里。',
+    'growth': '你把<b>成长</b>放在首位——你是一个终身学习者。停滞和重复让你感到窒息，而学习和突破让你感到活着。你不断地在进化，每个阶段的你都不一样。你的课题是：偶尔允许自己"只是存在"——不是每一天都需要变得更好。你已经足够好了。',
+    'balance': '你把<b>平衡</b>放在首位——在这个推崇"极致"和"all-in"的时代，你的清醒显得格外珍贵。你相信健康、家庭、工作、休闲应该各得其所。你的课题是：不要因为追求平衡而变得犹豫不决——有时候，短期的倾斜是为了长期的平衡。',
   };
-  const key = `${top.id}_${second.id}`;
-  if (pairs[key]) return `<b>${top.icon} ${top.name}</b>是你最看重的，紧随其后的是<b>${second.icon} ${second.name}</b>。<br><br>${pairs[key]}`;
-  return `<b>${top.icon} ${top.name}</b>是你最核心的价值驱动力。${top.desc}<br><br>紧随其后的是<b>${second.icon} ${second.name}</b>。${second.desc}`;
+  return mappings[top.id] || `你把<b>${top.icon} ${top.name}</b>放在首位。${top.desc} 这反映了你当前阶段最看重的价值。了解这个优先级，能帮你在重要决策时做出更一致的选择。`;
 }
 
-function generateSacrifice(last, unselected) {
-  const top5Names = selected.map(id => VALUES.find(v => v.id === id).name).join('、');
-  const unselNames = unselected.slice(0, 3).map(v => v.icon + v.name).join(' ');
-  return `你选择了<b>${top5Names}</b>作为最重要的五个价值观。这意味着当你必须在这些价值之间做选择时，<br><br>
-  排在第5位的<b>${last.icon} ${last.name}</b>是你"愿意最先牺牲"的核心价值。<br><br>
-  而那些完全没有进入前5的——${unselNames}——在目前的人生阶段对你来说优先级较低。这不代表它们不重要，而是反映了<b>你当前的选择和处境</b>。试着问问自己：如果人生阶段变化了，这些排序会不会重排？`;
-}
+function generateTension() {
+  const coreIds = coreRank.map(x => x);
+  const tensionPairs = [
+    { a:'freedom', b:'security', text:'自由和安全之间存在天然的张力：自由要求冒险和不确定性，安全要求稳定和可预测。你在排序中如何处理这对关系的，决定了你在重大人生选择（换工作、搬家、创业）中的倾向。' },
+    { a:'achievement', b:'balance', text:'成就和平衡往往互相拉扯：成就需要投入和冲刺，平衡需要留白和节制。如果你选择了成就，记得给自己设置"休息日"；如果你选择了平衡，记得允许自己偶尔"全力冲刺"。' },
+    { a:'authenticity', b:'recognition', text:'真实和认可有时冲突：真实的你做自己，认可需要你符合他人的期待。你是更想"做自己"还是"被看见"？这个排序反映了你的答案。' },
+    { a:'relationships', b:'achievement', text:'关系和成就——经典的"事业vs家庭"张力。你的排序揭示了你如何权衡这两者。这不是非此即彼的选择，而是在不同阶段如何分配时间和精力的问题。' },
+    { a:'pleasure', b:'meaning', text:'快乐和意义：快乐是当下的，意义是长远的。有时候你需要选择"先苦后甜"还是"活在当下"。你的排序表明你更看重哪个维度的体验。' },
+  ];
 
-function generateBalance(top, unselected) {
-  const warnings = {
-    'freedom': '你高度珍视自由。这让你不会被束缚，但也可能让你在需要"坚持"和"深耕"的时候过早逃离。自由是目的，但有时约束是手段——学会区分"有害的束缚"和"有意义的坚持"。',
-    'security': '安全是你重要的基石。但要留意：过度追求安全可能会让你错过那些"值得冒险"的机会。问问自己——你最害怕的不安全感，是基于真实的威胁，还是基于想象的风险？',
-    'achievement': '你对成就的追求让你不断向前。但偶尔停下来问自己：我追求的这些目标，是我真正想要的，还是我觉得"应该"要的？成就可以是你衡量生活的标尺，但不应该是唯一的标尺。',
-    'relationships': '你把关系放在核心位置——这让你成为一个温暖而有深度的人。但需要留意：过度看重关系可能让你压抑自己的需求来维持和谐。真正的亲密不是牺牲自己，而是带着完整的自己走进关系。',
-    'meaning': '你对意义的追求让你的人生有了方向。但要记住：意义不总是在远处——它也藏在日常的细节里。一杯认真的咖啡、一段专注的对话、一次全心全意的陪伴——这些都是意义。',
-    'growth': '你的成长动力让你永远在进步。但偶尔也要允许自己"只是存在"——不是每一天都需要变得更好。你已经足够好了。',
-  };
-
-  let text = warnings[top.id] || '你的价值观排序反映了你当前的真实优先级。了解它，不是要你改变——而是让你更清醒地做选择。当不同价值冲突时，记住你的排序，它会帮你做出不后悔的决定。';
-
-  // Add a universal note
-  const opposites = {
-    'freedom': unselected.find(v => v.id === 'security'),
-    'security': unselected.find(v => v.id === 'freedom'),
-    'achievement': unselected.find(v => v.id === 'balance'),
-    'balance': unselected.find(v => v.id === 'achievement'),
-  };
-  const opp = opposites[top.id];
-  if (opp) {
-    text += `<br><br>另外注意到：你把<b>${top.name}</b>排在首位，而<b>${opp.name}</b>没有进入前5。这两种价值在某些情境下会产生张力——比如${top.name === '自由' ? '自由需要冒险，而安全需要稳定' : top.name === '安全' ? '安全需要稳定，而自由需要冒险' : top.name === '成就' ? '成就需要投入，而平衡需要节制' : '平衡需要留白，而成就需要冲刺'}。意识到这种张力，你就能在具体情境中有意识地做出更成熟的选择。`;
+  let text = '';
+  for (const tp of tensionPairs) {
+    const aIdx = coreIds.indexOf(tp.a);
+    const bIdx = coreIds.indexOf(tp.b);
+    if (aIdx >= 0 && bIdx >= 0) {
+      const higher = aIdx < bIdx ? getV(tp.a).name : getV(tp.b).name;
+      text += `⚡ <b>${getV(tp.a).name} vs ${getV(tp.b).name}</b>：${tp.text} 在核心价值中，你把<b>${higher}</b>排在了前面。<br><br>`;
+    } else if (aIdx >= 0 && tiers.less.includes(tp.b)) {
+      text += `⚡ <b>${getV(tp.a).name} vs ${getV(tp.b).name}</b>：${tp.text} 你把${getV(tp.a).name}放入核心，而${getV(tp.b).name}在当前阶段优先级较低。<br><br>`;
+    }
   }
-
+  if (!text) text = '你的价值体系中，各维度之间的张力不是特别突出。这可能意味着你当前处于一个比较和谐的人生阶段——或者你对价值观冲突有较强的整合能力。';
   return text;
+}
+
+function generateAwareness() {
+  const sacrificeNames = tiers.less.map(id => getV(id).name).join('、');
+  return `你目前优先级较低的四个价值是：<b>${sacrificeNames}</b>。<br><br>
+  这不代表它们对你"不重要"——只代表在<b>当前人生阶段</b>，它们不是你的首要关切。试着问自己三个问题：<br><br>
+  ① 如果人生阶段变了（比如毕业、结婚、有孩子、换城市），这个排序会变吗？<br>
+  ② 你放弃的这些价值中，有没有一个是你"其实很想要但不敢追求"的？<br>
+  ③ 十年后的你，回头看现在这个排序，会觉得骄傲还是遗憾？<br><br>
+  价值观排序不是固定不变的——它应该随着你对生活的理解而演化。每年重新做一次，看看自己变了没有。`;
 }
 
 // ============================================
 // SHARE
 // ============================================
 function shareResults() {
-  const names = selected.map((id, i) => `#${i+1} ${VALUES.find(v => v.id === id).icon}${VALUES.find(v => v.id === id).name}`).join('\n');
-  const text = `🧭 我的核心价值观排序\n\n${names}\n\n当安全、自由、成就、关系、意义冲突时——你内心真正的优先级是什么？\n\n👉 来排序你的价值观\nhttps://mkb1118.github.io/values-sort/`;
+  const top3 = coreRank.slice(0, 3).map((id, i) => `#${i+1} ${getV(id).icon}${getV(id).name}`).join('  ');
+  const text = `🧭 我的核心价值观排序\n\n核心：${tiers.core.map(id => getV(id).icon + getV(id).name).join(' ')}\n重要：${tiers.important.map(id => getV(id).icon + getV(id).name).join(' ')}\n\n当安全、自由、成就、关系、意义冲突时——你内心真正的优先级是什么？\n\n👉 来排序你的价值观\nhttps://mkb1118.github.io/values-sort/`;
 
   if (navigator.clipboard) { navigator.clipboard.writeText(text).then(() => showToast('已复制！')); }
 }
@@ -347,7 +368,11 @@ function showToast(msg) {
   document.body.appendChild(t); setTimeout(() => t.remove(), 2500);
 }
 
-function restartTest() { selected = []; showScreen('welcome'); }
+function restartTest() {
+  tiers = { core: [], important: [], less: VALUES.map(v => v.id) };
+  coreRank = [];
+  showScreen('welcome');
+}
 </script>
 </body>
 </html>
