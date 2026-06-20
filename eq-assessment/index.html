@@ -203,8 +203,16 @@
         <div class="mode-icon">🚀</div>
         <div class="mode-name">轻量版</div>
         <div class="mode-stats">24 题 · 约 5 分钟</div>
-        <div class="mode-desc">核心四维评估，快速了解你的情绪智力全貌。</div>
+        <div class="mode-desc">基于 MSCEIT 能力模型的四维核心评估，快速精准地了解你的情绪智力全貌。</div>
         <div class="mode-badge light">核心评估</div>
+        <div class="pro-features">
+          + 情绪智力总分与等级<br>
+          + 四维度详细分析（含子维度）<br>
+          + 核心人格画像<br>
+          + 关系中的你<br>
+          + 职业匹配建议<br>
+          + 针对性提升策略
+        </div>
       </div>
       <div class="mode-card pro" onclick="startTest(true)">
         <div class="mode-icon">🔬</div>
@@ -486,29 +494,6 @@ function renderQuestion() {
 
   const card = document.getElementById('qCard');
 
-  // Deep section transition (pro mode, first question after base)
-  if (isPro && currentQ === baseQuestions.length) {
-    document.getElementById('btnBack').style.visibility = 'hidden';
-    card.innerHTML = `
-      <div class="deep-transition">
-        <div class="deep-icon">🔬</div>
-        <h3>进入<span>深度分析</span>环节</h3>
-        <p>接下来 30 道扩展题将帮你建立最完整的情绪智力画像：</p>
-        <div class="deep-modules">
-          <div>📍 情绪触发地图 — 6种生活情境的敏感度</div>
-          <div>🛠️ 情绪调节策略 — 8种应对方式的系统评估</div>
-          <div>💗 共情能力 — 3维度的深度分析</div>
-          <div>🗣️ 情绪表达风格 — 你的情绪沟通模式</div>
-          <div>📐 情绪颗粒度 — 内心感受的精细度</div>
-          <div>🧠 情绪信念 — 你对情绪的底层态度</div>
-          <div>🏡 情绪发展背景 — 成长环境的影响</div>
-        </div>
-        <p style="margin-top:16px;">准备好了就继续吧。</p>
-        <button class="btn primary" onclick="continueDeep()">进入深度分析 →</button>
-      </div>`;
-    return;
-  }
-
   // Normal question rendering
   const dimInfo = DIM_INFO[q.dim];
   const tag = q.tag || (dimInfo ? `${dimInfo.icon} ${dimInfo.name} · ${(q.sub||'')}` : '🔬 深度扩展');
@@ -554,11 +539,6 @@ function renderQuestion() {
     card.style.transition = 'all 0.3s ease';
     card.style.opacity = '1'; card.style.transform = 'translateY(0)';
   });
-}
-
-function continueDeep() {
-  document.getElementById('qCard').innerHTML = '<div class="q-category" id="qCat"></div><div class="q-text" id="qText"></div><div class="options" id="qOpts"></div>';
-  renderQuestion();
 }
 
 function advanceIfReady() {
