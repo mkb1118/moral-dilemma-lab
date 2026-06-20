@@ -1376,6 +1376,7 @@ const ARCHETYPES = {
 let currentDilemma = 0;
 let answers = [];
 let isPro = false;
+let shownSections = new Set();
 
 // Store original DILEMMAS for filtering
 const ALL_DILEMMAS = DILEMMAS;
@@ -1399,6 +1400,7 @@ function startQuiz(proMode) {
   DILEMMAS = isPro ? ALL_DILEMMAS : ALL_DILEMMAS.slice(0, 8);
   currentDilemma = 0;
   answers = [];
+  shownSections = new Set();
   showScreen('quiz');
   renderDilemma();
 }
@@ -1421,9 +1423,10 @@ function renderDilemma() {
   const d = DILEMMAS[currentDilemma];
   const pct = Math.round((currentDilemma / DILEMMAS.length) * 100);
 
-  // Check if this is a section start
-  const section = getSections().find(s => s.atIndex === currentDilemma);
+  // Check if this is a section start (but only if not already shown)
+  const section = getSections().find(s => s.atIndex === currentDilemma && !shownSections.has(s.atIndex));
   if (section) {
+    shownSections.add(section.atIndex);
     const card = document.getElementById('dilemmaCard');
     const choicesEl = document.getElementById('choices');
     card.style.display = 'none';
