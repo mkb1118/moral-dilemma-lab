@@ -929,15 +929,11 @@
       <h1>道德困境<br><span>实验室</span></h1>
     </div>
     <p class="subtitle">
-      面对 8 个经典道德困境，做出你的选择。
+      基于 Philippa Foot 的电车难题、Judith Jarvis Thomson 的器官移植思想实验等经典伦理学场景。
       每个困境都没有"正确"答案——但你的选择会揭示你的道德人格画像。
     </p>
     <div class="dilemma-count-badge">
-      <span class="dot"></span> 8 个困境 · 约 5 分钟
-    </div>
-    <div class="name-input-wrap">
-      <input class="name-input" id="userName" type="text" placeholder="输入你的名字（选填）" maxlength="20" autocomplete="off">
-      <div class="name-hint">名字会显示在答题记录中，方便你识别自己的数据</div>
+      <span class="dot"></span> 轻量 8 题 · 专业 12 题 · 约 5-10 分钟
     </div>
     <button class="btn primary" onclick="showModeSelect()">
       开始实验 →
@@ -1096,6 +1092,14 @@
       <button class="btn" onclick="shareResults()">📤 转发给朋友</button>
     </div>
     <div style="text-align:center;margin-bottom:16px;"><a href="../index.html" style="color:var(--dim);font-family:var(--mono);font-size:11px;text-decoration:none;border:1px solid rgba(240,244,248,0.1);padding:6px 16px;border-radius:4px;transition:all 0.2s;">🏠 返回测试广场</a></div>
+    <div id="refsSection" style="width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:18px 22px;margin-bottom:28px;font-family:var(--font-mono);font-size:11px;color:var(--white-dim);line-height:1.7;">
+      <strong style="color:var(--white);">参考文献</strong><br>
+      Foot, P. (1967). The problem of abortion and the doctrine of double effect. <em>Oxford Review</em>, 5, 5–15.<br>
+      Thomson, J. J. (1985). The trolley problem. <em>Yale Law Journal</em>, 94(6), 1395–1415.<br>
+      Haidt, J. (2012). <em>The Righteous Mind: Why Good People Are Divided by Politics and Religion</em>. Vintage Books.<br>
+      Kohlberg, L. (1981). <em>Essays on Moral Development, Vol. I: The Philosophy of Moral Development</em>. Harper & Row.<br>
+      Greene, J. D. (2013). <em>Moral Tribes: Emotion, Reason, and the Gap Between Us and Them</em>. Penguin Press.
+    </div>
     <p class="footer-note" style="margin-top:8px;">Moral Dilemma Lab · 仅供反思参考，非临床诊断</p>
   </div>
 </div>
@@ -1104,7 +1108,7 @@
 // ============================================
 // DATA: 8 Moral Dilemmas
 // ============================================
-const DILEMMAS = [
+let DILEMMAS = [
   {
     id: 1,
     title: '困境 01 · 失控的电车',
