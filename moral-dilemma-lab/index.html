@@ -851,6 +851,31 @@
   .discovery-icon { flex-shrink: 0; font-size: 16px; }
 
   /* ============================================
+     MODE SELECTION
+     ============================================ */
+  #modeSelect { align-items: stretch; }
+  .mode-header { text-align: center; margin-bottom: 32px; }
+  .mode-header h2 { font-size: 24px; font-weight: 200; letter-spacing: 2px; color: var(--white); }
+  .mode-header h2 span { color: var(--cyan); font-weight: 400; }
+  .mode-header p { color: var(--white-dim); font-size: 13px; margin-top: 8px; font-weight: 300; }
+  .mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .mode-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 32px 24px; text-align: center; cursor: pointer; transition: all 0.3s;
+    text-decoration: none; color: var(--white);
+  }
+  .mode-card:hover { border-color: var(--cyan-dim); background: var(--bg-card-hover); transform: translateY(-2px); }
+  .mode-card.pro:hover { border-color: var(--amber-dim); }
+  .mode-icon { font-size: 40px; margin-bottom: 14px; }
+  .mode-name { font-size: 18px; font-weight: 400; letter-spacing: 1px; margin-bottom: 4px; }
+  .mode-stats { font-family: var(--font-mono); font-size: 10px; color: var(--white-dim); margin-bottom: 10px; }
+  .mode-desc { font-size: 12px; color: var(--white-dim); line-height: 1.5; font-weight: 300; }
+  .mode-badge { display: inline-block; font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; padding: 3px 10px; border-radius: 10px; margin-top: 10px; }
+  .mode-badge.light { color: var(--cyan); border: 1px solid var(--cyan-dim); }
+  .mode-badge.pro { color: var(--amber); border: 1px solid var(--amber-dim); }
+  .mode-features { font-size: 11px; color: var(--white-dim); margin-top: 10px; line-height: 1.6; text-align: left; padding-left: 16px; }
+
+  /* ============================================
      RESPONSIVE
      ============================================ */
   @media (max-width: 600px) {
@@ -914,9 +939,50 @@
       <input class="name-input" id="userName" type="text" placeholder="输入你的名字（选填）" maxlength="20" autocomplete="off">
       <div class="name-hint">名字会显示在答题记录中，方便你识别自己的数据</div>
     </div>
-    <button class="btn primary" onclick="startQuiz()">
+    <button class="btn primary" onclick="showModeSelect()">
       开始实验 →
     </button>
+  </div>
+
+  <!-- ============================================
+       MODE SELECTION
+       ============================================ -->
+  <div class="screen" id="modeSelect">
+    <div class="mode-header">
+      <h2>选择你的<span>实验深度</span></h2>
+      <p>两种模式使用相同的核心困境题库。专业版额外增加 4 个困境和 3 个深度分析模块。</p>
+    </div>
+    <div class="mode-cards">
+      <div class="mode-card" onclick="startQuiz(false)">
+        <div class="mode-icon">🧪</div>
+        <div class="mode-name">轻量版</div>
+        <div class="mode-stats">8 个困境 · 约 5 分钟</div>
+        <div class="mode-desc">经典 8 个道德困境，揭示你的道德人格原型与思维模式。</div>
+        <div class="mode-badge light">核心评估</div>
+        <div class="mode-features">
+          + 5 种道德人格原型<br>
+          + 四维雷达图<br>
+          + 模式发现与洞察<br>
+          + 关系与职业解读<br>
+          + 所有用户选择统计
+        </div>
+      </div>
+      <div class="mode-card pro" onclick="startQuiz(true)">
+        <div class="mode-icon">🔬</div>
+        <div class="mode-name">专业版</div>
+        <div class="mode-stats">12 个困境 · 约 10 分钟</div>
+        <div class="mode-desc">扩展困境库 + 道德基础理论、发展阶段、成长路径等深度分析。</div>
+        <div class="mode-badge pro">深度分析</div>
+        <div class="mode-features">
+          + 轻量版全部内容<br>
+          + 4 个额外困境（第四章）<br>
+          + 道德基础理论分析<br>
+          + 道德推理阶段评估<br>
+          + 道德成长路径
+        </div>
+      </div>
+    </div>
+    <button class="btn back" onclick="showScreen('welcome')" style="margin-top:24px;align-self:center;">← 返回</button>
   </div>
 
   <!-- ============================================
@@ -999,6 +1065,30 @@
     <div class="review-section">
       <div class="review-title">你的选择回顾</div>
       <div id="reviewList"></div>
+    </div>
+
+    <!-- Pro only: Moral Foundations -->
+    <div id="foundationsSection" style="display:none;">
+      <div class="chart-container">
+        <div class="chart-title">🧭 道德基础理论分析</div>
+        <div id="foundationsContent" style="width:100%;"></div>
+      </div>
+    </div>
+
+    <!-- Pro only: Kohlberg Stage -->
+    <div id="kohlbergSection" style="display:none;">
+      <div class="life-section" style="border-left-color:var(--amber-dim);">
+        <div class="life-title">📜 道德推理阶段评估</div>
+        <p class="life-text" id="kohlbergText"></p>
+      </div>
+    </div>
+
+    <!-- Pro only: Growth Path -->
+    <div id="growthSection" style="display:none;">
+      <div class="life-section" style="border-left-color:var(--cyan-dim);">
+        <div class="life-title">🌱 道德成长路径</div>
+        <p class="life-text" id="growthText"></p>
+      </div>
     </div>
 
     <div class="action-row">
@@ -1142,6 +1232,71 @@ const DILEMMAS = [
       subtitle: '几百条生命 > 一条生命',
       scores: { utilitarian: 3, personal: -2, universal: 1, liberty: 1 }
     }
+  },
+  // ═══ Pro-only dilemmas (Chapter 4: 未来与边界) ═══
+  {
+    id: 9,
+    title: '困境 09 · 烟囱与饭碗',
+    scenario: '你是一座工业城市的市长。城里最大的化工厂为两万人提供了工作岗位，但它的排污正在让周边河流中的重金属超标，导致癌症发病率以每年3%的速度上升。关闭工厂意味着两万个家庭失去收入，不关则意味着更多人生病。',
+    context: '发展权与健康权——当它们冲突时，谁的优先级更高？这不是遥远的理论问题，而是正在全球成千上万个城市中发生的真实困境。',
+    choiceA: {
+      text: '分阶段关停工厂',
+      subtitle: '短期阵痛，长期生命不可替代',
+      scores: { utilitarian: 2, personal: -1, universal: 2, liberty: -1 }
+    },
+    choiceB: {
+      text: '维持工厂但强制整改',
+      subtitle: '在保住饭碗的前提下推动改善',
+      scores: { utilitarian: 0, personal: 2, universal: -1, liberty: 1 }
+    }
+  },
+  {
+    id: 10,
+    title: '困境 10 · 远方的后代',
+    scenario: '一项气候法案要求从明年起大幅提高碳税，这意味着每个家庭每年将多支出约15%的收入。支持者说"地球不是我们从父辈继承的，而是从子孙那里借来的"。反对者说"现在活着的人不应该为未来的人牺牲"。',
+    context: '代际正义是道德哲学中最棘手的问题之一——那些还没有出生的人，有权利吗？我们愿意为他们付出多少？',
+    choiceA: {
+      text: '支持法案',
+      subtitle: '后代的权利也是权利，即使他们现在不能投票',
+      scores: { utilitarian: 3, personal: -1, universal: 2, liberty: -2 }
+    },
+    choiceB: {
+      text: '反对法案',
+      subtitle: '活着的人的需求优先——未来的技术会自己解决问题',
+      scores: { utilitarian: -2, personal: 1, universal: -1, liberty: 2 }
+    }
+  },
+  {
+    id: 11,
+    title: '困境 11 · 完美的孩子',
+    scenario: '基因编辑技术已经可以安全地修改人类胚胎——不仅仅是消除遗传病，还可以增强智力、外貌和运动能力。一对夫妇想用这项技术来确保他们的孩子拥有"最好的起点"。你会支持还是反对？',
+    context: '从"治疗疾病"到"增强能力"，这条界线的两边都是人。当技术允许我们设计人类时，我们是否应该按下那个按钮？',
+    choiceA: {
+      text: '允许用于消除遗传病',
+      subtitle: '减轻痛苦是人类的责任，但在"设计婴儿"前画一条红线',
+      scores: { utilitarian: 1, personal: 1, universal: 2, liberty: 0 }
+    },
+    choiceB: {
+      text: '全面禁止基因编辑',
+      subtitle: '无论初衷多好，"扮演上帝"的危险太大了',
+      scores: { utilitarian: -1, personal: 0, universal: 3, liberty: -1 }
+    }
+  },
+  {
+    id: 12,
+    title: '困境 12 · 算法的天平',
+    scenario: '你负责一个AI招聘系统。数据显示，如果让算法完全根据历史录取数据学习，它会自动偏向男性候选人，因为历史数据本身就是有偏的。你可以给算法加入一个"公平修正"，强制它在不同性别间的录用率接近——但这会略微降低整体录用者的平均绩效。',
+    context: '效率与公平——AI没有偏见，但它会把人类的偏见学得一丝不差。修正这些偏见需要付出"效率代价"，你愿意吗？',
+    choiceA: {
+      text: '加入公平修正',
+      subtitle: '公平比效率更重要——尤其是当不公平源自历史偏见时',
+      scores: { utilitarian: -1, personal: 0, universal: 3, liberty: 1 }
+    },
+    choiceB: {
+      text: '不加修正，保留算法原始逻辑',
+      subtitle: '算法的任务是找出最优候选人，而不是纠正社会历史',
+      scores: { utilitarian: 2, personal: -1, universal: -2, liberty: 0 }
+    }
   }
 ];
 
@@ -1216,6 +1371,10 @@ const ARCHETYPES = {
 // ============================================
 let currentDilemma = 0;
 let answers = [];
+let isPro = false;
+
+// Store original DILEMMAS for filtering
+const ALL_DILEMMAS = DILEMMAS;
 
 // ============================================
 // NAVIGATION
@@ -1225,10 +1384,15 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
 }
 
+function showModeSelect() { showScreen('modeSelect'); }
+
 // ============================================
 // QUIZ LOGIC
 // ============================================
-function startQuiz() {
+function startQuiz(proMode) {
+  isPro = proMode;
+  // Filter dilemmas: light = first 8, pro = all 12
+  DILEMMAS = isPro ? ALL_DILEMMAS : ALL_DILEMMAS.slice(0, 8);
   currentDilemma = 0;
   answers = [];
   showScreen('quiz');
@@ -1236,39 +1400,46 @@ function startQuiz() {
 }
 
 // Section breaks between dilemma groups
-const SECTIONS = [
-  { atIndex: 0, icon: '🌓', title: '第一章：生与死的选择', subtitle: '生命有价吗？一个人和一群人，天平的两端。接下来的两道题，会触碰这个人类最古老的道德难题。' },
-  { atIndex: 2, icon: '💫', title: '第二章：真与情的博弈', subtitle: '真相值得捍卫吗，哪怕伤害在乎的人？忠诚是美德还是盲区？接下来的三道题，关于人与人之间最微妙的纽带。' },
-  { atIndex: 5, icon: '🔮', title: '第三章：自由与秩序的边界', subtitle: '你愿意交出多少自己，来换取多少安全？个人的权利和集体的秩序，边界在哪里？最后三道题，关于你与这个世界的关系。' },
+const SECTIONS_LIGHT = [
+  { atIndex: 0, icon: '🌓', title: '第一章：生与死的选择', subtitle: '一个人和一群人，天平的两端。' },
+  { atIndex: 2, icon: '💫', title: '第二章：真与情的博弈', subtitle: '真相与忠诚，人与人之间最微妙的纽带。' },
+  { atIndex: 5, icon: '🔮', title: '第三章：自由与秩序的边界', subtitle: '个人的权利和集体的秩序，边界在哪里？' },
 ];
+const SECTION_PRO_CH4 = { atIndex: 8, icon: '🌐', title: '第四章：未来与边界', subtitle: '当道德问题延伸到下一代、整个物种和机器智能。' };
+
+function getSections() {
+  const s = [...SECTIONS_LIGHT];
+  if (isPro) s.push(SECTION_PRO_CH4);
+  return s;
+}
 
 function renderDilemma() {
   const d = DILEMMAS[currentDilemma];
   const pct = Math.round((currentDilemma / DILEMMAS.length) * 100);
 
   // Check if this is a section start
-  const section = SECTIONS.find(s => s.atIndex === currentDilemma);
+  const section = getSections().find(s => s.atIndex === currentDilemma);
   if (section) {
     const card = document.getElementById('dilemmaCard');
     const choicesEl = document.getElementById('choices');
     card.style.display = 'none';
     choicesEl.innerHTML = '';
 
-    // Show section break
+    // Show section break with auto-continue
     const breakHtml = `
       <div class="section-break" id="sectionBreak">
         <div class="section-break-icon">${section.icon}</div>
         <div class="section-break-title">${section.title}</div>
         <div class="section-break-subtitle">${section.subtitle}</div>
-        <button class="btn primary" style="margin-top:20px;" onclick="continueFromBreak()">继续 →</button>
       </div>
     `;
-    // Insert break before the card
     const quizScreen = document.getElementById('quiz');
     const progressWrap = document.querySelector('.progress-wrap');
     const existingBreak = document.getElementById('sectionBreak');
     if (existingBreak) existingBreak.remove();
     progressWrap.insertAdjacentHTML('afterend', breakHtml);
+    // Auto-continue after 2.5 seconds
+    setTimeout(() => continueFromBreak(), 2500);
     return;
   }
 
@@ -1676,11 +1847,161 @@ function showResults() {
     `;
   }).join('');
 
+  // ── Pro-only analysis ──
+  if (isPro) {
+    document.getElementById('foundationsSection').style.display = 'block';
+    document.getElementById('kohlbergSection').style.display = 'block';
+    document.getElementById('growthSection').style.display = 'block';
+    document.getElementById('foundationsContent').innerHTML = generateFoundations();
+    document.getElementById('kohlbergText').innerHTML = generateKohlberg();
+    document.getElementById('growthText').innerHTML = generateMoralGrowth();
+  }
+
   showScreen('results');
 
   // Re-draw radar after visible
   setTimeout(() => drawRadar(rawScores), 100);
 
+}
+
+// ═══════════════════════════════════════
+// PRO ANALYSIS: Moral Foundations
+// ═══════════════════════════════════════
+function generateFoundations() {
+  // Map dilemmas to Haidt's 6 moral foundations
+  const foundations = {
+    care: { name:'关爱/伤害', icon:'💙', desc:'关注他人的痛苦和需求，反对残忍和伤害', score:0, max:0 },
+    fairness: { name:'公平/欺骗', icon:'⚖️', desc:'关注公平、正义和诚信，反对欺骗和不公', score:0, max:0 },
+    liberty: { name:'自由/压迫', icon:'🕊️', desc:'关注个人权利和自主，反对压迫和强制', score:0, max:0 },
+    loyalty: { name:'忠诚/背叛', icon:'🤝', desc:'关注群体归属和忠诚，反对背叛和叛变', score:0, max:0 },
+    authority: { name:'权威/颠覆', icon:'🏛️', desc:'尊重规则、秩序和传统，反对混乱和颠覆', score:0, max:0 },
+    sanctity: { name:'圣洁/堕落', icon:'✨', desc:'关注纯洁和崇高，反对堕落和亵渎', score:0, max:0 }
+  };
+
+  // Map each dilemma's choices to foundations
+  const dilemmaFoundations = {
+    1: { A: { care:0, fairness:1, liberty:-1, loyalty:0, authority:0, sanctity:0 }, B: { care:1, fairness:0, liberty:0, loyalty:0, authority:0, sanctity:0 } },
+    2: { A: { care:0, fairness:1, liberty:-2, loyalty:0, authority:0, sanctity:0 }, B: { care:2, fairness:0, liberty:0, loyalty:0, authority:0, sanctity:1 } },
+    3: { A: { care:2, fairness:-1, liberty:0, loyalty:1, authority:0, sanctity:0 }, B: { care:-1, fairness:1, liberty:0, loyalty:-1, authority:0, sanctity:0 } },
+    4: { A: { care:-1, fairness:2, liberty:0, loyalty:-1, authority:1, sanctity:0 }, B: { care:1, fairness:0, liberty:0, loyalty:2, authority:-1, sanctity:0 } },
+    5: { A: { care:0, fairness:0, liberty:1, loyalty:0, authority:0, sanctity:2 }, B: { care:0, fairness:1, liberty:-1, loyalty:0, authority:0, sanctity:-2 } },
+    6: { A: { care:0, fairness:-1, liberty:1, loyalty:0, authority:0, sanctity:0 }, B: { care:1, fairness:1, liberty:-1, loyalty:0, authority:0, sanctity:0 } },
+    7: { A: { care:0, fairness:0, liberty:-2, loyalty:0, authority:1, sanctity:0 }, B: { care:0, fairness:0, liberty:2, loyalty:0, authority:-1, sanctity:0 } },
+    8: { A: { care:2, fairness:-1, liberty:0, loyalty:0, authority:0, sanctity:0 }, B: { care:0, fairness:2, liberty:0, loyalty:0, authority:0, sanctity:0 } },
+    9: { A: { care:1, fairness:1, liberty:0, loyalty:0, authority:0, sanctity:1 }, B: { care:0, fairness:0, liberty:1, loyalty:1, authority:0, sanctity:0 } },
+    10: { A: { care:2, fairness:1, liberty:-1, loyalty:0, authority:0, sanctity:1 }, B: { care:-1, fairness:0, liberty:2, loyalty:0, authority:0, sanctity:0 } },
+    11: { A: { care:1, fairness:1, liberty:0, loyalty:0, authority:1, sanctity:1 }, B: { care:0, fairness:0, liberty:-1, loyalty:0, authority:0, sanctity:2 } },
+    12: { A: { care:0, fairness:2, liberty:0, loyalty:0, authority:0, sanctity:0 }, B: { care:0, fairness:-2, liberty:0, loyalty:0, authority:0, sanctity:0 } }
+  };
+
+  answers.forEach(a => {
+    const df = dilemmaFoundations[a.dilemmaId];
+    if (!df) return;
+    const vals = df[a.choice];
+    if (!vals) return;
+    for (const [key, val] of Object.entries(vals)) {
+      foundations[key].score += val;
+      foundations[key].max += Math.abs(val);
+    }
+  });
+
+  // Normalize to 0-100
+  const sorted = Object.entries(foundations).map(([key, f]) => {
+    const norm = f.max > 0 ? Math.round(((f.score + f.max) / (f.max * 2)) * 100) : 50;
+    return { key, name:f.name, icon:f.icon, desc:f.desc, score:norm };
+  }).sort((a,b) => b.score - a.score);
+
+  let html = '<p style="color:var(--white-dim);font-size:12px;margin-bottom:16px;text-align:left;">基于 Jonathan Haidt 的道德基础理论，你的选择反映了以下六个道德直觉的相对重要性：</p>';
+
+  sorted.forEach(f => {
+    const color = f.score >= 65 ? 'var(--cyan)' : f.score <= 35 ? 'var(--amber)' : '#7ec8e3';
+    html += `<div class="dimension-item" style="margin-bottom:8px;padding:14px 18px;">
+      <div class="dimension-header">
+        <span class="dimension-name">${f.icon} ${f.name}<span style="font-size:11px;color:var(--white-dim);font-weight:300;"> — ${f.desc}</span></span>
+        <span class="dimension-value" style="color:${color}">${f.score}</span>
+      </div>
+      <div class="dimension-bar-track"><div class="dimension-bar-fill" style="width:${f.score}%;background:${color}"></div></div>
+    </div>`;
+  });
+
+  const top = sorted[0], bottom = sorted[sorted.length-1];
+  html += `<p style="color:var(--white-dim);font-size:12px;margin-top:14px;text-align:left;">你的道德直觉最受<strong style="color:var(--cyan)">${top.name}</strong>驱动，而<strong style="color:var(--amber)">${bottom.name}</strong>对你的影响相对最小。Haidt 的研究发现，不同政治立场和文化背景的人对这六个基础的权重分配有显著差异——你的权重分布反映了你独特的道德直觉结构。</p>`;
+
+  return html;
+}
+
+// ═══════════════════════════════════════
+// PRO ANALYSIS: Kohlberg Stages
+// ═══════════════════════════════════════
+function generateKohlberg() {
+  // Count "post-conventional" reasoning indicators
+  let postConventional = 0, conventional = 0, preConventional = 0;
+
+  // Pre-conventional: punishment avoidance, personal gain
+  // Conventional: rule following, social approval
+  // Post-conventional: universal principles, social contract, individual rights balanced with greater good
+
+  answers.forEach(a => {
+    const d = DILEMMAS.find(dd => dd.id === a.dilemmaId);
+    if (!d) return;
+    const scores = a.choice === 'A' ? d.choiceA.scores : d.choiceB.scores;
+
+    // Post-conventional indicators: high universal principle scores + balanced utilitarian reasoning
+    if (scores.universal >= 2 && Math.abs(scores.utilitarian) <= 2) postConventional++;
+    else if (scores.universal >= 2) conventional++;
+    else if (Math.abs(scores.utilitarian) >= 3) {
+      // Very high utilitarian = might be post-conventional if combined with personal consideration
+      if (Math.abs(scores.personal) <= 1) postConventional++;
+      else preConventional++;
+    } else {
+      conventional++;
+    }
+  });
+
+  const total = answers.length;
+  const stage42 = Math.round((postConventional / total) * 100);
+  const stage3 = Math.round((conventional / total) * 100);
+  const stage12 = Math.round((preConventional / total) * 100);
+
+  let dominantStage, stageDesc;
+  if (stage42 >= 50) {
+    dominantStage = '后习俗水平（Post-conventional）';
+    stageDesc = '你的道德推理倾向于超越具体的法律和社会规范，诉诸更普遍的伦理原则——如正义、人权和个体尊严。你能够理解法律和规则的意图，而不是仅仅因为它们是法律而遵守。在面对冲突时，你倾向于从"什么是对的"而不仅仅是"什么是规则的"来思考。这是 Kohlberg 理论中最成熟的道德推理阶段。<br><br><strong>在生活中的表现：</strong>你可能会质疑那些"一直都是这样"的做法，即使它们被大多数人接受。你愿意为一个更公正的结果而改变规则，而不仅仅是遵循规则。这种能力让你在道德困境中能够做出更有原则的选择——但也可能让你在某些环境中被视为"不合群"或"过于理想主义"。';
+  } else if (stage12 >= 40) {
+    dominantStage = '习俗水平（Conventional）为主，伴随前习俗元素';
+    stageDesc = '你的道德推理结合了对规则和社会期望的重视，以及对个人后果的实际考量。你能理解并遵循社会规范，但在某些情境下也会从"这对我会有什么影响"的角度出发。这是大多数成年人所处的阶段——既不是简单地服从规则，也不是完全独立于社会期望。<br><br><strong>在生活中的表现：</strong>你重视公平和秩序，希望做"一个好人"。你的道德选择通常能够平衡个人利益和社会期待。成长的方向是：在做出道德决定时，更多地依靠内在的伦理原则，而不仅仅是外部期待。';
+  } else {
+    dominantStage = '习俗水平（Conventional）';
+    stageDesc = '你的道德推理主要基于社会规范、法律和人际关系中的期待。你重视做一个"好人"——遵守规则、维护关系、获得他人的认可。这是 Kohlberg 理论中成年人最常见的阶段，意味着你有成熟的道德判断力，能够在社会中有效地运用它。<br><br><strong>在生活中的表现：</strong>你重视承诺和信任，倾向于遵守你认同的规则。你的道德选择通常会考虑到"别人会怎么看我"以及"这对关系有什么影响"。成长的方向是：在尊重社会规范的同时，开始发展更独立的伦理判断——问自己"即使没有人会知道，什么是对的？"';
+  }
+
+  return `<strong>${dominantStage}</strong><br><br>${stageDesc}<br><br><em>Kohlberg 的道德发展理论认为，人的道德推理能力按照阶段发展——从避免惩罚到遵守规则，再到内化普遍原则。大多数成年人处于习俗水平。重要的是，更高的阶段不代表"更好的人"，而是代表了更复杂和更自主的道德思考方式。</em>`;
+}
+
+// ═══════════════════════════════════════
+// PRO ANALYSIS: Moral Growth Path
+// ═══════════════════════════════════════
+function generateMoralGrowth() {
+  const archetype = getArchetype(calculateScores());
+  const discoveries = analyzePatterns();
+
+  let html = '<strong>阶段一：认识你的道德框架</strong><br>';
+  html += `你已经了解了自己的道德人格原型——${archetype.name}。这不是一个标签，而是一个起点。你的道德直觉不是随机的——它有其内在的一致性和价值取向。第一个阶段的任务是：<strong>观察但不评判</strong>。在接下来的一周里，注意自己在面对日常道德选择时的第一反应——比如要不要说出一个不方便的真相，如何在朋友们的争论中选择立场。只是观察。<br><br>`;
+
+  html += '<strong>阶段二：理解他人的道德视角</strong><br>';
+  html += '真正有智慧的不是坚持自己的道德框架，而是能够理解与你完全不同的人——他们的视角从何而来？他们为什么会真诚地相信你所不相信的东西？这个阶段的任务是：<strong>进行一次"道德倾听"</strong>。找一个与你在某个伦理问题上立场不同的人，不要试图说服TA，只是倾听并尝试理解TA的道德语言。这比大多数辩论都更有价值。<br><br>';
+
+  html += '<strong>阶段三：在张力中做出更自觉的选择</strong><br>';
+  if (discoveries.length > 0) {
+    html += `我们检测到了你的${discoveries.length}个有趣模式——这些模式揭示了你道德思维中的张力和一致性。第三个阶段的任务是：<strong>有意识地面对这些张力</strong>。`;
+    html += '下一次当你在两个"对的"选项之间挣扎时，暂停一下。问问自己：我是在用哪个道德基础做判断？如果换一个基础（比如从"公平"切换到"关爱"），我的选择会改变吗？这种元认知式的自问，是道德成长的核心。';
+  } else {
+    html += '你的道德选择呈现出一种内在的和谐——但成长往往发生在张力之中。第三个阶段的任务是：<strong>主动寻找挑战你道德直觉的视角</strong>。阅读一些与你的道德立场不同的观点，不是为了改变自己，而是为了更深刻地理解自己为何坚持现在的信念。';
+  }
+
+  html += '<br><br><em>道德成长不是变得"更道德"——而是变得更清醒地面对道德本身。正如哲学家 Iris Murdoch 所说："成为一个更好的人，首先是学会更好地看。"</em>';
+
+  return html;
 }
 
 // ============================================
