@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>决策风格分析</title>
+<style>
+  :root {
+    --bg: #060b12; --card: #0c1520; --card-hover: #111d2c;
+    --cyan: #00e5ff; --amber: #f5a623; --white: #f0f4f8;
+    --dim: rgba(240,244,248,0.5); --border: rgba(240,244,248,0.06);
+    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --mono: 'Cascadia Code', 'Fira Code', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--white); font-family: var(--font);
+    min-height: 100vh;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: linear-gradient(90deg, var(--border) 1px, transparent 1px),
+                linear-gradient(0deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at 50% 30%, black 20%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  .app { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 24px; }
+  .screen { display: none; flex-direction: column; align-items: center; }
+  .screen.active { display: flex; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Welcome */
+  .welcome-icon {
+    width: 72px; height: 72px; border-radius: 50%; border: 1px solid var(--cyan);
+    display: flex; align-items: center; justify-content: center; font-size: 32px;
+    margin: 40px 0 28px;
+  }
+  .title-block { text-align: center; margin-bottom: 16px; }
+  .label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 4px;
+    color: var(--amber); text-transform: uppercase; margin-bottom: 8px;
+  }
+  .title-block h1 { font-size: 38px; font-weight: 200; letter-spacing: 2px; line-height: 1.3; }
+  .title-block h1 span { color: var(--cyan); font-weight: 400; }
+  .subtitle { color: var(--dim); font-size: 15px; font-weight: 300; text-align: center; max-width: 440px; line-height: 1.6; margin-bottom: 20px; }
+  .info-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid rgba(240,244,248,0.1); border-radius: 20px;
+    padding: 6px 18px; font-family: var(--mono); font-size: 10px; color: var(--dim);
+    margin-bottom: 32px;
+  }
+  .info-badge span { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); }
+
+  .btn {
+    font-family: var(--font); padding: 14px 40px; border-radius: 8px; border: none;
+    font-size: 15px; cursor: pointer; transition: all 0.3s; letter-spacing: 1px;
+  }
+  .btn.primary { background: var(--cyan); color: #060b12; font-weight: 600; }
+  .btn.primary:hover { box-shadow: 0 0 24px rgba(0,229,255,0.3); transform: translateY(-1px); }
+  .btn.back {
+    background: transparent; border: 1px solid rgba(240,244,248,0.15); color: var(--dim);
+    font-size: 13px; padding: 8px 20px; margin-bottom: 16px; align-self: flex-start;
+  }
+  .btn.back:hover { border-color: var(--cyan); color: var(--white); }
+  .btn.secondary { background: transparent; border: 1px solid rgba(240,244,248,0.2); color: var(--white); }
+  .btn.secondary:hover { border-color: var(--cyan); }
+
+  /* Quiz */
+  #quiz { align-items: stretch; }
+  .progress-wrap { margin-bottom: 24px; }
+  .progress-info { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; color: var(--dim); margin-bottom: 8px; }
+  .progress-track { height: 2px; background: rgba(240,244,248,0.06); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--cyan); border-radius: 2px; transition: width 0.3s; width: 0%; }
+
+  .q-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 32px; transition: all 0.3s;
+  }
+  .q-scenario {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 3px;
+    color: var(--amber); margin-bottom: 16px;
+  }
+  .q-text { font-size: 16px; font-weight: 300; line-height: 1.7; margin-bottom: 24px; }
+
+  .choice-btn {
+    display: block; width: 100%;
+    background: rgba(240,244,248,0.03); border: 1px solid rgba(240,244,248,0.08);
+    border-radius: 8px; padding: 16px 20px; color: var(--white); font-size: 14px;
+    cursor: pointer; transition: all 0.25s; text-align: left; font-family: var(--font);
+    line-height: 1.5; margin-bottom: 10px;
+  }
+  .choice-btn:hover { background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.2); }
+  .choice-btn.selected { background: rgba(0,229,255,0.1); border-color: var(--cyan); }
+
+  .q-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+  .nav-hint { font-family: var(--mono); font-size: 10px; color: var(--dim); }
+
+  /* Results */
+  #results { align-items: stretch; }
+  .results-header { text-align: center; margin-bottom: 32px; }
+  .results-header .label { margin-bottom: 4px; }
+  .results-header h2 { font-size: 28px; font-weight: 200; letter-spacing: 2px; }
+  .results-header h2 span { color: var(--cyan); font-weight: 400; }
+
+  .primary-card {
+    background: var(--card); border: 1px solid rgba(0,229,255,0.2); border-radius: 12px;
+    padding: 36px; text-align: center; margin-bottom: 24px;
+  }
+  .primary-icon { font-size: 48px; margin-bottom: 12px; }
+  .primary-name { font-size: 22px; font-weight: 400; color: var(--cyan); letter-spacing: 2px; }
+  .primary-subtitle { font-size: 13px; color: var(--dim); margin-top: 6px; font-weight: 300; }
+  .primary-score { font-family: var(--mono); font-size: 42px; color: var(--cyan); font-weight: 200; margin-top: 12px; }
+  .primary-desc { font-size: 14px; color: var(--dim); line-height: 1.7; margin-top: 16px; font-weight: 300; }
+
+  .section-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: var(--amber);
+    margin: 28px 0 12px; text-transform: uppercase;
+  }
+
+  .style-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 22px; margin-bottom: 10px;
+  }
+  .style-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .style-name { font-size: 15px; font-weight: 400; display: flex; align-items: center; gap: 8px; }
+  .style-score { font-family: var(--mono); font-size: 18px; color: var(--cyan); font-weight: 300; }
+  .style-bar-wrap { height: 4px; background: rgba(240,244,248,0.06); border-radius: 2px; overflow: hidden; margin-bottom: 4px; }
+  .style-bar-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
+  .style-desc { font-size: 12px; color: var(--dim); line-height: 1.6; font-weight: 300; }
+
+  .combo-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 28px; margin-bottom: 20px; border-left: 2px solid var(--amber);
+    font-size: 14px; line-height: 1.8; font-weight: 300; color: var(--dim);
+  }
+
+  .insight-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .insight-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 22px; font-size: 13px; line-height: 1.7; font-weight: 300; color: var(--dim);
+  }
+  .insight-card h4 { font-size: 15px; font-weight: 400; color: var(--white); margin-bottom: 10px; }
+
+  .growth-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 28px; margin-bottom: 24px; border-left: 2px solid var(--cyan);
+    font-size: 13px; line-height: 1.8; font-weight: 300; color: var(--dim);
+  }
+  .growth-card h4 { font-size: 16px; font-weight: 400; color: var(--white); margin-bottom: 12px; }
+
+  .cite-card {
+    background: transparent; border: 1px solid rgba(240,244,248,0.04); border-radius: 8px;
+    padding: 18px 22px; margin-bottom: 24px; font-size: 11px; color: var(--dim); line-height: 1.7;
+    font-family: var(--mono);
+  }
+
+  .action-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+  .footer-note { text-align: center; color: var(--dim); font-size: 11px; font-weight: 300; opacity: 0.5; margin-top: 20px; }
+
+  .toast {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+    background: var(--card); border: 1px solid var(--cyan); color: var(--white);
+    padding: 12px 28px; border-radius: 8px; font-size: 13px; z-index: 99;
+    animation: fadeIn 0.3s;
+  }
+
+  @media (max-width: 600px) {
+    .insight-row { grid-template-columns: 1fr; }
+    .primary-score { font-size: 32px; }
+    .q-card { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- WELCOME -->
+  <div class="screen active" id="welcome">
+    <div class="welcome-icon">🎯</div>
+    <div class="title-block">
+      <div class="label">Decision Style · GDMS Framework</div>
+      <h1>决策风格<br><span>分析</span></h1>
+    </div>
+    <p class="subtitle">基于 Scott & Bruce (1995) 通用决策风格模型，从理性、直觉、依赖、回避、冲动五个维度剖析你的决策DNA。没有"最好"的风格——只有最了解自己的决策者。</p>
+    <div class="info-badge"><span></span> 25 题 · 约 5 分钟 · Scott & Bruce GDMS 模型</div>
+    <button class="btn primary" onclick="startTest()">开始分析 →</button>
+    <div class="footer-note" style="margin-top:28px;">⚠️ 本测试为自我认知工具，不构成心理诊断</div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="screen" id="quiz">
+    <div class="progress-wrap">
+      <div class="progress-info"><span id="progNum">1 / 25</span><span id="progPct">0%</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progBar"></div></div>
+    </div>
+    <button class="btn back" id="btnBack" onclick="goBack()" style="visibility:hidden;">← 上一题</button>
+    <div class="q-card" id="qCard">
+      <div class="q-scenario" id="qScenario"></div>
+      <div class="q-text" id="qText"></div>
+      <div id="qOpts"></div>
+    </div>
+    <div class="q-nav"><div class="nav-hint"></div></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="screen" id="results">
+    <div class="results-header">
+      <div class="label">Decision Style Profile</div>
+      <h2>你的决策<span>风格画像</span></h2>
+    </div>
+
+    <div class="primary-card" id="primaryCard"></div>
+
+    <div class="section-label">五维图谱</div>
+    <div id="styleList"></div>
+
+    <div class="section-label">风格组合</div>
+    <div class="combo-card" id="comboCard"></div>
+
+    <div class="section-label">优势与盲点</div>
+    <div class="insight-row">
+      <div class="insight-card"><h4>✅ 核心优势</h4><div id="strengthText"></div></div>
+      <div class="insight-card"><h4>⚠️ 潜在盲点</h4><div id="blindspotText"></div></div>
+    </div>
+
+    <div class="section-label">情境建议</div>
+    <div class="insight-card" style="grid-column:1/-1;" id="situationalText"></div>
+
+    <div class="section-label">职业匹配</div>
+    <div class="insight-card" style="grid-column:1/-1;" id="careerText"></div>
+
+    <div class="growth-card"><h4>🌱 提升策略</h4><div id="growthText"></div></div>
+
+    <div class="cite-card" id="citeText"></div>
+
+    <div class="action-row">
+      <button class="btn primary" onclick="restartTest()">重新分析</button>
+      <button class="btn secondary" onclick="shareResults()">📤 分享结果</button>
+    </div>
+    <div style="text-align:center;margin:16px 0 32px;">
+      <a href="../index.html" style="color:var(--dim);font-family:var(--mono);font-size:11px;text-decoration:none;border:1px solid rgba(240,244,248,0.1);padding:6px 16px;border-radius:4px;transition:all 0.2s;">🏠 返回测试广场</a>
+    </div>
+    <div class="footer-note">⚠️ 决策风格无好坏之分，每种风格都有其优势和局限。关键是了解自己，在合适的情境中发挥优势。</div>
+  </div>
+
+</div>
+
+<script>
+// ── Style Info ──
+const STYLE_INFO = {
+  rational: { name:'理性型', icon:'📊', color:'var(--cyan)', order:1,
+    highDesc:'你倾向于在决策前收集大量信息，系统性地分析利弊，依靠逻辑和事实而非直觉。在重要决策中，你会花时间权衡每个选项的可能后果。你的决策过程通常有条理、有依据，结论经得起推敲。',
+    lowDesc:'你不太依赖系统性分析来做决策。这让你决策速度更快，但在复杂的重大决策中可能需要更多方法来避免遗漏重要信息。' },
+  intuitive: { name:'直觉型', icon:'💫', color:'#a78bfa', order:2,
+    highDesc:'你信任自己的"第六感"。当做决定时，你常常"感觉对了"就知道该选哪个方向，不一定需要把每一条理由都列出来。这种直觉来自你过去的经验和潜意识的信息处理，往往快速而准确——尤其在你有丰富经验的领域。',
+    lowDesc:'你不太依赖直觉来做决策，可能更倾向于有明确的理由和数据支撑。在某些需要快速反应的场合，试着倾听自己的"gut feeling"，它可能比你以为的更有智慧。' },
+  dependent: { name:'依赖型', icon:'🤝', color:'#7ec8e3', order:3,
+    highDesc:'你在做重要决定时，倾向于寻求他人的建议和指导。你重视他人的意见，相信"三个臭皮匠顶个诸葛亮"。这种风格能帮你避免独自决策的盲区，但也意味着你的决定可能过度受他人影响。',
+    lowDesc:'你倾向于独立做出决策，不太依赖他人的意见。这种自主性让你在需要快速决断或他人无法提供有用建议时很有优势，但也要留意不要错过有价值的他人视角。' },
+  avoidant: { name:'回避型', icon:'🐢', color:'var(--amber)', order:4,
+    highDesc:'你倾向于推迟或回避做决定，尤其是那些可能带来压力或后果重大的决策。你可能希望问题"自动消失"或由他人代劳。这种风格反映了对决策风险的敏感——你比其他人更清楚地看到了每个选择背后可能出错的地方。',
+    lowDesc:'你通常能够直面决策，不回避艰难的选择。这种主动性让你在需要果断行动时不会拖延，但也别因为太果断而忽略了适当的谨慎。' },
+  spontaneous: { name:'冲动型', icon:'⚡', color:'#f97316', order:5,
+    highDesc:'你倾向于快速做出决定，不喜欢在权衡利弊上花费太多时间。你相信"行动胜于空想"，渴望尽快了结决策、尽快进入执行阶段。这种风格在需要快速反应和敏捷行动的环境中如鱼得水。',
+    lowDesc:'你不倾向于快速做决定，通常会给决策留出足够的思考时间。这种审慎的态度让你避免了许多冲动带来的错误，但在某些需要快速行动的场合，可以练习加速你的决策过程。' }
+};
+
+// ── Question Bank (25 scenarios) ──
+const questions = [
+  // Rational (理性型) - 5 items
+  { id:1, text:'你需要在两天内做出一个重要的工作决策。你会首先做什么？', opts:[
+    { text:'列出所有可能的选项，收集相关数据，制作一个对比表格来分析每个选项的利弊', points:{rational:5} },
+    { text:'相信自己的第一感觉——通常第一个想到的方向就是对的', points:{intuitive:5} },
+    { text:'请教几位有经验的同事和朋友，听听他们的建议再做决定', points:{dependent:5} }
+  ]},
+  { id:2, text:'你要买一台新电脑，预算有限。你怎么做选择？', opts:[
+    { text:'列一张表对比各型号的配置、价格、用户评价，算出性价比最高的选项', points:{rational:5} },
+    { text:'逛一圈，看哪台"感觉对了"就买哪台', points:{intuitive:5} },
+    { text:'直接问懂电脑的朋友推荐哪款，跟着买就行', points:{dependent:5} }
+  ]},
+  { id:3, text:'公司要在两个战略方向中选一个。两个方向都各有利弊，数据也不足以明确支持某一个。你会怎么做？', opts:[
+    { text:'继续收集更多数据，直到有足够信息支撑判断——不确定性可以通过更深入的研究来降低', points:{rational:5} },
+    { text:'相信自己的商业直觉——如果数据都差不多，那就选"感觉更有前景"的那一个', points:{intuitive:5} },
+    { text:'先拖着，等市场趋势更明朗了再说', points:{avoidant:5} }
+  ]},
+  { id:4, text:'在决定是否跳槽到一个充满不确定性的新行业时，你的思路更接近以下哪种？', opts:[
+    { text:'我会详细研究新行业的市场规模、增长趋势、风险因素，做一份完整的转型分析', points:{rational:5} },
+    { text:'我会立刻行动——机会不等人，先进去再说', points:{spontaneous:5} },
+    { text:'我会找已经在那个行业的人聊聊，看他们怎么说', points:{dependent:5} }
+  ]},
+  { id:5, text:'你面临一个复杂问题时，通常的思考方式是？', opts:[
+    { text:'拆解问题 → 收集信息 → 列出方案 → 对比优劣 → 做出选择。有条不紊。', points:{rational:5} },
+    { text:'闭上眼睛，在脑海中感受各种选择的"画面"，哪个感觉更对就选哪个', points:{intuitive:5} },
+    { text:'迅速判断，选一个差不多的就开始行动，在实践中调整', points:{spontaneous:5} }
+  ]},
+
+  // Intuitive (直觉型) - 5 items
+  { id:6, text:'你面试了一个候选人，各方面条件都不错，但你就是"感觉不太对"。你会？', opts:[
+    { text:'相信直觉——如果感觉不对，那一定有原因，即使现在说不清楚', points:{intuitive:5} },
+    { text:'忽略直觉，依据简历和面试中的客观数据做决定', points:{rational:5} },
+    { text:'让同事也面试一下，看看TA们的感觉——用别人的判断来校准自己的', points:{dependent:5} }
+  ]},
+  { id:7, text:'在餐厅面对一份复杂的菜单时，你通常怎么选？', opts:[
+    { text:'看一遍，哪个菜让我"心动"就点哪个——不用纠结', points:{intuitive:5} },
+    { text:'逐一比较每道菜的食材、口味描述、价格，选出最优组合', points:{rational:5} },
+    { text:'问服务员推荐什么，或者看隔壁桌点了什么', points:{dependent:5} }
+  ]},
+  { id:8, text:'你参加一个创意头脑风暴，被要求提出解决方案。你更倾向于？', opts:[
+    { text:'跟随灵感的流动，想到什么就说什么——即使逻辑还不清晰', points:{intuitive:5} },
+    { text:'先理解清楚问题的边界和限制条件，再系统地提出可行性方案', points:{rational:5} },
+    { text:'快速抛出第一个想到的方案，尽快定下来进入执行', points:{spontaneous:5} }
+  ]},
+  { id:9, text:'在玩棋牌或策略游戏时，你更倾向于？', opts:[
+    { text:'凭感觉走——根据牌感和对局面的"嗅觉"出牌', points:{intuitive:5} },
+    { text:'计算概率、推演可能性——把每一步的期望收益算清楚', points:{rational:5} },
+    { text:'跟着对手的节奏走，或者模仿高手的打法', points:{dependent:5} }
+  ]},
+  { id:10, text:'你在一个陌生城市迷路了，手机没电了。你怎么找到目的地？', opts:[
+    { text:'凭方向感和直觉走——我的方向感通常挺准的', points:{intuitive:5} },
+    { text:'找人问路——本地人最清楚', points:{dependent:5} },
+    { text:'先停下来仔细回忆来时的路线，在脑中构建地图', points:{rational:5} }
+  ]},
+
+  // Dependent (依赖型) - 5 items
+  { id:11, text:'你要做一个可能影响整个团队的决定。你会怎么做？', opts:[
+    { text:'召集大家开个会，充分听取每个人的意见后再做最终决定', points:{dependent:5} },
+    { text:'自己深度分析后拍板——我作为负责人就该承担决策的责任', points:{rational:5} },
+    { text:'让团队投票决定——这是最公平的方式', points:{dependent:3,avoidant:2} }
+  ]},
+  { id:12, text:'你面临两个工作offer的选择。除了自己思考外，你还会怎么做？', opts:[
+    { text:'和家人、朋友、导师挨个聊一遍——他们的视角能让我看到自己没考虑到的点', points:{dependent:5} },
+    { text:'做一个详细的对比表格，让数据帮我决定', points:{rational:5} },
+    { text:'跟随自己第一反应——哪个offer让我更兴奋就去哪个', points:{intuitive:5} }
+  ]},
+  { id:13, text:'你网购时看到一件想买但犹豫的东西。你会？', opts:[
+    { text:'看评论——尤其是追评和差评，综合大家的意见再决定', points:{dependent:5} },
+    { text:'想看就买，不行再退——时间比纠结更值钱', points:{spontaneous:5} },
+    { text:'先加购物车，过几天再看——如果那会儿还想买再说', points:{avoidant:5} }
+  ]},
+  { id:14, text:'当你独自一人需要做决定，身边没有可以商量的人时，你通常感觉？', opts:[
+    { text:'不太自在——我习惯了在决定前听听别人的看法', points:{dependent:5} },
+    { text:'挺好的——自己做主更高效，不用协调太多意见', points:{rational:3,intuitive:2} },
+    { text:'不太想面对——可能会拖着等有人可以商量', points:{avoidant:5} }
+  ]},
+  { id:15, text:'关于人生中的重要决定（如选择专业、是否考研、定居城市），你的做法更接近？', opts:[
+    { text:'广泛咨询家人、老师、前辈、朋友的意见后再综合判断', points:{dependent:5} },
+    { text:'这是我自己的人生，我会独自思考清楚后自己做主', points:{rational:3,intuitive:2} },
+    { text:'随遇而安——有时候不需要主动做决定，生活会给你答案', points:{avoidant:5} }
+  ]},
+
+  // Avoidant (回避型) - 5 items
+  { id:16, text:'你收到了一个需要你做决定但后果可能不太好的消息。你的第一反应是？', opts:[
+    { text:'先放一边——说不定情况会自己变化，或者会有新的信息出现', points:{avoidant:5} },
+    { text:'立刻面对——越拖只会越糟，不如马上处理', points:{spontaneous:5} },
+    { text:'冷静分析最坏情况，制定应对方案后再决定', points:{rational:5} }
+  ]},
+  { id:17, text:'你和伴侣因为一件事意见不合，需要做一个共同决定。通常你会？', opts:[
+    { text:'我倾向于让对方来做决定——避免正面冲突', points:{avoidant:5} },
+    { text:'我们会充分讨论，把所有顾虑都说清楚，直到达成共识', points:{rational:3,dependent:2} },
+    { text:'我通常有自己的明确立场，会试图说服对方', points:{intuitive:5} }
+  ]},
+  { id:18, text:'项目截止日期快到了，但你还没决定最终方案。你会？', opts:[
+    { text:'继续完善方案——总觉得还不够好，担心选了错的那个', points:{avoidant:5} },
+    { text:'快速拍板——deadline是最好的决策工具', points:{spontaneous:5} },
+    { text:'把已有的两个备选方案拿出来，列出各自的优势和风险，果断选一个', points:{rational:5} }
+  ]},
+  { id:19, text:'你需要在两个都看起来很不错的选项中选一个。这种感觉对你来说？', opts:[
+    { text:'很煎熬——总觉得选了一个就会失去另一个的好处，不如不选', points:{avoidant:5} },
+    { text:'还行——选哪个都不会太差，凭直觉就可以了', points:{intuitive:5} },
+    { text:'把它当成一个分析问题——找到关键的区分因素，答案就出来了', points:{rational:5} }
+  ]},
+  { id:20, text:'回顾过去，你是否曾因为推迟决定而错过了一些机会？', opts:[
+    { text:'是的，不止一次——我常常在"再想想"中就错过了窗口期', points:{avoidant:5} },
+    { text:'偶尔——但大多数时候我能及时做出决定', points:{intuitive:3,rational:2} },
+    { text:'不太会——我通常想清楚了就立刻行动', points:{spontaneous:5} }
+  ]},
+
+  // Spontaneous (冲动型) - 5 items
+  { id:21, text:'周五下午同事突然提议周末一起去旅行。你会？', opts:[
+    { text:'当场答应！说走就走——计划可以在路上再做', points:{spontaneous:5} },
+    { text:'先看看天气、交通、费用——如果可以接受就去', points:{rational:5} },
+    { text:'不太想去——太突然了，没有心理准备', points:{avoidant:5} }
+  ]},
+  { id:22, text:'你在网上看到限时折扣，一件你挺喜欢但没计划的商品。你会？', opts:[
+    { text:'立刻下单——打折的时候不买，原价的时候后悔', points:{spontaneous:5} },
+    { text:'想一想自己是不是真的需要——冲动消费的坑我踩过', points:{rational:5} },
+    { text:'问问朋友觉得值不值——让他人的判断来帮我确认', points:{dependent:5} }
+  ]},
+  { id:23, text:'做决定时，以下哪种情况最符合你？', opts:[
+    { text:'有些决定我回过头看觉得"当时应该多想一想的"', points:{spontaneous:5} },
+    { text:'有些决定我回头看觉得"当时想太多了，其实没那么复杂"', points:{rational:3,avoidant:2} },
+    { text:'我觉得自己大多数决定的节奏还不错', points:{intuitive:5} }
+  ]},
+  { id:24, text:'在会议中讨论一个问题时，当大家还在犹豫不决时，你通常？', opts:[
+    { text:'我会第一个给出明确方向——与其讨论来讨论去，不如先选一个干起来', points:{spontaneous:5} },
+    { text:'我会建议再收集一些信息——没有足够数据就做决定是赌博', points:{rational:5} },
+    { text:'我会看领导或多数人的倾向，然后表达支持', points:{dependent:5} }
+  ]},
+  { id:25, text:'你理想中的决策过程是？', opts:[
+    { text:'快速、果断、不拖泥带水。想太多是效率的敌人。', points:{spontaneous:5} },
+    { text:'从容、深思、有理有据。关键决定值得花时间。', points:{rational:5} },
+    { text:'有人可以一起商量，共同承担决策的责任和风险。', points:{dependent:5} }
+  ]}
+];
+
+// ── State ──
+let currentQ = 0;
+let answers = {}; // {questionId: optionIndex}
+
+// ── Navigation ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function startTest() {
+  currentQ = 0; answers = {};
+  showScreen('quiz'); renderQuestion();
+}
+
+function goBack() {
+  if (currentQ > 0) { currentQ--; renderQuestion(); }
+}
+
+function renderQuestion() {
+  const q = questions[currentQ];
+  document.getElementById('btnBack').style.visibility = currentQ === 0 ? 'hidden' : 'visible';
+  document.getElementById('progNum').textContent = `${currentQ+1} / ${questions.length}`;
+  document.getElementById('progPct').textContent = `${Math.round((currentQ/questions.length)*100)}%`;
+  document.getElementById('progBar').style.width = `${((currentQ)/questions.length)*100}%`;
+  document.getElementById('qScenario').textContent = `SCENARIO ${currentQ+1}`;
+  document.getElementById('qText').textContent = q.text;
+
+  const optsEl = document.getElementById('qOpts');
+  const card = document.getElementById('qCard');
+  optsEl.innerHTML = '';
+
+  card.style.opacity = '0'; card.style.transform = 'translateY(8px)';
+
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = opt.text;
+    if (answers[q.id] === i) btn.classList.add('selected');
+    btn.onclick = () => {
+      answers[q.id] = i;
+      document.querySelectorAll('#qOpts .choice-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      setTimeout(() => advanceIfReady(), 200);
+    };
+    optsEl.appendChild(btn);
+  });
+
+  requestAnimationFrame(() => {
+    card.style.transition = 'all 0.3s ease';
+    card.style.opacity = '1'; card.style.transform = 'translateY(0)';
+  });
+}
+
+function advanceIfReady() {
+  if (answers[questions[currentQ].id] != null) {
+    if (currentQ < questions.length - 1) { currentQ++; renderQuestion(); }
+    else { showResults(); }
+  }
+}
+
+// ── Scoring ──
+function calcScores() {
+  const rawScores = { rational:0, intuitive:0, dependent:0, avoidant:0, spontaneous:0 };
+  const maxPossible = { rational:0, intuitive:0, dependent:0, avoidant:0, spontaneous:0 };
+
+  questions.forEach(q => {
+    const choice = q.opts[answers[q.id]];
+    if (!choice || !choice.points) return;
+    // Track max possible for each style (if user always chose the option favoring that style)
+    for (const [style, pts] of Object.entries(choice.points)) {
+      rawScores[style] += pts;
+    }
+    // Max possible: sum of the max points any option gives to each style
+    q.opts.forEach(opt => {
+      for (const [style, pts] of Object.entries(opt.points)) {
+        if (!maxPossible[style]) maxPossible[style] = 0;
+        maxPossible[style] = Math.max(maxPossible[style], pts); // not quite right — we want how many times each style *could* have been chosen
+      }
+    });
+  });
+
+  // Better approach: normalize each style against what's possible (5 questions × 5 points = 25 max per style)
+  const normalized = {};
+  for (const style of Object.keys(rawScores)) {
+    normalized[style] = Math.round((rawScores[style] / 25) * 100);
+  }
+
+  // Sort styles
+  const sorted = Object.entries(normalized).sort((a,b) => b[1] - a[1]);
+  normalized.primary = sorted[0][0];
+  normalized.secondary = sorted[1][0];
+  normalized.sorted = sorted;
+
+  return normalized;
+}
+
+// ── Results ──
+function showResults() {
+  showScreen('results');
+  const scores = calcScores();
+  const primary = STYLE_INFO[scores.primary];
+  const secondary = STYLE_INFO[scores.secondary];
+
+  // Primary card
+  document.getElementById('primaryCard').innerHTML = `
+    <div class="primary-icon">${primary.icon}</div>
+    <div class="primary-name">${primary.name}</div>
+    <div class="primary-subtitle">你的主导决策风格</div>
+    <div class="primary-score">${scores[scores.primary]}</div>
+    <div class="primary-desc">${primary.highDesc}</div>
+  `;
+
+  // Style bars
+  document.getElementById('styleList').innerHTML = renderStyleBars(scores);
+
+  // Combination
+  document.getElementById('comboCard').innerHTML = generateCombo(scores);
+
+  // Strengths & blindspots
+  document.getElementById('strengthText').innerHTML = generateStrengths(scores);
+  document.getElementById('blindspotText').innerHTML = generateBlindspots(scores);
+
+  // Situational
+  document.getElementById('situationalText').innerHTML = '<h4>🎯 不同情境下的最佳决策策略</h4>' + generateSituational(scores);
+
+  // Career
+  document.getElementById('careerText').innerHTML = '<h4>💼 风格与职业适配</h4>' + generateCareer(scores);
+
+  // Growth
+  document.getElementById('growthText').innerHTML = generateGrowth(scores);
+
+  // Citations
+  document.getElementById('citeText').innerHTML = `
+    <strong>参考文献</strong><br>
+    Scott, S. G., & Bruce, R. A. (1995). Decision-making style: The development and assessment of a new measure. <em>Educational and Psychological Measurement</em>, 55(5), 818–831.<br>
+    Thunholm, P. (2004). Decision-making style: Habit, style or both? <em>Personality and Individual Differences</em>, 36(4), 931–944.<br>
+    Curşeu, P. L., & Schruijer, S. G. L. (2012). Decision styles and rationality: An analysis of the predictive validity of the GDMS. <em>Journal of Behavioral Decision Making</em>, 25(1), 47–56.
+  `;
+
+  // Animate bars
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.style-bar-fill').forEach(bar => {
+      const w = bar.style.width;
+      bar.style.width = '0%';
+      requestAnimationFrame(() => { bar.style.width = w; });
+    });
+  });
+}
+
+function renderStyleBars(scores) {
+  let html = '';
+  scores.sorted.forEach(([style, val]) => {
+    const info = STYLE_INFO[style];
+    const isPrimary = style === scores.primary;
+    const barColor = isPrimary ? 'var(--cyan)' : style === scores.secondary ? '#a78bfa' : 'rgba(240,244,248,0.2)';
+    const desc = val >= 60 ? info.highDesc : val <= 35 ? info.lowDesc :
+      '你对这种风格的运用处于中等水平——在不同情境中会灵活使用，但还没有形成强烈的偏好。';
+
+    html += `<div class="style-card" style="${isPrimary ? 'border-color:rgba(0,229,255,0.2);' : ''}">
+      <div class="style-header">
+        <div class="style-name"><span>${info.icon}</span>${info.name}${isPrimary ? ' <span style="font-size:10px;color:var(--cyan);">← 主导</span>' : ''}</div>
+        <div class="style-score" style="color:${barColor}">${val}</div>
+      </div>
+      <div class="style-bar-wrap"><div class="style-bar-fill" style="width:${val}%;background:${barColor}"></div></div>
+      <div class="style-desc">${desc}</div>
+    </div>`;
+  });
+  return html;
+}
+
+function generateCombo(scores) {
+  const p = scores.primary, s = scores.secondary;
+  const combos = {
+    'rational-intuitive': { name:'系统直觉家', desc:'你拥有非常平衡的决策能力——既能够深入分析数据和逻辑，又信任自己的直觉和感受。在充分收集信息后，你会用直觉来做最终的"临门一脚"。这种组合让你既有分析的深度，又有决策的速度。在复杂多变的环境中，这是一种非常强大的风格组合。', watch:'留意不要让两种风格互相"拉扯"——有时候数据说A，直觉说B，你需要练习判断在什么情况下该听谁的。' },
+    'rational-dependent': { name:'审慎协作者', desc:'你重视分析和他人意见的双重输入。你不会仅凭自己的分析就做决定——你希望验证自己的想法，也希望纳入更多的视角。这种风格让你做出的决策既有严谨的分析基础，又有广泛的支持。在团队协作和利益相关者众多的决策中，这是一个很好的位置。', watch:'注意不要让"收集他人意见"变成决策的瓶颈——有时候你已经有了足够的信息，只需要相信自己的判断。' },
+    'rational-avoidant': { name:'深思犹豫者', desc:'你倾向于在决策前进行充分的思考和分析——有时充分到了"过度"的程度。你可能担心没有足够的信息会导致错误，所以反复权衡、延迟拍板。你的分析能力是优势，但拖延可能是它的阴影面。认识到"足够好"的决策往往优于"完美但迟到的"决策。', watch:'给你的分析设定明确的时间限制。在截止日期前，即使信息不完全，也要敢于做决定。' },
+    'rational-spontaneous': { name:'闪电分析师', desc:'你能在需要的时候快速分析，也能在需要的时候立即行动。你拥有分析能力和行动力的双重优势——在紧急决策中能迅速调用理性，在日常决策中不拖泥带水。这种灵活性让你能根据情境的不同调整节奏。', watch:'确保在重大决策中给理性分析留足时间——不要因为习惯了快速行动而跳过了必要的深思。' },
+    'intuitive-dependent': { name:'共识直觉者', desc:'你用自己的直觉来形成初步判断，然后通过他人的意见来验证和校准。这种风格让你既能保持对内心声音的信任，又不会陷入主观偏差的陷阱——他人的视角是你直觉的"校准器"。在需要平衡个人洞察和团队共识的决策中，你游刃有余。', watch:'当你的直觉和周围人的意见冲突时，不要轻易放弃自己的感受——有时候"众人皆醉我独醒"才是对的。' },
+    'intuitive-avoidant': { name:'感性观望者', desc:'你对决策有着敏锐的直觉——你能"感觉到"哪个方向是对的。但你可能不太愿意立刻行动，常常等待"更多信号"来确认你的直觉。这种组合有时让你错过了直觉最初指向的机会，但有时也帮你避开了冲动的陷阱。', watch:'练习在"感觉对了"的时候缩小犹豫的时间窗口。让你的直觉不仅是接收器，也是行动的触发器。' },
+    'intuitive-spontaneous': { name:'闪电直觉者', desc:'你凭直觉做出快速决策——"感觉对了"就立刻行动。你相信自己的潜意识处理能力，不喜欢在权衡利弊上浪费时间。这种风格在快节奏、高不确定性的环境中是巨大的优势，比如创业、创意工作、紧急事件响应。你对决策的速度感让很多人羡慕。', watch:'在不可逆的重大决策中（如巨额投资、事业转折），多花一点时间做理性验证可以帮助你避免直觉的盲区。直觉擅长"模式识别"，但有时会误判不熟悉的情境。' },
+    'dependent-avoidant': { name:'外求犹豫者', desc:'你倾向于在做决定前寻求他人的意见，同时也容易推迟决策。你可能希望在别人的建议中找到"完美答案"，但这个过程中可能错过了最佳时机。你的优势在于愿意倾听和考虑多种视角——关键是找到"充分咨询"和"及时决定"之间的平衡点。', watch:'选择2-3个你信任的人作为固定的"决策顾问"，而不是征求所有人的意见。过多的意见反而会增加你的犹豫。同时，给自己设定一个明确的决策时间框架。' },
+    'dependent-spontaneous': { name:'社交行动派', desc:'你会在快速征求他人意见后迅速行动——"问问大家怎么看，然后马上定下来"。这种风格结合了社交智慧和执行力，让你既能纳入他人视角，又不会陷入无休止的讨论。在需要快速凝聚共识并推动执行的场景中，你表现出色。', watch:'确保你咨询的人是真正了解情况的——快速征求意见如果只是走过场，可能会让你做出看似共识实则偏颇的决定。' },
+    'avoidant-spontaneous': { name:'矛盾节奏者', desc:'你的决策风格呈现出一种有趣的张力——有时候你拖延很久，有时候你又突然快速决定。这可能反映了你对不同类型决策的不同态度：日常小事可能快速处理，重大决定反而迟迟不敢面对。理解这种模式是建立更一致决策风格的第一步。', watch:'识别自己在什么时候会"突然加速"——通常是在拖延太久之后的焦虑驱动。尽量让每个决策都获得它应该得到的时间，不多不少。' }
+  };
+
+  const key1 = `${p}-${s}`, key2 = `${s}-${p}`;
+  const combo = combos[key1] || combos[key2] || { name: `${STYLE_INFO[p].name}×${STYLE_INFO[s].name}`, desc: `你的决策风格是${STYLE_INFO[p].name}和${STYLE_INFO[s].name}的混合体——这两种风格的相互作用形成了你独特的决策方式。`, watch: '每种风格组合都有其优势领域和风险领域。关键是意识到自己的默认模式，然后根据情境灵活调整。' };
+
+  return `<strong>🔄 ${combo.name}：${STYLE_INFO[p].name} + ${STYLE_INFO[s].name}</strong><br><br>${combo.desc}<br><br><strong style="color:var(--amber)">⚠️ 留意：</strong>${combo.watch}`;
+}
+
+function generateStrengths(scores) {
+  const p = scores.primary;
+  const strengths = {
+    rational: '• 你的决策经得起推敲和质疑<br>• 容易发现他人忽略的关键细节<br>• 在复杂决策中犯错率较低<br>• 适合处理高风险的重大决定',
+    intuitive: '• 决策速度快，效率高<br>• 能捕捉到数据之外的微妙信息<br>• 在经验和直觉匹配的领域准确率极高<br>• 在模糊、不确定的环境中能果断行动',
+    dependent: '• 能纳入多元视角，减少个人盲区<br>• 决策更容易获得他人的支持<br>• 避免"一个人说了算"的风险<br>• 在团队型组织中备受信任',
+    avoidant: '• 不会在冲动下做后悔的决定<br>• 对风险有敏锐的觉察<br>• 给复杂局势留出发酵的时间<br>• 避免"为决定而决定"的形式主义',
+    spontaneous: '• 在紧急情况下能快速行动<br>• 不浪费精力在小决定上<br>• 抓住转瞬即逝的机会<br>• 执行力强，推动事情尽快落地'
+  };
+  return strengths[p] || '你的决策风格有独特的优势，关键是认识并发挥它们。';
+}
+
+function generateBlindspots(scores) {
+  const p = scores.primary;
+  const blindspots = {
+    rational: '• 可能陷入"分析瘫痪"——收集了足够信息还在继续收集<br>• 在需要快速反应时可能太慢<br>• 有时忽略了不能量化的因素（如人的感受、团队士气）<br>• 可能给人"冷冰冰""过于算计"的印象',
+    intuitive: '• 直觉可能受到偏见的影响而不自知<br>• 在完全不熟悉的领域，"gut feeling"可能不准<br>• 有时难以向他人解释"为什么这样做"<br>• 可能忽略重要的结构性数据和警告信号',
+    dependent: '• 他人可能有自己的议程——建议未必是客观的<br>• 过度依赖他人可能削弱自己的决策能力<br>• 当无人可咨询时可能感到迷茫<br>• 对别人的期望敏感，可能因此妥协自己的判断',
+    avoidant: '• 错过的机会往往比错误的决定更令人后悔<br>• "不决定"本身就是一个决定——只是由环境替你做了<br>• 可能积累决策债——小决定拖着不做到最后变成大危机<br>• 在别人眼中可能显得被动或缺乏担当',
+    spontaneous: '• 快速决策有时是冲动的，事后可能后悔<br>• 在不可逆的重大决策中风险较高<br>• 可能忽略了重要的细节和长期后果<br>• 给他人留下"太草率""不够认真"的印象'
+  };
+  return blindspots[p] || '每种风格都有盲点，了解它们就是突破的第一步。';
+}
+
+function generateSituational(scores) {
+  return `
+    <strong>🔴 高风险的不可逆决策</strong>（如购房、跳槽、重大投资）<br>
+    → 优先使用<strong>理性型</strong>和<strong>依赖型</strong>风格：充分收集信息，咨询可信赖的专家，不要急于求成。给自己设定一个明确的分析周期，到时间了就做决定。<br><br>
+    <strong>🟡 紧急但可调整的决策</strong>（如突发问题的处理、临时方案的确定）<br>
+    → 优先使用<strong>直觉型</strong>和<strong>冲动型</strong>风格：快速判断、果断行动。记住"完成比完美重要"，后续可以在执行中调整。<br><br>
+    <strong>🟢 涉及多人的决策</strong>（如团队分工、家庭重大决定）<br>
+    → 优先使用<strong>依赖型</strong>和<strong>理性型</strong>风格的组合：充分听取各方的意见，用理性分析整合不同视角，最终形成一个有共识基础的决策。<br><br>
+    <strong>🔵 个人成长类决策</strong>（如学习什么技能、要不要开始一个新习惯）<br>
+    → 优先使用<strong>直觉型</strong>风格：倾听内心真正渴望的方向，避免过度分析。这类决策的关键不是"选对"而是"开始做"。<br><br>
+    <em>最明智的决策者不是只用一种风格的人，而是能根据情境灵活切换风格的人。这就是决策的"元能力"——知道自己有什么风格，并知道什么时候该用哪一种。</em>
+  `;
+}
+
+function generateCareer(scores) {
+  const p = scores.primary;
+  const careers = {
+    rational: '• <strong>工程与科技：</strong>软件工程、数据分析、系统架构——需要系统思维和严谨分析的领域<br>• <strong>金融与法律：</strong>投资分析、审计、法务——每个决策都必须经得起推敲<br>• <strong>研究与学术：</strong>科研、医学——循证决策是核心能力<br>• <strong>战略与管理咨询：</strong>用结构化分析帮客户做关键决策',
+    intuitive: '• <strong>创业与创新：</strong>在不确定性中靠直觉抓住机会<br>• <strong>创意与艺术：</strong>设计、写作、策划——灵感驱动创作<br>• <strong>领导力角色：</strong>在信息不完全时依赖经验和直觉做战略判断<br>• <strong>投资与交易：</strong>在快速变化的市场中凭"盘感"行动',
+    dependent: '• <strong>教育与社会服务：</strong>需要多方协作、广泛咨询的领域<br>• <strong>客户成功与销售：</strong>理解并响应他人需求<br>• <strong>项目管理：</strong>协调多方利益相关者，凝聚共识<br>• <strong>医疗与护理：</strong>与患者、家属、团队协作做决策',
+    avoidant: '• <strong>风险管理与合规：</strong>你的谨慎是资产——能看到别人看不到的风险<br>• <strong>质量管理：</strong>对错误和瑕疵敏感是你的优势<br>• <strong>研究型岗位：</strong>在允许深思熟虑的环境中发挥分析深度<br>• 注意：避免进入需要频繁快速决策的高压环境，那可能不是你的最佳舞台',
+    spontaneous: '• <strong>紧急服务与急救：</strong>需要在几秒内做出决定的环境<br>• <strong>销售与BD：</strong>快速抓住商机，不犹豫<br>• <strong>媒体与内容创作：</strong>快节奏生产，快速迭代<br>• <strong>创业早期阶段：</strong>"先做再调整"是最有效的策略'
+  };
+  return careers[p] || '你的决策风格适合那些能发挥你天然倾向的工作环境。关键是找到匹配的舞台，而不是试图变成别人。';
+}
+
+function generateGrowth(scores) {
+  const p = scores.primary;
+  const growth = {
+    rational: '<strong>📊 作为理性型决策者，你的提升方向：</strong><br><br>• <strong>练习"满意决策"而非"最优决策"：</strong>诺贝尔奖得主 Herbert Simon 指出，真正的理性决策受限于信息和时间——追求"足够好"而非"完美"是更现实的策略。下次做决定时，设定一个"信息收集截止时间"，时间到了就基于现有信息做出选择。<br>• <strong>给直觉留一个位置：</strong>在做完理性分析后，问自己一个问题："抛开数据，我的直觉在说什么？"把直觉作为一个额外的数据点，看看它和你的理性分析是否一致。<br>• <strong>练习小事的快速决策：</strong>在小决定上刻意缩短思考时间——今天吃什么、周末去哪玩——用这些练习培养你的"快速决策肌肉"。',
+    intuitive: '<strong>💫 作为直觉型决策者，你的提升方向：</strong><br><br>• <strong>校准你的直觉：</strong>直觉的准确率取决于相关领域的经验。在不熟悉的领域，你的直觉可能不准。在做决定前问自己："我对这类决策有多少经验？"如果答案是"不多"，多收集一些信息再判断。<br>• <strong>把你的直觉翻译成语言：</strong>练习向他人解释你的决策逻辑——"我选这个方向是因为我感觉到了X，而这背后可能是Y和Z的原因"。这个过程让你能审视自己的直觉，也让别人能理解你。<br>• <strong>建立"直觉日志"：</strong>记录每次凭直觉做的决定，过一段时间回顾准确率。这会让你更了解自己的直觉在什么领域可靠、在什么领域需要补充分析。',
+    dependent: '<strong>🤝 作为依赖型决策者，你的提升方向：</strong><br><br>• <strong>建立你的"决策智囊团"：</strong>选2-3个在不同领域有专长、你信任的人作为固定顾问，而不是每次都问不同的人。固定的顾问更了解你的处境，给的建议也更精准。<br>• <strong>练习独立小决定：</strong>从日常小事开始——今天穿什么、午餐去哪吃——不征求任何人的意见，完全自己做主。这能帮你建立独立决策的信心。<br>• <strong>审视建议背后的动机：</strong>当别人给你建议时，问自己："TA的建议是否受到了TA自身利益或偏见的影响？TA是真的为了我好，还是在提供适合TA自己视角的建议？"',
+    avoidant: '<strong>🐢 作为回避型决策者，你的提升方向：</strong><br><br>• <strong>认识到"不决定"的代价：</strong>许多时候，拖延决定的成本远超一个"还不错"的决定可能带来的损失。给你的决定设一个"失效日期"——如果到了这个日期你还没决定，自动选择一个默认选项。<br>• <strong>把大决定拆成小步骤：</strong>与其面对"要不要换工作"这种巨大决定，不如先拆成"这周更新一下简历""下周看看招聘网站"。小步骤降低了决策的压力，也让你在过程中收集到了更多信息。<br>• <strong>练习"失败接受"：</strong>回避决策的根源往往是害怕做出错误的决定。提醒自己：大多数决定都是可逆的，即使错了，过程中的学习也有价值。"完美的决策"是一个神话——真实的成长来自于"做决定→观察结果→调整"的循环。',
+    spontaneous: '<strong>⚡ 作为冲动型决策者，你的提升方向：</strong><br><br>• <strong>区分可逆和不可逆的决策：</strong>可逆决策（如尝试一个新餐厅、报名一个可退款的课程）——快速决定没问题。不可逆决策（如纹身、辞职、大额投资）——给自己设定"冷静期"，至少等24小时再行动。<br>• <strong>使用"预演后果"技术：</strong>在做决定前花30秒想象一下："如果我选了这个，一天后、一周后、一年后各是什么感受？"这个简单的练习能帮你捕捉到冲动决定中可能被忽略的长期后果。<br>• <strong>不是所有的快速决定都是冲动：</strong>有时候你的速度是优势——尤其是在你已经有了丰富经验的领域。关键是区分"有依据的快速"和"没思考的冲动"。前者的特点是：事后不后悔。后者的特点是：事后经常反问"我当时在想什么"。'
+  };
+  return growth[p] || '了解自己的决策风格本身就是最大的提升。你可以通过在日常决策中有意识地实践不同的决策方式，来扩展自己的决策工具箱。';
+}
+
+// ── Actions ──
+function restartTest() { currentQ = 0; answers = {}; showScreen('welcome'); }
+
+function shareResults() {
+  const scores = calcScores();
+  const p = STYLE_INFO[scores.primary];
+  const text = `🎯 我的决策风格分析结果：${p.name}！\n五维分析：理性·直觉·依赖·回避·冲动\n来测测你的决策DNA吧 →`;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => showToast('✅ 已复制分享文案到剪贴板'));
+  } else {
+    showToast('📤 长按复制：' + text.substring(0,60) + '...');
+  }
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 2500);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>情绪智力深度评估</title>
+<style>
+  :root {
+    --bg: #060b12; --card: #0c1520; --card-hover: #111d2c;
+    --cyan: #00e5ff; --amber: #f5a623; --white: #f0f4f8;
+    --dim: rgba(240,244,248,0.5); --border: rgba(240,244,248,0.06);
+    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --mono: 'Cascadia Code', 'Fira Code', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--white); font-family: var(--font);
+    min-height: 100vh;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: linear-gradient(90deg, var(--border) 1px, transparent 1px),
+                linear-gradient(0deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at 50% 30%, black 20%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  .app { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 24px; }
+  .screen { display: none; flex-direction: column; align-items: center; }
+  .screen.active { display: flex; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Welcome */
+  .welcome-icon {
+    width: 72px; height: 72px; border-radius: 50%; border: 1px solid var(--cyan);
+    display: flex; align-items: center; justify-content: center; font-size: 32px;
+    margin: 40px 0 28px;
+  }
+  .title-block { text-align: center; margin-bottom: 16px; }
+  .label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 4px;
+    color: var(--amber); text-transform: uppercase; margin-bottom: 8px;
+  }
+  .title-block h1 { font-size: 38px; font-weight: 200; letter-spacing: 2px; line-height: 1.3; }
+  .title-block h1 span { color: var(--cyan); font-weight: 400; }
+  .subtitle { color: var(--dim); font-size: 15px; font-weight: 300; text-align: center; max-width: 440px; line-height: 1.6; margin-bottom: 20px; }
+  .info-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid rgba(240,244,248,0.1); border-radius: 20px;
+    padding: 6px 18px; font-family: var(--mono); font-size: 10px; color: var(--dim);
+    margin-bottom: 32px;
+  }
+  .info-badge span { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); }
+
+  .btn {
+    font-family: var(--font); padding: 14px 40px; border-radius: 8px; border: none;
+    font-size: 15px; cursor: pointer; transition: all 0.3s; letter-spacing: 1px;
+  }
+  .btn.primary { background: var(--cyan); color: #060b12; font-weight: 600; }
+  .btn.primary:hover { box-shadow: 0 0 24px rgba(0,229,255,0.3); transform: translateY(-1px); }
+  .btn.back {
+    background: transparent; border: 1px solid rgba(240,244,248,0.15); color: var(--dim);
+    font-size: 13px; padding: 8px 20px; margin-bottom: 16px;
+  }
+  .btn.back:hover { border-color: var(--cyan); color: var(--white); }
+  .btn.secondary { background: transparent; border: 1px solid rgba(240,244,248,0.2); color: var(--white); }
+  .btn.secondary:hover { border-color: var(--cyan); }
+
+  /* Mode Selection */
+  #modeSelect { align-items: stretch; }
+  .mode-header { text-align: center; margin-bottom: 32px; }
+  .mode-header h2 { font-size: 24px; font-weight: 200; letter-spacing: 2px; }
+  .mode-header h2 span { color: var(--cyan); font-weight: 400; }
+  .mode-header p { color: var(--dim); font-size: 13px; margin-top: 8px; font-weight: 300; }
+  .mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .mode-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 32px 24px; text-align: center; cursor: pointer; transition: all 0.3s;
+    text-decoration: none; color: var(--white);
+  }
+  .mode-card:hover { border-color: rgba(0,229,255,0.2); background: var(--card-hover); transform: translateY(-2px); }
+  .mode-card.pro:hover { border-color: rgba(245,166,35,0.3); }
+  .mode-icon { font-size: 40px; margin-bottom: 14px; }
+  .mode-name { font-size: 18px; font-weight: 400; letter-spacing: 1px; margin-bottom: 4px; }
+  .mode-stats { font-family: var(--mono); font-size: 10px; color: var(--dim); margin-bottom: 10px; }
+  .mode-desc { font-size: 12px; color: var(--dim); line-height: 1.5; font-weight: 300; }
+  .mode-badge {
+    display: inline-block; font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+    padding: 3px 10px; border-radius: 10px; margin-top: 10px;
+  }
+  .mode-badge.light { color: var(--cyan); border: 1px solid rgba(0,229,255,0.3); }
+  .mode-badge.pro { color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
+  .pro-features { font-size: 11px; color: var(--dim); margin-top: 10px; line-height: 1.6; text-align: left; padding-left: 16px; }
+
+  /* Quiz */
+  #quiz { align-items: stretch; }
+  .progress-wrap { margin-bottom: 24px; }
+  .progress-info { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; color: var(--dim); margin-bottom: 8px; }
+  .progress-track { height: 2px; background: rgba(240,244,248,0.06); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--cyan); border-radius: 2px; transition: width 0.3s; width: 0%; }
+
+  /* Deep section transition */
+  .deep-transition {
+    text-align: center; padding: 40px 20px;
+  }
+  .deep-transition .deep-icon { font-size: 48px; margin-bottom: 16px; }
+  .deep-transition h3 { font-size: 20px; font-weight: 300; margin-bottom: 8px; }
+  .deep-transition h3 span { color: var(--amber); }
+  .deep-transition p { color: var(--dim); font-size: 14px; line-height: 1.6; font-weight: 300; }
+
+  .q-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 32px; transition: all 0.3s;
+  }
+  .q-category {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 3px;
+    color: var(--amber); text-transform: uppercase; margin-bottom: 16px;
+  }
+  .q-text { font-size: 17px; font-weight: 300; line-height: 1.6; margin-bottom: 28px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt-btn {
+    background: rgba(240,244,248,0.03); border: 1px solid rgba(240,244,248,0.08);
+    border-radius: 8px; padding: 14px 20px; color: var(--white); font-size: 14px;
+    cursor: pointer; transition: all 0.25s; text-align: left; font-family: var(--font);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .opt-btn:hover { background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.2); }
+  .opt-btn.selected { background: rgba(0,229,255,0.1); border-color: var(--cyan); }
+  .opt-dot {
+    width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(240,244,248,0.2);
+    flex-shrink: 0; transition: all 0.25s;
+  }
+  .opt-btn.selected .opt-dot { background: var(--cyan); border-color: var(--cyan); }
+
+  .choice-btn {
+    background: rgba(240,244,248,0.03); border: 1px solid rgba(240,244,248,0.08);
+    border-radius: 8px; padding: 16px 20px; color: var(--white); font-size: 14px;
+    cursor: pointer; transition: all 0.25s; text-align: left; font-family: var(--font);
+    line-height: 1.5;
+  }
+  .choice-btn:hover { background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.2); }
+  .choice-btn.selected { background: rgba(0,229,255,0.1); border-color: var(--cyan); }
+
+  .q-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+  .nav-hint { font-family: var(--mono); font-size: 10px; color: var(--dim); }
+
+  /* Results */
+  #results { align-items: stretch; }
+  .results-header { text-align: center; margin-bottom: 32px; }
+  .results-header .label { margin-bottom: 4px; }
+  .results-header h2 { font-size: 28px; font-weight: 200; letter-spacing: 2px; }
+  .results-header h2 span { color: var(--cyan); font-weight: 400; }
+  .results-header .version-tag {
+    display: inline-block; font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+    padding: 2px 10px; border-radius: 8px; margin-top: 6px;
+  }
+  .version-tag.pro { color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
+  .version-tag.light { color: var(--cyan); border: 1px solid rgba(0,229,255,0.3); }
+
+  .score-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 36px; text-align: center; margin-bottom: 24px;
+  }
+  .score-big { font-size: 72px; font-weight: 200; color: var(--cyan); line-height: 1; }
+  .score-label { font-size: 14px; color: var(--dim); margin-top: 8px; font-weight: 300; }
+  .score-level {
+    display: inline-block; margin-top: 12px; padding: 4px 16px; border-radius: 12px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: 2px;
+  }
+  .score-level.high { color: var(--cyan); border: 1px solid rgba(0,229,255,0.3); }
+  .score-level.mid { color: #7ec8e3; border: 1px solid rgba(126,200,227,0.3); }
+  .score-level.low { color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
+
+  .summary-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 28px; margin-bottom: 24px; border-left: 2px solid var(--cyan);
+    font-size: 14px; line-height: 1.8; font-weight: 300; color: var(--dim);
+  }
+
+  .section-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: var(--amber);
+    margin: 28px 0 12px; text-transform: uppercase;
+  }
+
+  .dim-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 24px; margin-bottom: 12px;
+  }
+  .dim-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .dim-name { font-size: 16px; font-weight: 400; display: flex; align-items: center; gap: 10px; }
+  .dim-name .dim-icon { font-size: 22px; }
+  .dim-score { font-family: var(--mono); font-size: 20px; color: var(--cyan); font-weight: 300; }
+
+  .dim-bar-wrap { height: 4px; background: rgba(240,244,248,0.06); border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
+  .dim-bar-fill { height: 100%; background: var(--cyan); border-radius: 2px; transition: width 1s ease; }
+  .dim-labels { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 9px; color: var(--dim); margin-bottom: 14px; }
+  .dim-desc { font-size: 13px; color: var(--dim); line-height: 1.7; font-weight: 300; }
+
+  .sub-row { display: flex; gap: 16px; margin-top: 14px; }
+  .sub-item { flex: 1; }
+  .sub-name { font-size: 11px; color: var(--dim); margin-bottom: 4px; }
+  .sub-bar-wrap { height: 3px; background: rgba(240,244,248,0.06); border-radius: 2px; overflow: hidden; }
+  .sub-bar-fill { height: 100%; background: rgba(0,229,255,0.4); border-radius: 2px; transition: width 1s ease; }
+  .sub-val { font-family: var(--mono); font-size: 10px; color: var(--dim); text-align: right; margin-top: 2px; }
+
+  .insight-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .insight-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 22px; font-size: 13px; line-height: 1.7; font-weight: 300; color: var(--dim);
+  }
+  .insight-card h4 { font-size: 15px; font-weight: 400; color: var(--white); margin-bottom: 10px; }
+
+  /* Trigger map */
+  .trigger-map {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 28px; margin-bottom: 20px;
+  }
+  .trigger-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .trigger-icon { font-size: 20px; width: 32px; text-align: center; flex-shrink: 0; }
+  .trigger-info { flex: 1; }
+  .trigger-name { font-size: 14px; font-weight: 400; margin-bottom: 2px; }
+  .trigger-desc { font-size: 12px; color: var(--dim); }
+  .trigger-bar-wrap { width: 80px; height: 3px; background: rgba(240,244,248,0.06); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
+  .trigger-bar-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
+  .trigger-level { font-family: var(--mono); font-size: 9px; width: 56px; flex-shrink: 0; }
+
+  /* Stage path */
+  .stage-path { margin-bottom: 20px; }
+  .stage-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 22px; margin-bottom: 10px; position: relative;
+  }
+  .stage-card.current { border-color: rgba(0,229,255,0.3); }
+  .stage-num {
+    width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center;
+    justify-content: center; font-family: var(--mono); font-size: 12px; margin-right: 10px;
+  }
+  .stage-num.done { background: rgba(0,229,255,0.15); color: var(--cyan); }
+  .stage-num.active { background: var(--cyan); color: #060b12; }
+  .stage-num.next { background: rgba(240,244,248,0.05); color: var(--dim); }
+  .stage-title { font-size: 15px; font-weight: 400; }
+  .stage-desc { font-size: 12px; color: var(--dim); margin-top: 6px; line-height: 1.6; margin-left: 38px; }
+
+  .growth-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 28px; margin-bottom: 24px; border-left: 2px solid var(--amber);
+    font-size: 13px; line-height: 1.8; font-weight: 300; color: var(--dim);
+  }
+  .growth-card h4 { font-size: 16px; font-weight: 400; color: var(--white); margin-bottom: 12px; }
+
+  .cite-card {
+    background: transparent; border: 1px solid rgba(240,244,248,0.04); border-radius: 8px;
+    padding: 18px 22px; margin-bottom: 24px; font-size: 11px; color: var(--dim); line-height: 1.7;
+    font-family: var(--mono);
+  }
+
+  .action-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+  .footer-note { text-align: center; color: var(--dim); font-size: 11px; font-weight: 300; opacity: 0.5; margin-top: 20px; }
+
+  .toast {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+    background: var(--card); border: 1px solid var(--cyan); color: var(--white);
+    padding: 12px 28px; border-radius: 8px; font-size: 13px; z-index: 99;
+    animation: fadeIn 0.3s;
+  }
+
+  @media (max-width: 600px) {
+    .insight-row { grid-template-columns: 1fr; }
+    .mode-cards { grid-template-columns: 1fr; }
+    .sub-row { flex-direction: column; gap: 8px; }
+    .score-big { font-size: 56px; }
+    .q-card { padding: 20px; }
+    .trigger-row { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- WELCOME -->
+  <div class="screen active" id="welcome">
+    <div class="welcome-icon">🎭</div>
+    <div class="title-block">
+      <div class="label">Emotional Intelligence · MSCEIT + Goleman</div>
+      <h1>情绪智力<br><span>深度评估</span></h1>
+    </div>
+    <p class="subtitle">基于 Mayer-Salovey-Caruso 能力模型与 Goleman 混合模型，从感知、理解、运用、管理四个维度全面评估你的情绪智力。选择轻量版快速了解自己，或选择专业版获得深度分析。</p>
+    <div class="info-badge"><span></span> 轻量 24 题 · 专业 32 题 · 能力 + 特质双模型</div>
+    <button class="btn primary" onclick="showModeSelect()">开始评估 →</button>
+    <div class="footer-note" style="margin-top:28px;">⚠️ 本测试为自我评估工具，不构成临床诊断</div>
+  </div>
+
+  <!-- MODE SELECTION -->
+  <div class="screen" id="modeSelect">
+    <div class="mode-header">
+      <h2>选择你的<span>测试深度</span></h2>
+      <p>两种模式使用相同的核心题库。专业版额外增加情绪触发点分析和深度个性化报告。</p>
+    </div>
+    <div class="mode-cards">
+      <div class="mode-card" onclick="startTest(false)">
+        <div class="mode-icon">🚀</div>
+        <div class="mode-name">轻量版</div>
+        <div class="mode-stats">24 题 · 约 5 分钟</div>
+        <div class="mode-desc">核心四维评估，快速了解你的情绪智力全貌。</div>
+        <div class="mode-badge light">核心评估</div>
+      </div>
+      <div class="mode-card pro" onclick="startTest(true)">
+        <div class="mode-icon">🔬</div>
+        <div class="mode-name">专业版</div>
+        <div class="mode-stats">32 题 · 约 8 分钟</div>
+        <div class="mode-desc">完整深度分析，包含你独有的情绪画像和成长路径。</div>
+        <div class="mode-badge pro">深度分析</div>
+        <div class="pro-features">
+          + 情绪触发点地图<br>
+          + 维度交互分析<br>
+          + 三阶段成长路径<br>
+          + 关系场景细分<br>
+          + 情绪颗粒度评估
+        </div>
+      </div>
+    </div>
+    <button class="btn back" onclick="showScreen('welcome')" style="margin-top:24px;">← 返回</button>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="screen" id="quiz">
+    <div class="progress-wrap">
+      <div class="progress-info"><span id="progNum">1 / 24</span><span id="progPct">0%</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progBar"></div></div>
+    </div>
+    <button class="btn back" id="btnBack" onclick="goBack()" style="visibility:hidden;">← 上一题</button>
+    <div class="q-card" id="qCard">
+      <div class="q-category" id="qCat"></div>
+      <div class="q-text" id="qText"></div>
+      <div class="options" id="qOpts"></div>
+    </div>
+    <div class="q-nav"><div class="nav-hint"></div></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="screen" id="results">
+    <div class="results-header">
+      <div class="label">EQ Profile Report</div>
+      <h2>你的情绪<span>智力画像</span></h2>
+      <div class="version-tag" id="versionTag"></div>
+    </div>
+    <div class="score-card">
+      <div class="score-big" id="eqTotal">--</div>
+      <div class="score-label">情绪智力总分</div>
+      <div class="score-level" id="eqLevel"></div>
+    </div>
+    <div class="summary-card" id="summaryText"></div>
+
+    <!-- Pro only: Trigger Map -->
+    <div id="triggerSection" style="display:none;">
+      <div class="section-label">情绪触发地图</div>
+      <div class="trigger-map" id="triggerMap"></div>
+    </div>
+
+    <div class="section-label">维度分析</div>
+    <div id="dimList"></div>
+
+    <!-- Pro only: Dimension Interaction -->
+    <div id="interactionSection" style="display:none;">
+      <div class="section-label">维度交互</div>
+      <div class="summary-card" id="interactionText" style="border-left-color:var(--amber);"></div>
+    </div>
+
+    <div class="section-label">关系与职业</div>
+    <div class="insight-row">
+      <div class="insight-card"><h4>💛 关系中的你</h4><div id="relText"></div></div>
+      <div class="insight-card"><h4>💼 职业匹配</h4><div id="careerText"></div></div>
+    </div>
+    <!-- Pro only: Relationship scenarios -->
+    <div id="relScenarios" style="display:none;">
+      <div class="insight-row">
+        <div class="insight-card"><h4>💕 亲密关系</h4><div id="relRomantic"></div></div>
+        <div class="insight-card"><h4>🏢 职场关系</h4><div id="relWork"></div></div>
+      </div>
+    </div>
+
+    <div class="section-label">成长路径</div>
+    <div id="growthContainer"></div>
+
+    <!-- Pro only: Granularity & Mindset -->
+    <div id="granularitySection" style="display:none;">
+      <div class="section-label">情绪颗粒度与信念</div>
+      <div class="summary-card" id="granularityText"></div>
+    </div>
+
+    <div class="cite-card" id="citeText"></div>
+
+    <div class="action-row">
+      <button class="btn primary" onclick="restartTest()">重新评估</button>
+      <button class="btn secondary" onclick="shareResults()">📤 分享结果</button>
+    </div>
+    <div style="text-align:center;margin:16px 0 32px;">
+      <a href="../index.html" style="color:var(--dim);font-family:var(--mono);font-size:11px;text-decoration:none;border:1px solid rgba(240,244,248,0.1);padding:6px 16px;border-radius:4px;transition:all 0.2s;">🏠 返回测试广场</a>
+    </div>
+    <div class="footer-note">⚠️ 本测试为自我评估工具，不构成临床诊断。情商可以通过刻意练习提升。</div>
+  </div>
+
+</div>
+
+<script>
+// ── Dimension Info ──
+const DIM_INFO = {
+  perceiving: { name: '情绪感知', icon: '👁️', sub: ['自我觉察','他人觉察'], order: 1 },
+  understanding: { name: '情绪理解', icon: '🧠', sub: ['原因理解','复杂理解'], order: 2 },
+  facilitating: { name: '情绪运用', icon: '💡', sub: ['决策辅助','创造激发'], order: 3 },
+  managing: { name: '情绪管理', icon: '⚖️', sub: ['自我调节','他人调节'], order: 4 }
+};
+
+// ── Base Question Bank (24 items, used by both modes) ──
+const baseQuestions = [
+  // ═══ 情绪感知 (Perceiving) - 6 items ═══
+  { id:1, dim:'perceiving', sub:'自我觉察', type:'likert', text:'我能准确地分辨自己正在经历什么样的情绪（比如能区分"失望"和"悲伤"）。', reverse:false },
+  { id:2, dim:'perceiving', sub:'自我觉察', type:'likert', text:'有时候我感到情绪涌动，却说不清楚自己到底怎么了。', reverse:true },
+  { id:3, dim:'perceiving', sub:'自我觉察', type:'likert', text:'当我的情绪发生变化时，我通常能立刻察觉到。', reverse:false },
+  { id:4, dim:'perceiving', sub:'他人觉察', type:'likert', text:'通过观察对方的表情和语气变化，我通常能判断出TA的真实情绪状态。', reverse:false },
+  { id:5, dim:'perceiving', sub:'他人觉察', type:'likert', text:'在社交场合中，我常常能感觉到气氛的微妙变化——比如谁不开心了、谁被冷落了。', reverse:false },
+  { id:6, dim:'perceiving', sub:'他人觉察', type:'situational', text:'一位同事在会议上对你的提议说"挺好的"，但语速很快，眼神回避，说完立刻转移话题。你觉得TA的真实态度是？',
+    opts:[
+      { text:'真心觉得不错，只是比较忙', score:1 },
+      { text:'其实不太认同或有顾虑，但没有直接说出来', score:5 }
+    ]},
+
+  // ═══ 情绪理解 (Understanding) - 6 items ═══
+  { id:7, dim:'understanding', sub:'原因理解', type:'likert', text:'我能清楚地解释为什么自己在特定的场合会产生某种情绪。', reverse:false },
+  { id:8, dim:'understanding', sub:'原因理解', type:'likert', text:'当朋友告诉我TA的感受时，我通常能理解是什么导致了这种感受。', reverse:false },
+  { id:9, dim:'understanding', sub:'原因理解', type:'likert', text:'我有时会被自己的情绪反应搞糊涂，不太明白"我为什么会这样"。', reverse:true },
+  { id:10, dim:'understanding', sub:'复杂理解', type:'likert', text:'我理解一个人可以同时对同一件事感到既高兴又难过（比如毕业、送别）。', reverse:false },
+  { id:11, dim:'understanding', sub:'复杂理解', type:'likert', text:'我能预判某种情境下，大多数人会产生什么样的情绪反应。', reverse:false },
+  { id:12, dim:'understanding', sub:'复杂理解', type:'situational', text:'你的好友最近升职了，但TA看起来并不开心，反而有些焦虑。你觉得最可能的原因是？',
+    opts:[
+      { text:'TA可能觉得自己能力不足以胜任新角色——升职带来的"冒充者综合征"很常见', score:5 },
+      { text:'TA可能对这个结果不满意，想要更高的职位', score:1 }
+    ]},
+
+  // ═══ 情绪运用 (Facilitating) - 6 items ═══
+  { id:13, dim:'facilitating', sub:'决策辅助', type:'likert', text:'情绪帮助我判断什么事情是重要的、什么事情可以放一放。', reverse:false },
+  { id:14, dim:'facilitating', sub:'决策辅助', type:'likert', text:'做重要决定时，我会倾听自己的"gut feeling"，不只是依靠理性分析。', reverse:false },
+  { id:15, dim:'facilitating', sub:'决策辅助', type:'likert', text:'我觉得情绪只会干扰理性决策，所以做决定时应该尽量排除情绪。', reverse:true },
+  { id:16, dim:'facilitating', sub:'创造激发', type:'likert', text:'在好的情绪状态下，我的创造力和解决问题的能力明显更强。', reverse:false },
+  { id:17, dim:'facilitating', sub:'创造激发', type:'likert', text:'当我需要灵感时，我会主动调整自己的心情（比如听音乐、散步）来进入状态。', reverse:false },
+  { id:18, dim:'facilitating', sub:'创造激发', type:'situational', text:'你需要在明天之前完成一个创意方案，但现在感到焦虑、思路阻塞。你会怎么做？',
+    opts:[
+      { text:'先暂停手上的工作，通过运动/音乐/散步来调整情绪，等状态好了再继续', score:5 },
+      { text:'硬着头皮继续做，焦虑归焦虑，deadline最重要', score:1 }
+    ]},
+
+  // ═══ 情绪管理 (Managing) - 6 items ═══
+  { id:19, dim:'managing', sub:'自我调节', type:'likert', text:'面对强烈的负面情绪（如愤怒、焦虑），我有有效的方法让自己平静下来。', reverse:false },
+  { id:20, dim:'managing', sub:'自我调节', type:'likert', text:'当事情不如预期时，我会陷入很长时间的沮丧，难以自拔。', reverse:true },
+  { id:21, dim:'managing', sub:'自我调节', type:'likert', text:'在压力情境下（如考试、面试），我能保持冷静，不让紧张影响发挥。', reverse:false },
+  { id:22, dim:'managing', sub:'他人调节', type:'likert', text:'当朋友或家人情绪低落时，我知道怎么安慰和陪伴能让TA们感觉好一些。', reverse:false },
+  { id:23, dim:'managing', sub:'他人调节', type:'likert', text:'在团队中发生冲突时，我能够帮助双方冷静下来，促进有效沟通。', reverse:false },
+  { id:24, dim:'managing', sub:'他人调节', type:'situational', text:'你和一位朋友约好了吃饭，但TA迟到了30分钟才来，看起来心情很糟。你会先做什么？',
+    opts:[
+      { text:'先关心TA的状态："你看起来不太对劲，发生了什么？"——先处理情绪，再说迟到的事', score:5 },
+      { text:'表达自己的不满："我等了半小时了，你怎么也不提前说一声？"——先处理自己的情绪', score:1 }
+    ]}
+];
+
+// ── Pro-only Question Bank (8 additional items) ──
+const proQuestions = [
+  // 情绪触发点 (Triggers) - 4 scenario items
+  { id:'t1', tag:'触发点', type:'situational', text:'一位你很尊重的人对你努力了很久的作品给出了尖锐的公开批评。你的第一反应更接近？',
+    opts:[
+      { text:'内心非常震动——需要一段时间才能消化这种被否定的感觉。这种批评会在我脑海里反复出现。', trigger:'criticism', score:5 },
+      { text:'有点不舒服但不至于影响太大——我能把"对作品的批评"和"对我这个人的否定"分开看待。', trigger:'criticism', score:1 }
+    ]},
+  { id:'t2', tag:'触发点', type:'situational', text:'你精心计划了一个月的旅行/项目，出发前一天被告知所有安排都取消了，而且不是你的责任。你的内心反应是？',
+    opts:[
+      { text:'非常焦虑和沮丧——失控的感觉让我难以忍受。我可能会反复回想"要是当时怎样怎样就好了"。', trigger:'uncertainty', score:5 },
+      { text:'失望但能接受——计划赶不上变化。我会重新规划，把注意力放在"接下来怎么办"上。', trigger:'uncertainty', score:1 }
+    ]},
+  { id:'t3', tag:'触发点', type:'situational', text:'你在社交媒体上看到同龄人（同学/同事）晒出了远超过你的成就。你的感受更接近？',
+    opts:[
+      { text:'一阵强烈的焦虑和自我怀疑——"我是不是落后了？我是不是不够好？"需要一些时间才能恢复平静。', trigger:'comparison', score:5 },
+      { text:'为TA高兴，同时对自己的节奏保持信心——每个人都有自己的时间线，社交媒体展示的只是片段。', trigger:'comparison', score:1 }
+    ]},
+  { id:'t4', tag:'触发点', type:'situational', text:'在一次重要家庭讨论中，有人用激烈的语气质疑你的选择。你的反应更接近？',
+    opts:[
+      { text:'被激怒或感到受伤——可能会提高音量回应，或者干脆沉默以对（但内心翻涌）。', trigger:'conflict', score:5 },
+      { text:'虽然不舒服，但可以保持冷静——我会尝试理解对方为何这么说，然后清晰表达自己的立场。', trigger:'conflict', score:1 }
+    ]},
+
+  // 情绪颗粒度 (Granularity) - 2 items
+  { id:'g1', tag:'颗粒度', type:'likert', text:'我能用丰富的词汇来描述自己的情绪状态——不只是"开心/难过"，而是能区分"欣慰、释然、满足、兴奋、期待"或"失望、委屈、不甘、焦虑、羞耻"等更精准的感受。', reverse:false },
+  { id:'g2', tag:'颗粒度', type:'likert', text:'当别人问我"你感觉怎么样"时，我通常能给出一两个具体的情绪词，而不是笼统地说"还行"或"不太好"。', reverse:false },
+
+  // 情绪信念 (Mindset) - 2 items
+  { id:'m1', tag:'信念', type:'likert', text:'我相信情绪智力是可以通过学习和练习来提升的——它不是固定不变的"天赋"，而是一套可以持续发展的技能。', reverse:false },
+  { id:'m2', tag:'信念', type:'likert', text:'当我感到不舒服的情绪时，我的第一反应是去理解它（为什么会出现？它在告诉我什么？），而不是回避或压抑它。', reverse:false }
+];
+
+const likertLabels = ['非常不符合','比较不符合','一般/中立','比较符合','非常符合'];
+
+// ── State ──
+let currentQ = 0;
+let answers = {};
+let isPro = false;
+let questions = [];
+let inDeepSection = false;
+
+// ── Navigation ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showModeSelect() {
+  showScreen('modeSelect');
+}
+
+function startTest(proMode) {
+  isPro = proMode;
+  questions = isPro ? [...baseQuestions, ...proQuestions] : [...baseQuestions];
+  currentQ = 0;
+  answers = {};
+  inDeepSection = false;
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function goBack() {
+  if (currentQ > 0) { currentQ--; renderQuestion(); }
+}
+
+function renderQuestion() {
+  const q = questions[currentQ];
+  const total = questions.length;
+
+  document.getElementById('btnBack').style.visibility = currentQ === 0 ? 'hidden' : 'visible';
+  document.getElementById('progNum').textContent = `${currentQ+1} / ${total}`;
+  document.getElementById('progPct').textContent = `${Math.round((currentQ/total)*100)}%`;
+  document.getElementById('progBar').style.width = `${((currentQ)/total)*100}%`;
+
+  const card = document.getElementById('qCard');
+
+  // Check if entering deep section (pro mode, first question after base)
+  if (isPro && currentQ === baseQuestions.length) {
+    inDeepSection = true;
+    document.getElementById('btnBack').style.visibility = 'hidden';
+    card.innerHTML = `
+      <div class="deep-transition">
+        <div class="deep-icon">🔬</div>
+        <h3>进入<span>深度分析</span>环节</h3>
+        <p>接下来的 8 道题将帮助我们绘制你的<strong style="color:var(--cyan)">情绪触发地图</strong>，评估你的<strong style="color:var(--cyan)">情绪颗粒度</strong>，了解你对情绪的<strong style="color:var(--cyan)">核心信念</strong>。<br><br>准备好了就点击下方按钮继续。</p>
+        <button class="btn primary" onclick="continueDeep()">继续 →</button>
+      </div>`;
+    return;
+  }
+
+  // Normal question rendering
+  const dimInfo = DIM_INFO[q.dim];
+  const tag = q.tag || (dimInfo ? `${dimInfo.icon} ${dimInfo.name} · ${q.sub}` : '🔬 深度扩展');
+  document.getElementById('qCat').textContent = tag;
+  document.getElementById('qText').textContent = q.text;
+
+  const optsEl = document.getElementById('qOpts');
+  optsEl.innerHTML = '';
+
+  card.style.opacity = '0'; card.style.transform = 'translateY(8px)';
+
+  if (q.type === 'situational') {
+    q.opts.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = opt.text;
+      if (answers[q.id] === i) btn.classList.add('selected');
+      btn.onclick = () => {
+        answers[q.id] = i;
+        document.querySelectorAll('#qOpts .choice-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        setTimeout(() => advanceIfReady(), 200);
+      };
+      optsEl.appendChild(btn);
+    });
+  } else {
+    for (let i = 1; i <= 5; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'opt-btn';
+      btn.innerHTML = `<span class="opt-dot"></span>${likertLabels[i-1]}`;
+      if (answers[q.id] === i) btn.classList.add('selected');
+      btn.onclick = () => {
+        answers[q.id] = i;
+        document.querySelectorAll('#qOpts .opt-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        setTimeout(() => advanceIfReady(), 200);
+      };
+      optsEl.appendChild(btn);
+    }
+  }
+
+  requestAnimationFrame(() => {
+    card.style.transition = 'all 0.3s ease';
+    card.style.opacity = '1'; card.style.transform = 'translateY(0)';
+  });
+}
+
+function continueDeep() {
+  document.getElementById('qCard').innerHTML = '<div class="q-category" id="qCat"></div><div class="q-text" id="qText"></div><div class="options" id="qOpts"></div>';
+  document.getElementById('btnBack').style.visibility = 'hidden';
+  renderQuestion();
+}
+
+function advanceIfReady() {
+  if (answers[questions[currentQ].id] != null) {
+    if (currentQ < questions.length - 1) {
+      currentQ++;
+      renderQuestion();
+    } else {
+      showResults();
+    }
+  }
+}
+
+// ── Scoring ──
+function calcScores() {
+  const scores = {};
+  // Base dimension scores
+  for (const [dim, info] of Object.entries(DIM_INFO)) {
+    const dimQs = baseQuestions.filter(q => q.dim === dim);
+    let raw = 0;
+    dimQs.forEach(q => {
+      if (q.type === 'situational') {
+        raw += q.opts[answers[q.id]].score;
+      } else {
+        const val = answers[q.id] || 3;
+        raw += q.reverse ? (6 - val) : val;
+      }
+    });
+    const maxRaw = dimQs.length * 5, minRaw = dimQs.length * 1;
+    scores[dim] = Math.round(((raw - minRaw) / (maxRaw - minRaw)) * 100);
+
+    info.sub.forEach(sub => {
+      const subQs = dimQs.filter(q => q.sub === sub);
+      let subRaw = 0;
+      subQs.forEach(q => {
+        if (q.type === 'situational') {
+          subRaw += q.opts[answers[q.id]].score;
+        } else {
+          const val = answers[q.id] || 3;
+          subRaw += q.reverse ? (6 - val) : val;
+        }
+      });
+      const subMax = subQs.length * 5, subMin = subQs.length * 1;
+      if (!scores._sub) scores._sub = {};
+      if (!scores._sub[dim]) scores._sub[dim] = {};
+      scores._sub[dim][sub] = Math.round(((subRaw - subMin) / (subMax - subMin)) * 100);
+    });
+  }
+
+  const dims = Object.keys(DIM_INFO);
+  scores.total = Math.round(dims.reduce((s,d) => s + scores[d], 0) / dims.length);
+
+  // Pro-only scores
+  if (isPro) {
+    // Trigger scores
+    scores.triggers = {};
+    const triggerQs = proQuestions.filter(q => q.tag === '触发点');
+    triggerQs.forEach(q => {
+      const opt = q.opts[answers[q.id]];
+      if (opt && opt.trigger) {
+        scores.triggers[opt.trigger] = opt.score; // 1=low sensitivity, 5=high sensitivity
+      }
+    });
+
+    // Granularity score
+    const granQs = proQuestions.filter(q => q.tag === '颗粒度');
+    let granRaw = 0;
+    granQs.forEach(q => {
+      granRaw += (answers[q.id] || 3);
+    });
+    scores.granularity = Math.round(((granRaw - 2) / (10 - 2)) * 100);
+
+    // Mindset score
+    const mindQs = proQuestions.filter(q => q.tag === '信念');
+    let mindRaw = 0;
+    mindQs.forEach(q => {
+      mindRaw += (answers[q.id] || 3);
+    });
+    scores.mindset = Math.round(((mindRaw - 2) / (10 - 2)) * 100);
+  }
+
+  return scores;
+}
+
+// ── Results ──
+function showResults() {
+  showScreen('results');
+  const scores = calcScores();
+
+  // Version tag
+  const vTag = document.getElementById('versionTag');
+  vTag.textContent = isPro ? '🔬 专业版报告' : '🚀 轻量版报告';
+  vTag.className = 'version-tag ' + (isPro ? 'pro' : 'light');
+
+  // Overall score
+  document.getElementById('eqTotal').textContent = scores.total;
+  const levelEl = document.getElementById('eqLevel');
+  let levelText, levelClass;
+  if (scores.total >= 80) { levelText = '卓越的情绪智力'; levelClass = 'high'; }
+  else if (scores.total >= 65) { levelText = '高于平均水平'; levelClass = 'high'; }
+  else if (scores.total >= 45) { levelText = '平均水平'; levelClass = 'mid'; }
+  else if (scores.total >= 30) { levelText = '有待发展'; levelClass = 'low'; }
+  else { levelText = '需要重点关注'; levelClass = 'low'; }
+  levelEl.textContent = levelText;
+  levelEl.className = 'score-level ' + levelClass;
+
+  // Summary
+  document.getElementById('summaryText').innerHTML = generateSummary(scores);
+
+  // Trigger map (Pro only)
+  if (isPro) {
+    document.getElementById('triggerSection').style.display = 'block';
+    document.getElementById('triggerMap').innerHTML = generateTriggerMap(scores);
+  } else {
+    document.getElementById('triggerSection').style.display = 'none';
+  }
+
+  // Dimension cards
+  document.getElementById('dimList').innerHTML = renderDimCards(scores);
+
+  // Dimension interaction (Pro only)
+  if (isPro) {
+    document.getElementById('interactionSection').style.display = 'block';
+    document.getElementById('interactionText').innerHTML = generateInteraction(scores);
+  } else {
+    document.getElementById('interactionSection').style.display = 'none';
+  }
+
+  // Relationship & Career
+  document.getElementById('relText').innerHTML = generateRelationship(scores);
+  document.getElementById('careerText').innerHTML = generateCareer(scores);
+
+  // Relationship scenarios (Pro only)
+  if (isPro) {
+    document.getElementById('relScenarios').style.display = 'grid';
+    document.getElementById('relRomantic').innerHTML = generateRelScenario(scores, 'romantic');
+    document.getElementById('relWork').innerHTML = generateRelScenario(scores, 'work');
+  } else {
+    document.getElementById('relScenarios').style.display = 'none';
+  }
+
+  // Growth path
+  document.getElementById('growthContainer').innerHTML = isPro ? generateStagePath(scores) : `<div class="growth-card"><h4>🌱 提升策略</h4><div>${generateGrowth(scores)}</div></div>`;
+
+  // Granularity & Mindset (Pro only)
+  if (isPro) {
+    document.getElementById('granularitySection').style.display = 'block';
+    document.getElementById('granularityText').innerHTML = generateGranularityMindset(scores);
+  } else {
+    document.getElementById('granularitySection').style.display = 'none';
+  }
+
+  // Citations
+  document.getElementById('citeText').innerHTML = `
+    <strong>参考文献</strong><br>
+    Mayer, J. D., Salovey, P., & Caruso, D. R. (2008). Emotional intelligence: New ability or eclectic traits? <em>American Psychologist</em>, 63(6), 503–517.<br>
+    Goleman, D. (1995). <em>Emotional Intelligence: Why It Can Matter More Than IQ</em>. Bantam Books.<br>
+    Brackett, M. A., Rivers, S. E., & Salovey, P. (2011). Emotional intelligence: Implications for personal, social, academic, and workplace success. <em>Social and Personality Psychology Compass</em>, 5(1), 88–103.${isPro ? '<br>Barrett, L. F. (2017). <em>How Emotions Are Made: The Secret Life of the Brain</em>. Houghton Mifflin Harcourt. (情绪颗粒度)' : ''}
+  `;
+
+  // Animate bars
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.dim-bar-fill, .sub-bar-fill, .trigger-bar-fill').forEach(bar => {
+      const w = bar.style.width;
+      bar.style.width = '0%';
+      requestAnimationFrame(() => { bar.style.width = w; });
+    });
+  });
+}
+
+function getLevel(s) { return s >= 70 ? 'high' : s <= 35 ? 'low' : 'mid'; }
+
+// ── Trigger Map (Pro) ──
+function generateTriggerMap(scores) {
+  const triggers = [
+    { key:'criticism', icon:'💬', name:'被批评/否定', high:'你对批评和否定高度敏感——他人的负面评价可能在你心中激起强烈的情绪波澜。这种敏感让你对他人的反馈非常在意，但也让你容易陷入自我怀疑。', low:'你能相对冷静地看待他人的批评——你倾向于将"对作品的批评"和"对人的否定"分开。这种能力让你在接收反馈时保持理性和成长心态。', mid:'你对批评有一定敏感度，但通常能在一段时间后恢复理性看待。' },
+    { key:'uncertainty', icon:'🌪️', name:'不确定性/失控', high:'计划被打乱或事情超出掌控会让你感到强烈的焦虑和沮丧。你珍视秩序和可预测性——当它们被打破时，你的情绪系统会发出强烈的警报。', low:'你对变化和不确定性有较强的适应力。计划被打乱当然令人失望，但你能够快速调整心态，将注意力转移到"接下来怎么办"。', mid:'计划被打乱会让你不舒服，但你通常能够在一段时间后调整过来。' },
+    { key:'comparison', icon:'📱', name:'社交比较/落后感', high:'看到他人取得成就时，你容易陷入自我怀疑和焦虑。"别人都在前进，我是不是落后了？"这种想法可能频繁侵袭你。你的上进心是优势，但比较带来的焦虑可能是负担。', low:'你能为他人感到高兴，同时对自己的节奏保持信心。你理解社交媒体只是他人生活的片段展示，不是完整的真相。', mid:'社交比较会在一定程度上影响你的情绪，但你通常能意识到这种比较并不完全客观。' },
+    { key:'conflict', icon:'⚔️', name:'人际冲突/对抗', high:'当面对激烈的人际冲突时，你的情绪反应会很强烈——可能表现为愤怒、受伤或者完全回避。冲突情境是你情绪的"高压区"。', low:'即使在冲突中，你也能保持一定的冷静和理性。这不代表你不关心——而是你有能力在情绪被激活的同时不让它接管你的全部反应。', mid:'冲突会让你不舒服，但你通常能够控制住情绪并尝试建设性地解决问题。' }
+  ];
+
+  let html = '<p style="font-size:13px;color:var(--dim);margin-bottom:16px;">以下展示了不同情境对你情绪的触发强度。这不是一个"好/坏"的判断——而是帮你了解自己的情绪敏感点在哪里，让你在关键时刻能提前准备。</p>';
+
+  triggers.forEach(t => {
+    const val = scores.triggers[t.key] || 3;
+    const level = val >= 4 ? 'high' : val <= 2 ? 'low' : 'mid';
+    const desc = level === 'high' ? t.high : level === 'low' ? t.low : t.mid;
+    const barColor = level === 'high' ? 'var(--amber)' : level === 'low' ? 'var(--cyan)' : '#7ec8e3';
+    const levelLabel = level === 'high' ? '高敏感' : level === 'low' ? '低敏感' : '中等';
+    const pct = Math.round((val / 5) * 100);
+
+    html += `<div class="trigger-row">
+      <span class="trigger-icon">${t.icon}</span>
+      <div class="trigger-info">
+        <div class="trigger-name">${t.name}</div>
+        <div class="trigger-desc">${desc.substring(0, 60)}...</div>
+      </div>
+      <div class="trigger-bar-wrap"><div class="trigger-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+      <div class="trigger-level" style="color:${barColor}">${levelLabel}</div>
+    </div>`;
+  });
+
+  return html;
+}
+
+// ── Dimension Interaction (Pro) ──
+function generateInteraction(scores) {
+  const hi = (d) => scores[d] >= 60, lo = (d) => scores[d] <= 35;
+  let html = '';
+
+  // The most telling interaction pairs
+  if (hi('perceiving') && lo('managing')) {
+    html += '<strong>🔴 情绪雷达过载：</strong>你的情绪感知能力很强——你捕捉到大量来自自己和他人情绪的信号。但你的情绪管理能力还不足以有效处理它们。这就像拥有一台超高灵敏度的雷达，但过滤系统还不够成熟。结果是你可能会感到"被情绪裹挟"——别人的情绪很容易感染你，自己的情绪也不容易平复。<br><br><strong>关键练习：</strong>当察觉到一个强烈情绪信号时，先不要立即做出反应。给自己3秒钟的"处理时间"——给它命名，感受它在身体的哪个部位，然后问自己："这个情绪需要我做什么？"这3秒钟的间隔是你从"感知"到"管理"的桥梁。<br><br>';
+  }
+  if (lo('perceiving') && hi('managing')) {
+    html += '<strong>🔵 平静的盲区：</strong>你的情绪调节能力很强，不容易被情绪左右——这是一种珍贵的稳定力量。但相对较低的情绪感知力意味着你可能有时候不够了解自己的真实感受，也容易错过他人的情绪暗示。你的冷静有时候可能被误解为"冷漠"或"不在乎"。<br><br><strong>关键练习：</strong>每天花2分钟做一个"身体-情绪扫描"——从头到脚感受身体的每一部分，问自己"这里藏着什么情绪？"同时，在社交中主动问一句"你看起来好像有点……，对吗？"即使猜错了，这个动作本身就传达了关心。<br><br>';
+  }
+  if (hi('understanding') && lo('facilitating')) {
+    html += '<strong>🟡 理解但不运用：</strong>你能够深入地理解情绪的成因和变化——你知道"为什么"会有这种感受。但你可能还没有学会让情绪成为思考和决策的盟友。你可能倾向于把情绪"分析完"就放在一边，然后继续用"纯理性"的方式行动。<br><br><strong>关键练习：</strong>下次做决定时，在做完理性分析后，额外问自己一个问题："如果这个决定有一个「颜色」或「温度」，它是什么样的？"这个感性的问题能帮你在理性分析之上叠加情绪的智慧。<br><br>';
+  }
+  if (hi('perceiving') && hi('understanding') && !hi('managing')) {
+    html += '<strong>🟠 深度共情但易耗竭：</strong>你既能敏锐地感知情绪，又能深刻地理解它们——这让你成为一个天然的"共情者"。你可以深入地理解他人的感受，成为朋友们信赖的倾诉对象。但情绪管理能力的相对不足意味着你可能会"吸收"太多他人的情绪而感到耗竭。<br><br><strong>关键练习：</strong>建立你的"情绪边界"——在倾听他人之前先确认自己的状态。如果自己已经处于情绪低落中，诚实地告诉对方"我现在也需要一些空间，但我很愿意之后听你说"。保护自己的情绪能量不是自私，而是可持续共情的前提。<br><br>';
+  }
+  if (hi('perceiving') && hi('understanding') && hi('managing')) {
+    html += '<strong>🟢 情绪智力三角完整：</strong>你的情绪感知、理解和管理三个维度都处于较高水平——这构成了情绪智力的"铁三角"。你不仅能看到和理解情绪，还能有效地引导它们。这是一种强大的组合，让你在复杂的人际情境中游刃有余。<br><br><strong>继续发展：</strong>你当前阶段的成长重点可能在于"情绪运用"——如何更主动地利用情绪来激发创造力、辅助决策、深化人际关系。同时，也可以开始帮助身边的人发展他们的情绪能力——教学相长，教别人是最好的学习方式。<br><br>';
+  }
+  if (!hi('perceiving') && !hi('understanding') && !hi('managing') && !hi('facilitating')) {
+    html += '<strong>⚪ 情绪能力的成长起点：</strong>你的四个维度目前都还有较大的发展空间——这不是一个"缺陷"，而是一个明确的成长起点。就像任何技能一样，情绪智力完全可以通过系统的练习来提升。建议从"情绪感知"开始——它是整个情绪智力大厦的地基。当你能更清晰地感知到情绪的存在时，理解和管理的提升就有了依托。<br><br><strong>关键练习：</strong>从今天开始，每天固定一个时间（比如睡前5分钟），记录"今天我感受到了什么情绪？什么时候？"不需要分析或解决什么——只是观察和记录。坚持21天，你会发现内心世界的信号变得越来越清晰。<br><br>';
+  }
+
+  if (!html) {
+    html = '你的四个维度之间没有出现显著的极端组合——这意味着你的情绪能力整体比较均衡。各个维度之间的协调配合是你当前的优势。继续关注每个维度的稳步提升，同时留意在实际生活场景中四个维度的协作效果。<br><br>';
+  }
+
+  html += '<em>情绪智力的四个维度不是独立运作的——它们像一个链条：先感知到情绪，然后理解它的来源和意义，接着运用它来指导思考和行动，最后有效地管理它的强度和表达。任何一个环节的薄弱都会影响整条链的效能。</em>';
+
+  return html;
+}
+
+// ── Relationship Scenarios (Pro) ──
+function generateRelScenario(scores, context) {
+  const hi = (d) => scores[d] >= 60, lo = (d) => scores[d] <= 35;
+
+  if (context === 'romantic') {
+    let html = '';
+    if (hi('perceiving') && hi('managing')) {
+      html += '你在亲密关系中是一个<strong>情绪安全基地</strong>——你既能感受到伴侣的情绪状态，又有能力在风暴中保持稳定。伴侣可能会觉得"和你在一起很安心"，因为你不会被TA的情绪吓跑，也不会无视TA的感受。<br><br>';
+      html += '<strong>留意：</strong>你可能会不自觉地成为关系中的"情绪管理者"——总是你负责安抚、负责保持冷静。确保这不是一种单向的情绪劳动。你也有权表达脆弱。';
+    } else if (hi('perceiving') && lo('managing')) {
+      html += '在亲密关系中，你像一块<strong>情绪海绵</strong>——你能敏锐地感知到伴侣的每一个情绪波动，但可能会被这些波动带跑。伴侣的情绪不好，你的情绪立刻也跟着不好。这种深度共情是珍贵的，但需要配上情绪管理的能力才能让你不被耗尽。<br><br>';
+      html += '<strong>建议：</strong>练习"共情但不卷入"——你可以理解并关心伴侣的感受，但不需要为TA的感受负责。试着说："我理解你现在很难受，我在这里陪你。但我不需要和你一样难受才能支持你。"';
+    } else if (lo('perceiving') && hi('managing')) {
+      html += '你在亲密关系中是一个<strong>稳定的港湾</strong>——你不会被情绪的波浪轻易掀翻。但伴侣有时可能会觉得你"读不懂"TA的情绪，或者觉得你不够关心TA的感受，因为你总是看起来很冷静。<br><br>';
+      html += '<strong>建议：</strong>主动做一些"情绪确认"——"我注意到你今天好像有点沉默，是发生了什么吗？"即使你不确定对方的具体感受，提出这个问题本身就传达了关心。';
+    } else {
+      html += '亲密关系中的情绪互动对你来说可能是一个<strong>正在学习的领域</strong>——你并不缺少爱和关心，但情绪的表达和感知可能还不够熟练。好消息是：亲密关系本身就是练习情绪能力的最佳实验室。每一次分歧、每一次和好，都在锻炼你的情绪肌肉。<br><br>';
+      html += '<strong>建议：</strong>每天做一个小小的"情绪分享"——告诉伴侣你今天感受到的一两个情绪，不需要大事件，日常就好。同时问问TA今天感受到了什么。这个小习惯会逐渐培养你们的情绪连接。';
+    }
+    return html;
+  }
+
+  if (context === 'work') {
+    let html = '';
+    if (hi('managing')) {
+      html += '你在职场中是一个<strong>情绪稳定的锚点</strong>——在压力、冲突和不确定性面前，你能够保持冷静和专业。这种可靠性让你在团队中赢得信任，尤其是当其他人都在慌乱时。<br><br>';
+      html += '<strong>职业优势：</strong>你适合需要在高压下保持判断力的角色——危机处理、项目管理、客户谈判。但不要让"永远冷静"变成别人对你的唯一期待——你的热情和创造力同样值得展现。';
+    } else if (hi('perceiving')) {
+      html += '你在职场中对人际动态有<strong>敏锐的嗅觉</strong>——你能感知到团队中的微妙变化、谁和谁之间有了紧张、谁在会议中被忽略了。这种能力让你成为一个自然的"团队润滑剂"。<br><br>';
+      html += '<strong>职业优势：</strong>你适合需要"读人"的角色——团队管理、客户关系、跨部门协调。但注意不要因为太在意人的因素而回避了必要的冲突和艰难决定。';
+    } else if (hi('facilitating')) {
+      html += '你在工作中善于<strong>利用情绪的能量</strong>——你知道什么样的情绪状态适合做什么样的工作，也能在需要创造力的时候调动积极的情绪。你不太容易陷入"没有灵感"的困境，因为你有方法来调整自己的状态。<br><br>';
+      html += '<strong>职业优势：</strong>你适合需要创造力和灵活应变的工作——产品设计、内容创作、创业早期阶段。在工作中保持这种"心脑并用"的风格，它是你区别于纯理性型同事的核心竞争力。';
+    } else {
+      html += '在职场中，你可能是<strong>以任务和逻辑为导向</strong>的人——你专注于把事情做好，可能不太关注人际间的情绪动态。这让你在某些技术或分析型的角色中表现出色。<br><br>';
+      html += '<strong>建议：</strong>逐渐将"情绪觉察"纳入你的职场工具包。它不需要成为你的主业——只是在关键决策时额外问自己一句："这个决定对团队的情绪会产生什么影响？"这个简单的问题会让你的专业判断更加全面。';
+    }
+    return html;
+  }
+  return '';
+}
+
+// ── Stage-based Growth Path (Pro) ──
+function generateStagePath(scores) {
+  const dims = ['perceiving','understanding','facilitating','managing'];
+  const sorted = dims.map(d => ({ dim:d, score:scores[d] })).sort((a,b) => a.score - b.score);
+  const avgScore = scores.total;
+
+  let currentStage, stageDesc, nextStep;
+  if (avgScore < 35) {
+    currentStage = 1;
+    stageDesc = '在这个阶段，你的主要任务是<strong>建立情绪觉察的基础</strong>。你不需要立刻成为情绪的专家——就像学习一门新语言，第一步是熟悉"字母表"。开始关注并命名自己的情绪是当前最重要的练习。';
+    nextStep = '进入第二阶段的关键：能够准确命名至少10种不同的情绪感受，并开始注意到情绪的生理信号（身体感受）。';
+  } else if (avgScore < 60) {
+    currentStage = 2;
+    stageDesc = '你已经能够感知和理解大部分情绪，但可能在某些维度上还不够稳定。这个阶段的核心是<strong>将情绪能力系统化</strong>——建立自己的情绪管理工具箱，让情绪运用从"偶尔"变成"习惯"。';
+    nextStep = '进入第三阶段的关键：在至少一个维度上达到"高"水平，并能够在真实生活情境中（冲突、压力、重要决策）有意识地运用情绪能力。';
+  } else {
+    currentStage = 3;
+    stageDesc = '你已经拥有较为成熟的情绪能力——不仅能感知、理解、管理自己的情绪，还能在多数情况下有效地运用它们。这个阶段的核心是<strong>深化和内化</strong>——让这些能力成为你的"第二天性"，并开始帮助身边的人发展情绪能力。';
+    nextStep = '持续精进的方向：探索情绪智力的更高层次——如何在帮助他人处理情绪的同时保护自己？如何利用情绪能力做出更深层的生命决策？教学相长——帮助他人是巩固自己能力的最好方式。';
+  }
+
+  const stageNames = ['', '🌱 觉察阶段', '🌿 练习阶段', '🌳 内化阶段'];
+
+  let html = '<div class="stage-path">';
+  for (let i = 1; i <= 3; i++) {
+    const isActive = i === currentStage;
+    const isDone = i < currentStage;
+    const isNext = i > currentStage;
+    html += `<div class="stage-card${isActive ? ' current' : ''}" style="${isDone ? 'opacity:0.5' : isNext ? 'opacity:0.35' : ''}">
+      <span class="stage-num ${isDone ? 'done' : isActive ? 'active' : 'next'}">${isDone ? '✓' : i}</span>
+      <span class="stage-title" style="color:${isActive ? 'var(--cyan)' : isDone ? 'var(--dim)' : 'var(--dim)'}">${stageNames[i]}</span>
+      ${isActive ? `<div class="stage-desc">${stageDesc}<br><br><em>→ ${nextStep}</em></div>` : ''}
+      ${isDone ? `<div class="stage-desc">已完成的能力基础。</div>` : ''}
+      ${isNext ? `<div class="stage-desc">即将解锁的阶段。</div>` : ''}
+    </div>`;
+  }
+  html += '</div>';
+
+  // Add specific focus area
+  const lowest = sorted[0];
+  html += `<div class="growth-card"><h4>🎯 当前最优先提升：${DIM_INFO[lowest.dim].name}</h4><div>${generateGrowth(scores)}</div></div>`;
+
+  return html;
+}
+
+// ── Granularity & Mindset (Pro) ──
+function generateGranularityMindset(scores) {
+  let html = '';
+
+  // Granularity
+  const g = scores.granularity;
+  html += '<strong>🔤 情绪颗粒度：</strong>';
+  if (g >= 70) {
+    html += '你拥有较高的情绪颗粒度——你能够用丰富而精准的词汇来描述自己的内心体验。心理学家 Lisa Feldman Barrett 的研究表明，高情绪颗粒度的人能够更好地调节情绪、应对压力，甚至拥有更好的身心健康。你可以区分"失望"、"遗憾"、"不甘"和"伤心"之间的微妙差异，这种能力让你在处理情绪时更加精准有效。<br><br>';
+    html += '<strong>保持之道：</strong>继续扩展你的情绪词汇库。可以尝试阅读文学作品——小说中丰富的情感描写是扩充情绪词汇的最好来源。';
+  } else if (g >= 40) {
+    html += '你的情绪颗粒度处于中等水平——你能识别基本的情绪状态，但有时可能只能用"还行"、"不太好"这样笼统的词来描述自己的感受。发展更精细的情绪词汇会让你的情绪管理更加精准——就像从只能看到"红色"变成能看到"绯红、猩红、酒红"一样。<br><br>';
+    html += '<strong>提升方法：</strong>下载一个"情绪轮"图表（Emotion Wheel），每天在记录心情时从上面挑1-2个最准确的词。用不了一个月，你的情绪词汇量会显著增长。';
+  } else {
+    html += '你的情绪颗粒度目前还比较粗——你可能会用"不舒服"、"还行"这样的大类来概括很多不同的情绪体验。这不是一个缺陷——情绪词汇就像任何一种词汇，完全是可以通过练习来扩充的。<br><br>';
+    html += '<strong>入门练习：</strong>从最基本的6种情绪开始（快乐、悲伤、愤怒、恐惧、惊讶、厌恶），每天试着用这6个词中的至少1个来描述自己的感受。几周后，开始尝试更细的分类——比如把"愤怒"细分为"烦躁、恼怒、愤慨、暴怒"。';
+  }
+
+  // Mindset
+  html += '<br><strong>🧠 情绪信念：</strong>';
+  const m = scores.mindset;
+  if (m >= 70) {
+    html += '你持有"成长型思维"（Growth Mindset）——你相信情绪智力是可以发展的，并且倾向于面对而非回避自己的情绪。正如心理学家 Carol Dweck 的研究所揭示的，这种信念本身就是成长的最佳预测器。当你相信可以改变时，你就已经开始改变了。<br><br>';
+    html += '<em>你对自己情绪的接纳态度是你情绪健康的重要保护因子。</em>';
+  } else if (m >= 40) {
+    html += '你对情绪智力持有部分成长信念——你相信某些方面可以提升，但可能对另一些方面持怀疑态度。也许你相信"可以学会管理情绪"，但怀疑"情绪感知力是天生的"。研究表明，情绪智力的各个维度都是可以通过练习改善的——就像任何复杂的技能一样。<br><br>';
+    html += '<strong>建议：</strong>回想一个你曾经不擅长但后来通过练习变得更好的技能（开车、做饭、一门语言…）。情绪智力也是如此——它需要时间、练习和耐心，但改变确实是可能的。';
+  } else {
+    html += '你目前可能持有较多的"固定型思维"——倾向于认为情绪智力是天赋，难以改变。这种信念本身可能就是你成长的最大障碍。大量的心理学研究表明，人的情绪能力在成年后仍然具有显著的可塑性。大脑的神经可塑性意味着你的每一次练习都在重塑你的情绪回路。<br><br>';
+    html += '<strong>尝试：</strong>从一件非常小的事情开始证明给自己看——比如，连续一周每天记录3种情绪，然后观察自己是否比一周前更了解自己的情绪状态。证据比信念更有说服力。';
+  }
+
+  return html;
+}
+
+// ── Dimension Cards ──
+function renderDimCards(scores) {
+  const dims = ['perceiving','understanding','facilitating','managing'];
+  const descHigh = {
+    perceiving: '你善于捕捉自己和他人的情绪信号——面部表情、语气变化、身体语言都逃不过你的眼睛。这种敏锐让你在社交中如鱼得水，但也意味着你可能会被大量的情绪信息所淹没。注意保护自己的情绪边界。',
+    understanding: '你不仅能感受到情绪，还能深入理解情绪的来龙去脉。你知道"为什么会有这种感受"，也能预见特定情境会引发怎样的情绪反应。这种能力让你成为朋友信赖的倾诉对象，也帮助你在复杂的人际动态中保持清醒。',
+    facilitating: '你善于利用情绪来辅助思考和决策。你知道什么情绪状态适合做什么事——开心时做创意，平静时做分析。你也信任自己的直觉，让"gut feeling"成为理性分析的有力补充。',
+    managing: '你有成熟的情绪调节策略，不会被强烈的情绪轻易掀翻。你不仅能让自己从负面情绪中恢复，还能在他人情绪崩溃时提供稳定的支持。这种能力在高压环境和人际冲突中尤为珍贵。'
+  };
+  const descMid = {
+    perceiving: '你基本能够察觉自己和他人的情绪，但在某些微妙的情境中可能会错过重要的情绪信号。有时你事后才意识到"原来当时TA是那个意思"。有意识地练习"情绪观察"可以让你的感知更敏锐。',
+    understanding: '你能够理解大部分情绪产生的原因，但面对复杂或矛盾的情绪时可能会感到困惑。"又高兴又难过"这种混合情绪对你来说可能需要更多时间来消化。多与人交流情绪体验有助于加深理解。',
+    facilitating: '你有时候能利用情绪来帮助思考和决策，但还不够系统和自觉。在某些情况下情绪可能会干扰你的判断，而在另一些情况下你又可能过度压抑情绪。学会"情绪与理性协作"是提升的关键。',
+    managing: '你有一些基本的情绪调节方法，但在强烈的负面情绪面前可能还是会失控或需要较长时间恢复。帮助他人处理情绪对你来说可能有些吃力。建立更系统的情绪管理工具箱会让你的生活更轻松。'
+  };
+  const descLow = {
+    perceiving: '你有时候会"不知道自己为什么心情不好"，也可能在社交中错过他人的情绪暗示。这不代表你不关心他人——只是你的情绪雷达可能需要校准。练习给情绪命名、记录情绪日志可以帮助你建立更好的自我觉察。',
+    understanding: '你可能会被自己或他人的情绪反应搞糊涂——"为什么我会这样？""TA到底怎么了？"这些问题常常困扰你。理解情绪的前因后果是一种可以学习的技能，就像学习一门语言一样。',
+    facilitating: '你倾向于将情绪视为决策的干扰因素，可能习惯于"纯理性"的方式处理问题。然而研究显示，情绪其实是决策中不可或缺的信息源——完全没有情绪的决策往往并不更好。学着让情绪成为你的顾问而非敌人。',
+    managing: '强烈的情绪对你来说可能像潮水一样难以招架——你可能会被愤怒淹没、被焦虑困住、被悲伤压垮。这不代表你"脆弱"，只是你还没有找到适合自己的调节方法。情绪管理是一种技能，完全可以通过练习掌握。'
+  };
+
+  let html = '';
+  dims.forEach(dim => {
+    const info = DIM_INFO[dim];
+    const s = scores[dim];
+    const lvl = getLevel(s);
+    const desc = lvl === 'high' ? descHigh[dim] : lvl === 'low' ? descLow[dim] : descMid[dim];
+    const barColor = lvl === 'high' ? 'var(--cyan)' : lvl === 'low' ? 'var(--amber)' : '#7ec8e3';
+
+    let subHtml = '';
+    if (scores._sub && scores._sub[dim]) {
+      subHtml = '<div class="sub-row">';
+      for (const [sub, val] of Object.entries(scores._sub[dim])) {
+        subHtml += `<div class="sub-item">
+          <div class="sub-name">${sub}</div>
+          <div class="sub-bar-wrap"><div class="sub-bar-fill" style="width:${val}%"></div></div>
+          <div class="sub-val">${val}</div>
+        </div>`;
+      }
+      subHtml += '</div>';
+    }
+
+    html += `<div class="dim-card">
+      <div class="dim-header">
+        <div class="dim-name"><span class="dim-icon">${info.icon}</span>${info.name}</div>
+        <div class="dim-score" style="color:${barColor}">${s}</div>
+      </div>
+      <div class="dim-bar-wrap"><div class="dim-bar-fill" style="width:${s}%;background:${barColor}"></div></div>
+      <div class="dim-labels"><span>低</span><span>高</span></div>
+      <div class="dim-desc">${desc}</div>
+      ${subHtml}
+    </div>`;
+  });
+  return html;
+}
+
+function generateSummary(scores) {
+  const dims = ['perceiving','understanding','facilitating','managing'];
+  const sorted = dims.map(d => ({ dim:d, score:scores[d] })).sort((a,b) => b.score - a.score);
+  const top = sorted[0], bottom = sorted[3];
+  const topName = DIM_INFO[top.dim].name, bottomName = DIM_INFO[bottom.dim].name;
+
+  let html = `<strong>你的情绪智力画像：</strong>你最突出的维度是<strong style="color:var(--cyan)">${topName}</strong>，最需要发展的维度是<strong style="color:var(--amber)">${bottomName}</strong>。<br><br>`;
+
+  const hi = (d) => scores[d] >= 65, lo = (d) => scores[d] <= 35;
+
+  if (hi('perceiving') && hi('managing')) {
+    html += '你拥有非常均衡的情绪能力——既能敏锐地感知情绪的流动，又能有效地调节和引导它们。这种组合让你在人际互动中既有深度又有韧性，是很多人信赖的"情绪稳定器"。<br><br>';
+  }
+  if (hi('perceiving') && lo('managing')) {
+    html += '<strong>你能感受到很多，但有时被情绪淹没。</strong>你的情绪感知能力很强——你捕捉到了大量来自自己和他人情绪的信号。然而，这些信号有时会变成噪音，因为你的情绪管理能力还不足以有效处理它们。<br><br>';
+  }
+  if (lo('perceiving') && hi('managing')) {
+    html += '<strong>你善于保持平静，但可能忽视了重要的情绪信号。</strong>你的情绪调节能力很强，不容易被情绪左右——这是一种珍贵的稳定力量。但相对较低的情绪感知力意味着你可能有时候不够了解自己的真实感受。<br><br>';
+  }
+  if (hi('understanding') && lo('facilitating')) {
+    html += '<strong>你理解情绪，但还没有学会运用它们。</strong>你能够深入地理解情绪的成因和变化，但可能倾向于将情绪与行动分开。试着在做决定时主动问问自己："我的直觉在告诉我什么？"<br><br>';
+  }
+  if (hi('managing') && hi('understanding')) {
+    html += '你的情绪理解和管理能力都很出色——你不仅知道情绪的来龙去脉，还知道如何有效地引导它们。这种"知己知彼"的能力让你在面对复杂人际情境时游刃有余。<br><br>';
+  }
+  if (scores.total >= 70) {
+    html += '总体而言，你的情绪智力处于较高水平。良好的人际关系和情绪健康不是偶然的——它们是你投入自我觉察和情绪管理的自然结果。<br><br>';
+  } else if (scores.total < 40) {
+    html += '你的情绪智力目前还有很多发展空间——这不是一个"缺陷"，而是一个成长的机会。就像锻炼肌肉一样，情绪能力也可以通过系统的练习得到显著提升。<br><br>';
+  } else {
+    html += '你的情绪智力处于中等水平，这意味着你在某些方面已经做得不错，而在另一些方面还有提升的空间。情绪智力不是一成不变的天赋。<br><br>';
+  }
+
+  html += `<em>情绪智力的本质不是"永远保持积极"——而是能够准确地感知、深刻地理解、灵活地运用、有效地管理情绪，包括那些不愉快的情绪。正如心理学家 Marc Brackett 所说："命名它，才能驯服它。"（Name it to tame it.）</em>`;
+  return html;
+}
+
+function generateRelationship(scores) {
+  const hi = (d) => scores[d] >= 60, lo = (d) => scores[d] <= 35;
+  let html = '';
+  if (hi('perceiving') && hi('understanding')) {
+    html += '<strong>🎯 共情高手：</strong>你能够敏锐地感知伴侣/朋友的情绪状态，并理解这些情绪从何而来。这种能力让你在关系中成为一个"安全港"。但要留意：不要因为你能"猜到"对方的感受，就认为对方不需要主动表达了。<br><br>';
+  } else if (lo('perceiving')) {
+    html += '<strong>👂 练习倾听：</strong>你有时可能会错过关系中重要的情绪信号。建议你在互动中有意识地观察对方的表情、语气和身体语言，并在不确定时主动询问："你现在感觉怎么样？"<br><br>';
+  }
+  if (hi('managing')) {
+    html += '<strong>🛡️ 冲突稳定器：</strong>当关系中出现分歧和冲突时，你能够保持冷静，不让情绪失控加剧矛盾。这种稳定感让另一半感到安全。<br><br>';
+  } else if (lo('managing')) {
+    html += '<strong>🌊 情绪风暴预警：</strong>在关系冲突中，强烈的情绪可能会让你说出或做出事后后悔的事。建议使用"暂停技术"：告诉对方"我现在需要冷静一下，我们15分钟后再继续"。<br><br>';
+  }
+  if (hi('facilitating')) {
+    html += '<strong>💡 情绪智慧：</strong>你在关系中善于运用情绪信息——在做关于关系的重要决定时，你会同时参考理性分析和内心感受。这种"心脑并用"的方式让你的关系既有深度又有活力。<br><br>';
+  }
+  html += '<em>心理学家 John Gottman 的研究发现，情绪调节能力是预测关系满意度的最强因子之一。</em>';
+  return html;
+}
+
+function generateCareer(scores) {
+  const hi = (d) => scores[d] >= 60;
+  let html = '';
+  if (scores.total >= 70) {
+    html += '你的高情绪智力适合需要大量人际互动和情绪劳动的职业：<br><br>• <strong>领导与管理</strong>• <strong>心理咨询与教育</strong>• <strong>医疗与社会服务</strong>• <strong>销售与客户关系</strong><br><br>';
+  } else if (scores.total < 40) {
+    html += '你目前可能更适合：<br><br>• <strong>技术/工程/研究</strong>• <strong>数据与金融分析</strong>• <strong>创意/设计（独立工作模式）</strong><br><br>同时，在职业发展中刻意提升情绪智力，会为你打开更多可能性。<br><br>';
+  }
+  if (hi('managing')) {
+    html += '<strong>高压职业适配：</strong>你的情绪管理能力让你适合在高压环境中工作——医疗急救、金融交易、项目管理、危机公关等。<br><br>';
+  }
+  if (hi('perceiving') && hi('understanding')) {
+    html += '<strong>人际洞察型职业：</strong>你的情绪感知和理解能力适合需要"读人"的工作——谈判、调解、教练、人才评估等。<br><br>';
+  }
+  html += '<em>Daniel Goleman 的研究表明，情绪智力在成年后仍然可以通过有意识的训练显著提升。</em>';
+  return html;
+}
+
+function generateGrowth(scores) {
+  const dims = ['perceiving','understanding','facilitating','managing'];
+  const sorted = dims.map(d => ({ dim:d, score:scores[d] })).sort((a,b) => a.score - b.score);
+  let html = '';
+
+  const strategies = {
+    perceiving: '<strong>👁️ 提升情绪感知：</strong><br>• <strong>情绪日记：</strong>每天固定时间记录"我今天感受到了什么情绪？什么时候？因为什么？"先从基础情绪开始，逐渐丰富词汇。<br>• <strong>身体扫描：</strong>每天花2分钟从头到脚扫描身体，把身体感受和情绪感受联系起来。<br>• <strong>观察他人：</strong>在社交中，默默观察非语言信号——谁在躲闪眼神？谁的声音突然变小了？',
+    understanding: '<strong>🧠 深化情绪理解：</strong><br>• <strong>情绪时间线：</strong>当感受到强烈情绪时，往前追溯——"在此之前发生了什么？是什么触发了这个反应？"<br>• <strong>因果映射：</strong>画出"发生了什么 → 我怎么解读的 → 这种解读引发了什么情绪 → 背后隐藏着什么需求"。<br>• <strong>分析角色：</strong>看电影/读小说时有意识地分析角色的情绪变化——"TA为什么从愤怒变成了悲伤？"',
+    facilitating: '<strong>💡 学会运用情绪：</strong><br>• <strong>情绪-任务匹配：</strong>观察自己在不同情绪状态下的表现，有意识地匹配情绪和任务类型。<br>• <strong>直觉日志：</strong>每次做决定时记录理性分析和直觉感受，过一段时间回顾准确率。<br>• <strong>情绪颜色板：</strong>给不同的情绪分配颜色，决策时看自己的"内心颜色板"。',
+    managing: '<strong>⚖️ 加强情绪管理：</strong><br>• <strong>认知重评：</strong>当负面情绪出现时，问自己："这件事还有没有别的解释？"改变解读方式，情绪就会随之改变。<br>• <strong>暂停+标签：</strong>冲动反应前先暂停3秒，给情绪命名——"我现在感到愤怒"。命名就能让情绪强度降低。<br>• <strong>呼吸锚定：</strong>每天练习5分钟的腹式呼吸或4-7-8呼吸法，训练副交感神经系统。'
+  };
+
+  const focus = sorted.slice(0, 2);
+  focus.forEach(f => {
+    html += strategies[f.dim] + '<br><br>';
+  });
+
+  html += '<em>情绪智力不是一蹴而就的——它更像是健身，需要持续、刻意的练习。每天花10分钟，一个月后你会看到显著的变化。</em>';
+  return html;
+}
+
+// ── Actions ──
+function restartTest() { currentQ = 0; answers = {}; showScreen('welcome'); }
+
+function shareResults() {
+  const scores = calcScores();
+  const topDim = Object.entries(DIM_INFO).map(([k,v]) => ({key:k, name:v.name, score:scores[k]})).sort((a,b) => b.score - a.score)[0];
+  const level = scores.total >= 80 ? '卓越' : scores.total >= 65 ? '较高' : scores.total >= 45 ? '中等' : '发展中';
+  const mode = isPro ? '专业版' : '轻量版';
+  const text = `🎭 我的情绪智力（${mode}）评估结果：${level}（${scores.total}分）！\n最强维度：${topDim.name}\n四维分析：感知·理解·运用·管理\n来测测你的EQ →`;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => showToast('✅ 已复制个性化分享文案到剪贴板'));
+  } else {
+    showToast('📤 长按复制：' + text.substring(0, 60) + '...');
+  }
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 2500);
+}
+</script>
+</body>
+</html>
