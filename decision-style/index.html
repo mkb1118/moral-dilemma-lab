@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="决策风格分析：基于 GDMS 框架，从理性、直觉、依赖、回避、冲动五个维度看见你的决策模式。">
+<meta property="og:title" content="决策风格分析">
+<meta property="og:description" content="25 个情境题，生成你的主导决策风格、五维图谱、优势盲区与成长策略。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
 <title>决策风格分析</title>
+<link rel="stylesheet" href="../assets/psych-lab.css">
 <style>
   :root {
     --bg: #060b12; --card: #0c1520; --card-hover: #111d2c;
@@ -234,6 +240,10 @@
 
     <div class="cite-card" id="citeText"></div>
 
+    <div class="lab-next-card">
+      <div><strong>推荐下一项实验：认知偏差检测</strong>了解你怎么做决定之后，继续检查哪些思维陷阱会影响判断。</div>
+      <a class="lab-home-link" href="../cognitive-bias/index.html">继续实验 →</a>
+    </div>
     <div class="action-row">
       <button class="btn primary" onclick="restartTest()">重新分析</button>
       <button class="btn secondary" onclick="shareResults()">📤 分享结果</button>
@@ -474,23 +484,21 @@ function calcScores() {
   questions.forEach(q => {
     const choice = q.opts[answers[q.id]];
     if (!choice || !choice.points) return;
-    // Track max possible for each style (if user always chose the option favoring that style)
+
     for (const [style, pts] of Object.entries(choice.points)) {
       rawScores[style] += pts;
     }
-    // Max possible: sum of the max points any option gives to each style
-    q.opts.forEach(opt => {
-      for (const [style, pts] of Object.entries(opt.points)) {
-        if (!maxPossible[style]) maxPossible[style] = 0;
-        maxPossible[style] = Math.max(maxPossible[style], pts); // not quite right — we want how many times each style *could* have been chosen
-      }
-    });
+
+    for (const style of Object.keys(maxPossible)) {
+      const maxForQuestion = Math.max(...q.opts.map(opt => opt.points[style] || 0));
+      maxPossible[style] += maxForQuestion;
+    }
   });
 
-  // Better approach: normalize each style against what's possible (5 questions × 5 points = 25 max per style)
   const normalized = {};
   for (const style of Object.keys(rawScores)) {
-    normalized[style] = Math.round((rawScores[style] / 25) * 100);
+    const max = maxPossible[style];
+    normalized[style] = max > 0 ? Math.min(100, Math.round((rawScores[style] / max) * 100)) : 0;
   }
 
   // Sort styles
@@ -666,7 +674,9 @@ function shareResults() {
   const scores = calcScores();
   const p = STYLE_INFO[scores.primary];
   const text = `🎯 我的决策风格分析结果：${p.name}！\n五维分析：理性·直觉·依赖·回避·冲动\n来测测你的决策DNA吧 →`;
-  if (navigator.clipboard) {
+  if (window.PsychLab) {
+    PsychLab.copyText(text + '\n' + PsychLab.currentUrl(), '✅ 已复制分享文案到剪贴板');
+  } else if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(() => showToast('✅ 已复制分享文案到剪贴板'));
   } else {
     showToast('📤 长按复制：' + text.substring(0,60) + '...');
@@ -680,5 +690,6 @@ function showToast(msg) {
   setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 2500);
 }
 </script>
+<script src="../assets/psych-lab.js"></script>
 </body>
 </html>

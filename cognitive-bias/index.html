@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="认知偏差检测：36 个情境题，检测确认偏误、锚定效应、损失厌恶等 12 类常见思维陷阱。">
+<meta property="og:title" content="认知偏差检测">
+<meta property="og:description" content="看见那些悄悄影响你判断的大脑捷径，生成认知偏差抵抗力报告。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
 <title>认知偏差检测</title>
+<link rel="stylesheet" href="../assets/psych-lab.css">
 <style>
   :root {
     --bg: #060b12; --card: #0c1520; --card-hover: #111d2c;
@@ -134,6 +140,10 @@
       <div style="font-size:13px;color:var(--dim);margin-top:6px;line-height:1.6;font-weight:300;" id="totalLabel"></div>
     </div>
     <div id="biasList"></div>
+    <div class="lab-next-card">
+      <div><strong>推荐下一项实验：决策风格分析</strong>看见思维偏差之后，继续了解你习惯用哪种方式做决定。</div>
+      <a class="lab-home-link" href="../decision-style/index.html">继续实验 →</a>
+    </div>
     <div class="action-row">
       <button class="btn primary" onclick="restartTest()">重新检测</button>
       <button class="btn" onclick="shareResults()">📤 分享结果</button>
@@ -365,6 +375,8 @@ const BIAS_INFO = {
 // ============================================
 let currentQ = 0;
 let answers = []; // {questionId, score (0 or 1)}
+let isAdvancing = false;
+let resultsShown = false;
 
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -373,6 +385,8 @@ function showScreen(id) {
 
 function startTest() {
   currentQ = 0; answers = [];
+  isAdvancing = false;
+  resultsShown = false;
   showScreen('quiz');
   renderQuestion();
 }
@@ -400,18 +414,37 @@ function renderQuestion() {
 }
 
 function answer(score, btn) {
-  document.querySelectorAll('.choice-btn').forEach(b => b.style.opacity = '0.4');
+  if (isAdvancing || resultsShown) return;
+  if (currentQ < 0 || currentQ >= SCENARIOS.length) return;
+  const q = SCENARIOS[currentQ];
+  if (!q) return;
+
+  isAdvancing = true;
+  document.querySelectorAll('.choice-btn').forEach(b => {
+    b.style.opacity = '0.4';
+    b.disabled = true;
+  });
   btn.style.opacity = '1'; btn.style.borderColor = 'var(--cyan)';
-  answers[currentQ] = { questionId: SCENARIOS[currentQ].id, score: score };
+  answers[currentQ] = { questionId: q.id, score: score };
   setTimeout(() => {
+    if (resultsShown) return;
     currentQ++;
-    if (currentQ >= SCENARIOS.length) { document.getElementById('progPct').textContent = '100%'; document.getElementById('progFill').style.width = '100%'; setTimeout(showResults, 300); }
-    else renderQuestion();
+    if (currentQ >= SCENARIOS.length) {
+      document.getElementById('progPct').textContent = '100%';
+      document.getElementById('progFill').style.width = '100%';
+      resultsShown = true;
+      isAdvancing = false;
+      setTimeout(showResults, 300);
+    }
+    else {
+      isAdvancing = false;
+      renderQuestion();
+    }
   }, 250);
 }
 
 function goBack() {
-  if (currentQ <= 0) return;
+  if (isAdvancing || resultsShown || currentQ <= 0) return;
   currentQ--;
   renderQuestion();
 }
@@ -538,9 +571,10 @@ function showResults() {
 // ============================================
 function shareResults() {
   const score = document.getElementById('totalScore').textContent;
-  const text = `🔍 认知偏差检测——我对12种经典思维陷阱的抵抗力：${score}\n\n36个情境题，测了确认偏误、锚定效应、损失厌恶、达克效应、基本归因错误等12种认知偏差。\n\n你的大脑也有这些"思维捷径"吗？3分钟，看见自己的认知模式。\n👉 https://mkb1118.github.io/cognitive-bias/`;
+  const text = `🔍 认知偏差检测——我对12种经典思维陷阱的抵抗力：${score}\n\n36个情境题，测了确认偏误、锚定效应、损失厌恶、达克效应、基本归因错误等12种认知偏差。\n\n你的大脑也有这些"思维捷径"吗？3分钟，看见自己的认知模式。\n👉 ${window.PsychLab ? PsychLab.currentUrl() : location.href}`;
 
-  if (navigator.clipboard) { navigator.clipboard.writeText(text).then(() => showToast('已复制！')); }
+  if (window.PsychLab) PsychLab.copyText(text, '已复制！');
+  else if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('已复制！'));
 }
 
 function showToast(msg) {
@@ -549,7 +583,8 @@ function showToast(msg) {
   document.body.appendChild(t); setTimeout(() => t.remove(), 2500);
 }
 
-function restartTest() { currentQ = 0; answers = []; showScreen('welcome'); }
+function restartTest() { currentQ = 0; answers = []; isAdvancing = false; resultsShown = false; showScreen('welcome'); }
 </script>
+<script src="../assets/psych-lab.js"></script>
 </body>
 </html>

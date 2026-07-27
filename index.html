@@ -3,173 +3,153 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>心理测试广场</title>
+<meta name="description" content="心理测试广场：6 个纯前端心理测试，探索人格、决策、情绪、道德、认知偏差与核心价值观。无需登录，直接开始。">
+<meta property="og:title" content="心理测试广场 · Psychology Lab">
+<meta property="og:description" content="探索你的决策、人格、情绪与价值观。6 个心理测试，纯前端、无需登录、适合自我探索。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<title>心理测试广场 · Psychology Lab</title>
+<link rel="stylesheet" href="assets/psych-lab.css">
 <style>
-  :root {
-    --bg: #060b12;
-    --card: #0c1520;
-    --card-hover: #111d2c;
-    --cyan: #00e5ff;
-    --amber: #f5a623;
-    --white: #f0f4f8;
-    --dim: rgba(240,244,248,0.5);
-    --border: rgba(240,244,248,0.06);
-    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    --mono: 'Cascadia Code', 'Fira Code', monospace;
-  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: var(--bg);
-    color: var(--white);
-    font-family: var(--font);
-    min-height: 100vh;
+  body { min-height: 100vh; }
+  .route-panel {
+    margin-bottom: 30px;
+    border: 1px solid var(--lab-border);
+    border-radius: 22px;
+    padding: 22px;
+    background: rgba(12,21,32,.52);
   }
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background: linear-gradient(90deg, var(--border) 1px, transparent 1px),
-                linear-gradient(0deg, var(--border) 1px, transparent 1px);
-    background-size: 60px 60px;
-    mask-image: radial-gradient(ellipse at 50% 30%, black 20%, transparent 60%);
-    pointer-events: none; z-index: 0;
+  .route-title {
+    font-family: var(--lab-mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--lab-amber);
+    text-transform: uppercase;
+    margin-bottom: 14px;
   }
-
-  .app { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 48px 24px; }
-
-  /* Header */
-  .header { text-align: center; margin-bottom: 56px; }
-  .header-label {
-    font-family: var(--mono); font-size: 10px; letter-spacing: 4px;
-    color: var(--amber); text-transform: uppercase; margin-bottom: 12px;
+  .route-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .route-card {
+    border: 1px solid var(--lab-border);
+    border-radius: 16px;
+    padding: 16px;
+    background: rgba(255,255,255,.018);
   }
-  .header h1 { font-size: 36px; font-weight: 200; letter-spacing: 2px; }
-  .header h1 span { color: var(--cyan); font-weight: 400; }
-  .header p { color: var(--dim); font-size: 15px; font-weight: 300; margin-top: 10px; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.6; }
-
-  /* Grid */
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-
-  /* Card */
-  .card {
-    display: block;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 32px 28px;
-    text-decoration: none;
-    color: var(--white);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-  }
-  .card::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(0,229,255,0.15), transparent);
-    transition: opacity 0.3s;
-    opacity: 0;
-  }
-  .card:hover {
-    background: var(--card-hover);
-    border-color: rgba(0,229,255,0.2);
-    transform: translateY(-2px);
-  }
-  .card:hover::before { opacity: 1; }
-
-  .card-icon { font-size: 36px; margin-bottom: 14px; display: block; }
-  .card-name { font-size: 18px; font-weight: 400; letter-spacing: 1px; margin-bottom: 6px; }
-  .card-tag {
-    display: inline-block;
-    font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
-    color: var(--amber); text-transform: uppercase;
-    border: 1px solid rgba(245,166,35,0.3); border-radius: 10px;
-    padding: 2px 10px; margin-bottom: 10px;
-  }
-  .card-desc { color: var(--dim); font-size: 13px; line-height: 1.5; font-weight: 300; }
-
-  /* Coming soon card */
-  .card.soon { opacity: 0.5; pointer-events: none; }
-  .card.soon .card-tag { color: var(--dim); border-color: rgba(240,244,248,0.1); }
-
-  /* Footer */
+  .route-card strong { display: block; font-size: 15px; font-weight: 420; margin-bottom: 6px; }
+  .route-card span { color: var(--lab-muted); font-size: 12px; line-height: 1.6; }
   .footer {
-    text-align: center; margin-top: 56px;
-    font-family: var(--mono); font-size: 10px; color: var(--dim); opacity: 0.4;
+    text-align: center;
+    margin-top: 48px;
+    font-family: var(--lab-mono);
+    font-size: 10px;
+    color: var(--lab-muted);
     letter-spacing: 1px;
+    opacity: .58;
   }
-
-  @media (max-width: 600px) {
-    .app { padding: 32px 16px; }
-    .header h1 { font-size: 26px; }
-    .grid { grid-template-columns: 1fr; }
-  }
+  @media (max-width: 720px) { .route-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
-<div class="app">
+<main class="lab-home">
+  <section class="lab-hero" aria-labelledby="pageTitle">
+    <div class="lab-hero-panel">
+      <div class="lab-kicker">Psychology Lab</div>
+      <h1 class="lab-title" id="pageTitle">心理<span>测试广场</span></h1>
+      <p class="lab-lead">探索你的决策、人格、情绪与价值观。每个测试都是一项微型心理实验：不需要登录，不上传数据，只在浏览器里完成一次诚实的自我观察。</p>
+      <div class="lab-status-row" aria-label="项目状态">
+        <span class="lab-pill">6 TESTS ONLINE</span>
+        <span class="lab-pill">NO LOGIN</span>
+        <span class="lab-pill">PRIVATE BY DEFAULT</span>
+      </div>
+    </div>
+    <div class="lab-orbit" aria-hidden="true">
+      <div class="lab-orbit-core">LAB</div>
+      <div class="lab-node">🧠</div>
+      <div class="lab-node">🌊</div>
+      <div class="lab-node">🔍</div>
+      <div class="lab-node">🎭</div>
+      <div class="lab-node">🎯</div>
+      <div class="lab-node">🧭</div>
+    </div>
+  </section>
 
-  <header class="header">
-    <div class="header-label">Psychology Lab</div>
-    <h1>心理<span>测试广场</span></h1>
-    <p>探索你的内心世界。每个测试都是通向自我认知的一扇窗。</p>
-  </header>
+  <section class="route-panel" aria-labelledby="routeTitle">
+    <div class="route-title" id="routeTitle">Recommended Routes</div>
+    <div class="route-grid">
+      <div class="route-card"><strong>人格与自我</strong><span>先看稳定人格结构，再看价值排序：大五人格 → 核心价值观。</span></div>
+      <div class="route-card"><strong>思维与决策</strong><span>先识别决策风格，再检查思维陷阱：决策风格 → 认知偏差。</span></div>
+      <div class="route-card"><strong>情绪与道德</strong><span>先理解情绪能力，再面对真实困境：情绪智力 → 道德困境。</span></div>
+    </div>
+  </section>
 
-  <div class="grid">
+  <section aria-labelledby="testsTitle">
+    <div class="lab-section-head">
+      <div>
+        <div class="lab-micro">Experiment Index</div>
+        <h2 id="testsTitle">选择一项心理实验</h2>
+      </div>
+      <p>建议从最想了解的问题开始；所有结果仅用于自我探索。</p>
+    </div>
 
-    <!-- 1. 道德困境实验室 -->
-    <a href="moral-dilemma-lab/index.html" class="card">
-      <span class="card-icon">🧠</span>
-      <div class="card-name">道德困境实验室</div>
-      <span class="card-tag">已上线</span>
-      <p class="card-desc">8个经典道德困境，揭示你的道德人格画像。电车难题、善意谎言、自由与安全——没有正确答案，只有真实的自己。</p>
-    </a>
+    <div class="lab-grid">
+      <a href="moral-dilemma-lab/index.html" class="lab-test-card" aria-label="进入道德困境实验室，8到12题，轻量和专业模式">
+        <div class="lab-exp">EXP-001 / MORALITY</div>
+        <div class="lab-icon">🧠</div>
+        <h3>道德困境实验室</h3>
+        <div class="lab-meta">8/12题 · 3–6分钟 · 轻量/专业</div>
+        <p>电车难题、善意谎言、自由与安全——在没有标准答案的情境中，看见你的道德判断模式。</p>
+        <div class="lab-result"><strong>结果包含：</strong>道德画像、困境倾向、哲学理论映射。</div>
+      </a>
 
-    <!-- 2. 大五人格 (OCEAN) -->
-    <a href="big-five/index.html" class="card">
-      <span class="card-icon">🌊</span>
-      <div class="card-name">大五人格评测</div>
-      <span class="card-tag">已上线</span>
-      <p class="card-desc">基于心理学界最受认可的OCEAN模型，从开放性、尽责性、外向性、宜人性、神经质五个维度描绘你的人格全貌。</p>
-    </a>
+      <a href="big-five/index.html" class="lab-test-card" aria-label="进入大五人格评测，25到55题，轻量和专业模式">
+        <div class="lab-exp">EXP-002 / PERSONALITY</div>
+        <div class="lab-icon">🌊</div>
+        <h3>大五人格评测</h3>
+        <div class="lab-meta">25/55题 · 4–9分钟 · 轻量/专业</div>
+        <p>基于 OCEAN 模型，从开放性、尽责性、外向性、宜人性、情绪稳定性描绘人格全貌。</p>
+        <div class="lab-result"><strong>结果包含：</strong>五维图谱、人格组合、关系与职业建议。</div>
+      </a>
 
-    <!-- 3. 认知偏差检测 -->
-    <a href="cognitive-bias/index.html" class="card">
-      <span class="card-icon">🔍</span>
-      <div class="card-name">认知偏差检测</div>
-      <span class="card-tag">已上线</span>
-      <p class="card-desc">确认偏误、锚定效应、可得性启发……这些看不见的思维陷阱在影响你的每一天。测测你对它们的免疫力。</p>
-    </a>
+      <a href="cognitive-bias/index.html" class="lab-test-card" aria-label="进入认知偏差检测，36题，约7分钟">
+        <div class="lab-exp">EXP-003 / COGNITION</div>
+        <div class="lab-icon">🔍</div>
+        <h3>认知偏差检测</h3>
+        <div class="lab-meta">36题 · 5–7分钟 · 情境判断</div>
+        <p>确认偏误、锚定效应、可得性启发……测测哪些看不见的思维捷径正在影响你。</p>
+        <div class="lab-result"><strong>结果包含：</strong>偏差抵抗力、12类偏差图谱、觉察建议。</div>
+      </a>
 
-    <!-- 4. 情绪智力 -->
-    <a href="eq-assessment/index.html" class="card">
-      <span class="card-icon">🎭</span>
-      <div class="card-name">情绪智力评估</div>
-      <span class="card-tag">已上线</span>
-      <p class="card-desc">识别、理解、管理自己和他人的情绪——这是比智商更重要的能力。你的EQ处于什么水平？</p>
-    </a>
+      <a href="eq-assessment/index.html" class="lab-test-card" aria-label="进入情绪智力评估，24到54题，轻量和专业模式">
+        <div class="lab-exp">EXP-004 / EMOTION</div>
+        <div class="lab-icon">🎭</div>
+        <h3>情绪智力评估</h3>
+        <div class="lab-meta">24/54题 · 5–12分钟 · 轻量/专业</div>
+        <p>识别、理解、运用和管理情绪——看见你在自我觉察、共情和调节策略上的能力结构。</p>
+        <div class="lab-result"><strong>结果包含：</strong>EQ总分、四维能力、触发地图与成长路径。</div>
+      </a>
 
-    <!-- 5. 决策风格分析 -->
-    <a href="decision-style/index.html" class="card">
-      <span class="card-icon">🎯</span>
-      <div class="card-name">决策风格分析</div>
-      <span class="card-tag">已上线</span>
-      <p class="card-desc">你是直觉型还是分析型？快速决断还是深思熟虑？了解你的决策DNA，在关键时刻做出更好的选择。</p>
-    </a>
+      <a href="decision-style/index.html" class="lab-test-card" aria-label="进入决策风格分析，25题，约5分钟">
+        <div class="lab-exp">EXP-005 / DECISION</div>
+        <div class="lab-icon">🎯</div>
+        <h3>决策风格分析</h3>
+        <div class="lab-meta">25题 · 4–6分钟 · GDMS框架</div>
+        <p>你是直觉型还是分析型？快速决断还是深思熟虑？了解你的决策 DNA。</p>
+        <div class="lab-result"><strong>结果包含：</strong>主导风格、优势盲区、场景策略。</div>
+      </a>
 
-    <!-- 6. 价值观排序 -->
-    <a href="values-sort/index.html" class="card">
-      <span class="card-icon">🧭</span>
-      <div class="card-name">核心价值观排序</div>
-      <span class="card-tag">已上线</span>
-      <p class="card-desc">安全、自由、成就、关系、意义……当这些价值冲突时，你会如何排序？这个测试帮你看见自己真正的优先级。</p>
-    </a>
+      <a href="values-sort/index.html" class="lab-test-card" aria-label="进入核心价值观排序，12项排序，约3分钟">
+        <div class="lab-exp">EXP-006 / VALUES</div>
+        <div class="lab-icon">🧭</div>
+        <h3>核心价值观排序</h3>
+        <div class="lab-meta">12项排序 · 约3分钟 · Schwartz框架</div>
+        <p>安全、自由、成就、关系、意义……当价值冲突时，看见自己真正的优先级。</p>
+        <div class="lab-result"><strong>结果包含：</strong>价值罗盘、冲突地图、决策指南。</div>
+      </a>
+    </div>
+  </section>
 
-  </div>
-
-  <div class="footer">6项测试已全部上线 · 纯前端 · 无需下载</div>
-
-</div>
+  <div class="footer">6项测试已全部上线 · 纯前端 · 无需下载 · 仅供自我探索</div>
+</main>
+<script src="assets/psych-lab.js"></script>
 </body>
 </html>

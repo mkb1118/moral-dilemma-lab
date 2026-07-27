@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="核心价值观排序：基于 Schwartz 价值观理论，将 12 个普世价值分层排序，看见你真正的优先级。">
+<meta property="og:title" content="核心价值观排序">
+<meta property="og:description" content="用 3 分钟完成价值罗盘实验，生成核心价值、冲突地图与决策指南。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
 <title>核心价值观排序</title>
+<link rel="stylesheet" href="../assets/psych-lab.css">
 <style>
   :root {
     --bg: #060b12; --card: #0c1520; --card-hover: #111d2c;
@@ -176,6 +182,10 @@
     <div class="insight-block">
       <div class="i-title">🪞 反思与演化</div>
       <div class="i-text" id="awareText"></div>
+    </div>
+    <div class="lab-next-card">
+      <div><strong>推荐下一项实验：道德困境实验室</strong>价值观排序之后，用真实困境检验这些优先级如何发挥作用。</div>
+      <a class="lab-home-link" href="../moral-dilemma-lab/index.html">继续实验 →</a>
     </div>
     <div class="action-row">
       <button class="btn primary" onclick="restartTest()">重新排序</button>
@@ -517,9 +527,10 @@ function generateAwareness() {
 // ============================================
 function shareResults() {
   const top3 = coreRank.slice(0, 3).map((id, i) => `#${i+1} ${getV(id).icon}${getV(id).name}`).join('  ');
-  const text = `🧭 我的核心价值观排序\n\n核心：${tiers.core.map(id => getV(id).icon + getV(id).name).join(' ')}\n重要：${tiers.important.map(id => getV(id).icon + getV(id).name).join(' ')}\n\n当安全、自由、成就、关系、意义冲突时——你内心真正的优先级是什么？\n\n👉 来排序你的价值观\nhttps://mkb1118.github.io/values-sort/`;
+  const text = `🧭 我的核心价值观排序\n\n核心：${tiers.core.map(id => getV(id).icon + getV(id).name).join(' ')}\n重要：${tiers.important.map(id => getV(id).icon + getV(id).name).join(' ')}\n\n当安全、自由、成就、关系、意义冲突时——你内心真正的优先级是什么？\n\n👉 来排序你的价值观\n${window.PsychLab ? PsychLab.currentUrl() : location.href}`;
 
-  if (navigator.clipboard) { navigator.clipboard.writeText(text).then(() => showToast('已复制！')); }
+  if (window.PsychLab) PsychLab.copyText(text, '已复制！');
+  else if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('已复制！'));
 }
 
 function showToast(msg) {
@@ -534,5 +545,6 @@ function restartTest() {
   showScreen('welcome');
 }
 </script>
+<script src="../assets/psych-lab.js"></script>
 </body>
 </html>

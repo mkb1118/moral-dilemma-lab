@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="道德困境实验室：通过经典道德困境探索你的结果导向、原则感、自由秩序与情感理性倾向。">
+<meta property="og:title" content="道德困境实验室 | Moral Dilemma Lab">
+<meta property="og:description" content="8/12 个经典道德困境，生成你的道德人格画像、光谱倾向与哲学理论映射。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
 <title>道德困境实验室 | Moral Dilemma Lab</title>
+<link rel="stylesheet" href="../assets/psych-lab.css">
 <style>
   /* ============================================
      CIRCUIT ELEGANCE DESIGN SYSTEM
@@ -1087,6 +1093,10 @@
       </div>
     </div>
 
+    <div class="lab-next-card">
+      <div><strong>推荐下一项实验：情绪智力评估</strong>道德选择常常受到情绪调节与共情能力影响，可以继续观察这部分能力。</div>
+      <a class="lab-home-link" href="../eq-assessment/index.html">继续实验 →</a>
+    </div>
     <div class="action-row">
       <button class="btn primary" onclick="restartQuiz()">重新测试</button>
       <button class="btn" onclick="shareResults()">📤 转发给朋友</button>
@@ -2039,9 +2049,11 @@ ${discoveryCount > 0 ? `🔬 测试发现了${discoveryCount}个有趣的细节�
 面对8个经典道德困境，没有标准答案。但你的选择会让你看见自己的底层逻辑。
 
 👉 3分钟，看看你的道德人格
-https://moral-dilemma-lab.netlify.app`;
+${window.PsychLab ? PsychLab.currentUrl() : location.href}`;
 
-  if (navigator.clipboard) {
+  if (window.PsychLab) {
+    PsychLab.copyText(shareText, '📋 已复制！去朋友圈/微信群粘贴发送吧');
+  } else if (navigator.clipboard) {
     navigator.clipboard.writeText(shareText).then(() => {
       showToast('📋 已复制！去朋友圈/微信群粘贴发送吧');
     });
@@ -2080,5 +2092,6 @@ document.addEventListener('keydown', (e) => {
 });
 </script>
 
+<script src="../assets/psych-lab.js"></script>
 </body>
 </html>

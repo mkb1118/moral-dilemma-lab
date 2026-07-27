@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="大五人格评测：基于 OCEAN 模型，提供轻量版与专业版人格画像，包含五维图谱、人格组合、关系与职业建议。">
+<meta property="og:title" content="大五人格评测 · OCEAN">
+<meta property="og:description" content="25/55题，探索开放性、尽责性、外向性、宜人性与情绪稳定性。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
 <title>大五人格评测 · OCEAN</title>
+<link rel="stylesheet" href="../assets/psych-lab.css">
 <style>
   :root {
     --bg: #060b12; --card: #0c1520; --card-hover: #111d2c;
@@ -432,6 +438,10 @@
       </div>
     </div>
 
+    <div class="lab-next-card">
+      <div><strong>推荐下一项实验：核心价值观排序</strong>人格解释“我通常如何行动”，价值观解释“我真正优先什么”。</div>
+      <a class="lab-home-link" href="../values-sort/index.html">继续实验 →</a>
+    </div>
     <div class="action-row">
       <button class="btn primary" onclick="restartTest()">重新测试</button>
       <button class="btn" onclick="shareResults()">📤 分享结果</button>
@@ -450,6 +460,8 @@ let isPro = false;
 let questions = [];
 let currentQ = 0;
 let answers = [];
+let isAdvancing = false;
+let resultsShown = false;
 
 // ============================================
 // ALL BASE QUESTIONS (40 items, IPIP-based)
@@ -591,6 +603,8 @@ function startTest(proMode) {
   }
   currentQ = 0;
   answers = [];
+  isAdvancing = false;
+  resultsShown = false;
   showScreen('quiz');
   renderQuestion();
 }
@@ -622,27 +636,45 @@ function renderQuestion() {
 }
 
 function answer(score, btn) {
-  document.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('selected'));
+  if (isAdvancing || resultsShown) return;
+  if (currentQ < 0 || currentQ >= questions.length) return;
+
+  const q = questions[currentQ];
+  if (!q) return;
+
+  isAdvancing = true;
+
+  const btns = document.querySelectorAll('.scale-btn');
+  btns.forEach(b => {
+    b.classList.remove('selected');
+    b.disabled = true;
+  });
   btn.classList.add('selected');
 
-  answers[currentQ] = { questionId: questions[currentQ].id, score: score };
+  answers[currentQ] = { questionId: q.id, score: score };
 
   setTimeout(() => {
+    if (resultsShown) return;
+
     currentQ++;
     if (currentQ >= questions.length) {
       document.getElementById('progLabel').textContent = `${questions.length} / ${questions.length}`;
       document.getElementById('progPct').textContent = '100%';
       document.getElementById('progFill').style.width = '100%';
       document.getElementById('btnBack').style.visibility = 'hidden';
+      resultsShown = true;
+      isAdvancing = false;
       setTimeout(showResults, 300);
     } else {
+      isAdvancing = false;
       renderQuestion();
     }
   }, 200);
 }
 
 function goBack() {
-  if (currentQ <= 0) return;
+  if (isAdvancing || resultsShown || currentQ <= 0) return;
+  isAdvancing = false;
   currentQ--;
   renderQuestion();
   const prev = answers[currentQ];
@@ -1151,11 +1183,10 @@ ${levels}
 
 基于心理学界最权威的OCEAN模型。不是贴标签，而是一面镜子。
 
-👉 你也来测测？https://mkb1118.github.io/big-five/`;
+👉 你也来测测？${window.PsychLab ? PsychLab.currentUrl() : location.href}`;
 
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => showToast('📋 已复制！去分享吧'));
-  }
+  if (window.PsychLab) PsychLab.copyText(text, '📋 已复制！去分享吧');
+  else if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('📋 已复制！去分享吧'));
 }
 
 function showToast(msg) {
@@ -1170,5 +1201,6 @@ function restartTest() {
   showScreen('welcome');
 }
 </script>
+<script src="../assets/psych-lab.js"></script>
 </body>
 </html>
