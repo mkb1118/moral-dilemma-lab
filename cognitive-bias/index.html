@@ -11,61 +11,14 @@
 <title>认知偏差检测</title>
 <link rel="stylesheet" href="../assets/psych-lab.css">
 <style>
-  :root {
-    --bg: #060b12; --card: #0c1520; --card-hover: #111d2c;
-    --cyan: #00e5ff; --amber: #f5a623; --white: #f0f4f8;
-    --dim: rgba(240,244,248,0.5); --border: rgba(240,244,248,0.06);
-    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    --mono: 'Cascadia Code', 'Fira Code', monospace;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg); color: var(--white); font-family: var(--font); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-  body::before { content: ''; position: fixed; inset: 0; background: linear-gradient(90deg, var(--border) 1px, transparent 1px), linear-gradient(0deg, var(--border) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%); pointer-events: none; z-index: 0; }
-  .app { position: relative; z-index: 1; width: 100%; max-width: 720px; padding: 24px; }
-  .screen { display: none; flex-direction: column; align-items: center; animation: fadeIn 0.5s; }
-  .screen.active { display: flex; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } }
-
-  .welcome-icon { width: 72px; height: 72px; border: 2px solid var(--cyan); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 28px; font-size: 32px; }
-  .title-block { text-align: center; margin-bottom: 12px; }
-  .title-block .label { font-family: var(--mono); font-size: 10px; letter-spacing: 4px; color: var(--amber); margin-bottom: 12px; }
-  .title-block h1 { font-size: 38px; font-weight: 200; letter-spacing: 2px; }
-  .title-block h1 span { color: var(--cyan); font-weight: 400; }
-  .subtitle { color: var(--dim); font-size: 15px; font-weight: 300; text-align: center; max-width: 440px; line-height: 1.6; margin-bottom: 16px; }
-  .info-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; border: 1px solid var(--border); border-radius: 20px; font-family: var(--mono); font-size: 11px; color: var(--dim); margin-bottom: 32px; }
-  .info-badge span { width: 5px; height: 5px; background: var(--cyan); border-radius: 50%; }
-
-  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 32px; border: 1px solid rgba(240,244,248,0.15); border-radius: 4px; background: transparent; color: var(--white); font-family: var(--mono); font-size: 13px; letter-spacing: 1px; cursor: pointer; transition: all 0.3s; }
-  .btn:hover { border-color: var(--cyan); background: rgba(0,229,255,0.05); }
-  .btn.primary { background: rgba(0,229,255,0.08); border-color: var(--cyan); }
-  .btn.primary:hover { background: rgba(0,229,255,0.15); }
-
-  .progress-wrap { width: 100%; margin-bottom: 24px; }
-  .progress-info { display: flex; justify-content: space-between; margin-bottom: 6px; font-family: var(--mono); font-size: 10px; color: var(--dim); }
-  .progress-track { width: 100%; height: 2px; background: var(--border); border-radius: 1px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--cyan); transition: width 0.3s; border-radius: 1px; }
-
-  .q-card { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 32px; margin-bottom: 20px; }
-  .q-num { font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: var(--amber); margin-bottom: 14px; }
-  .q-scene { font-size: 18px; font-weight: 300; line-height: 1.7; margin-bottom: 20px; }
-
   .choices { display: flex; flex-direction: column; gap: 10px; }
   .choice-btn { width: 100%; padding: 16px 20px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: var(--white); text-align: left; font-size: 15px; font-weight: 300; cursor: pointer; transition: all 0.25s; display: flex; align-items: center; gap: 12px; }
   .choice-btn:hover { border-color: var(--cyan); background: var(--card-hover); transform: translateX(4px); }
-  .choice-marker { width: 10px; height: 10px; border: 2px solid var(--border); border-radius: 50%; flex-shrink: 0; transition: all 0.3s; }
-  .choice-btn:hover .choice-marker { border-color: var(--cyan); background: rgba(0,229,255,0.15); }
-
+.choice-btn:hover .choice-marker { border-color: var(--cyan); background: rgba(0,229,255,0.15); }
   .q-nav { display: flex; align-items: center; margin-bottom: 10px; width: 100%; }
-  .btn-back { background: transparent; border: 1px solid var(--border); border-radius: 4px; color: var(--dim); font-family: var(--mono); font-size: 12px; padding: 8px 16px; cursor: pointer; transition: all 0.2s; }
-  .btn-back:hover { border-color: var(--cyan); color: var(--cyan); }
-
-  .results-header { text-align: center; margin-bottom: 28px; }
-  .results-header .label { font-family: var(--mono); font-size: 10px; letter-spacing: 4px; color: var(--amber); margin-bottom: 8px; }
-  .results-header h2 { font-size: 28px; font-weight: 200; }
 
   .score-card { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 16px; text-align: center; border-left: 2px solid var(--cyan); }
-  .score-number { font-size: 48px; font-weight: 200; color: var(--cyan); }
-  .score-label { font-size: 14px; color: var(--dim); margin-top: 4px; }
+.score-label { font-size: 14px; color: var(--dim); margin-top: 4px; }
 
   .bias-card { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin-bottom: 12px; }
   .bias-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
@@ -87,20 +40,6 @@
   .awareness-bar-fill.high { background: var(--cyan); }
   .awareness-bar-fill.mid { background: rgba(0,229,255,0.4); }
   .awareness-bar-fill.low { background: rgba(245,166,35,0.5); }
-
-  .action-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 20px; margin-bottom: 12px; }
-  .footer-note { font-family: var(--mono); font-size: 9px; color: var(--dim); opacity: 0.4; text-align: center; margin-top: 8px; }
-
-  .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); background: var(--card); border: 1px solid var(--cyan); color: var(--cyan); padding: 10px 20px; border-radius: 6px; font-family: var(--mono); font-size: 12px; z-index: 100; animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards; pointer-events: none; }
-  @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } }
-  @keyframes toastOut { to { opacity: 0; transform: translateX(-50%) translateY(-10px); } }
-
-  @media (max-width: 600px) {
-    .app { padding: 16px; }
-    .q-card { padding: 20px; }
-    .q-scene { font-size: 16px; }
-    .title-block h1 { font-size: 28px; }
-  }
 </style>
 </head>
 <body>
@@ -114,7 +53,7 @@
     </div>
     <p class="subtitle">你的大脑有看不见的"思维捷径"——它们帮你快速决策，也让你系统性地犯错。24个情境题，看看哪些认知偏差在悄悄影响你。</p>
     <div class="info-badge"><span></span> 36 题 · 约 7 分钟 · 基于心理学经典研究</div>
-    <button class="btn primary" onclick="startTest()">开始检测 →</button>
+    <div class="action-row"><button class="btn primary" id="startBtn">开始</button><a class="btn secondary" href="../index.html">返回</a></div>
   </div>
 
   <!-- QUIZ -->
@@ -123,7 +62,7 @@
       <div class="progress-info"><span id="progLabel">1 / 36</span><span id="progPct">0%</span></div>
       <div class="progress-track"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
     </div>
-    <div class="q-nav"><button class="btn-back" id="btnBack" onclick="goBack()" style="visibility:hidden;">← 上一题</button></div>
+    <div class="q-nav"><button class="btn-back" id="btnBack" id="backBtn" style="visibility:hidden;">← 上一题</button></div>
     <div class="q-card"><div class="q-num" id="qNum"></div><p class="q-scene" id="qScene"></p></div>
     <div class="choices" id="choices"></div>
   </div>
@@ -145,8 +84,8 @@
       <a class="lab-home-link" href="../decision-style/index.html">继续实验 →</a>
     </div>
     <div class="action-row">
-      <button class="btn primary" onclick="restartTest()">重新检测</button>
-      <button class="btn" onclick="shareResults()">📤 分享结果</button>
+      <button class="btn primary" id="restartBtn">重新检测</button>
+      <button class="btn" id="shareBtn">📤 分享结果</button>
     </div>
     <div style="text-align:center;margin-bottom:16px;"><a href="../index.html" style="color:var(--dim);font-family:var(--mono);font-size:11px;text-decoration:none;border:1px solid rgba(240,244,248,0.1);padding:6px 16px;border-radius:4px;transition:all 0.2s;">🏠 返回测试广场</a></div>
     <p class="footer-note">基于心理学经典研究改编 · 仅供自我觉察，非临床诊断</p>
@@ -377,6 +316,22 @@ let currentQ = 0;
 let answers = []; // {questionId, score (0 or 1)}
 let isAdvancing = false;
 let resultsShown = false;
+const PROGRESS_KEY = 'psych-lab-cognitive-bias';
+  PsychLabSync.init('cognitive-bias');
+
+  function initEvents() {
+    document.getElementById('startBtn')?.addEventListener('click', startTest);
+    document.getElementById('backBtn')?.addEventListener('click', goBack);
+    document.getElementById('restartBtn')?.addEventListener('click', restartTest);
+    document.getElementById('shareBtn')?.addEventListener('click', shareResults);
+    document.querySelector('#quiz .choices')?.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-cb="answer"]');
+      if (btn) {
+        var score = parseInt(btn.dataset.score || btn.getAttribute('data-score'), 10);
+        answer(score, btn);
+      }
+    });
+  }
 
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -387,6 +342,7 @@ function startTest() {
   currentQ = 0; answers = [];
   isAdvancing = false;
   resultsShown = false;
+  PsychLabSync.reset(); PsychLabSync.start("standard");
   showScreen('quiz');
   renderQuestion();
 }
@@ -397,12 +353,13 @@ function renderQuestion() {
   document.getElementById('progLabel').textContent = `${currentQ + 1} / ${SCENARIOS.length}`;
   document.getElementById('progPct').textContent = `${pct}%`;
   document.getElementById('progFill').style.width = `${pct}%`;
+  if (window.PsychLab) PsychLab.syncProgressBar(document.getElementById('progFill'));
   document.getElementById('qNum').textContent = `SCENARIO ${q.id}`;
   document.getElementById('qScene').textContent = q.text;
   document.getElementById('btnBack').style.visibility = currentQ > 0 ? 'visible' : 'hidden';
 
   document.getElementById('choices').innerHTML = q.opts.map((o, i) => `
-    <button class="choice-btn" onclick="answer(${o.score}, this)">
+    <button class="choice-btn" data-cb="answer" aria-label="选项：${o.text.replace(/"/g, '&quot;').substring(0, 60)}">
       <span class="choice-marker"></span>
       <span>${o.text}</span>
     </button>
@@ -432,6 +389,7 @@ function answer(score, btn) {
     if (currentQ >= SCENARIOS.length) {
       document.getElementById('progPct').textContent = '100%';
       document.getElementById('progFill').style.width = '100%';
+      if (window.PsychLab) PsychLab.syncProgressBar(document.getElementById('progFill'));
       resultsShown = true;
       isAdvancing = false;
       setTimeout(showResults, 300);
@@ -439,6 +397,7 @@ function answer(score, btn) {
     else {
       isAdvancing = false;
       renderQuestion();
+      if (window.PsychLab) PsychLab.saveProgress(PROGRESS_KEY, { currentQ: currentQ, answers: answers, total: SCENARIOS.length });
     }
   }, 250);
 }
@@ -453,7 +412,8 @@ function goBack() {
 // RESULTS
 // ============================================
 function showResults() {
-  // Calculate scores per bias
+  PsychLabSync.complete(biasScores, "认知偏差检测完成").catch(function(){});
+  PsychLab.clearProgress(PROGRESS_KEY);
   const biasScores = {};
   SCENARIOS.forEach((q, idx) => {
     if (!biasScores[q.biasKey]) biasScores[q.biasKey] = { total: 0, hits: 0 };
@@ -583,8 +543,25 @@ function showToast(msg) {
   document.body.appendChild(t); setTimeout(() => t.remove(), 2500);
 }
 
-function restartTest() { currentQ = 0; answers = []; isAdvancing = false; resultsShown = false; showScreen('welcome'); }
+function restartTest() { PsychLab.clearProgress(PROGRESS_KEY); currentQ = 0; answers = []; isAdvancing = false; resultsShown = false;
+  showScreen('welcome'); }
 </script>
 <script src="../assets/psych-lab.js"></script>
+<script src="../assets/api-client.js"></script>
+<script src="../assets/psych-lab-sync.js"></script>
+<script>
+(function () {
+  var saved = PsychLab.loadProgress(PROGRESS_KEY);
+  if (!saved || saved.resultsShown) return;
+  var welcomeEl = document.getElementById('welcome');
+  PsychLab.injectResumePrompt(welcomeEl, PROGRESS_KEY, saved,
+    function onContinue(s) { currentQ = s.currentQ; answers = s.answers; isAdvancing = false; resultsShown = false;
+  PsychLabSync.reset(); PsychLabSync.start("standard");
+  showScreen('quiz'); renderQuestion(); },
+    function onRestart() { restartTest(); }
+  );
+})();
+
+  initEvents();</script>
 </body>
 </html>

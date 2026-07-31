@@ -1,0 +1,230 @@
+[
+  {
+    "id": 1,
+    "dim": "perceiving",
+    "sub": "自我觉察",
+    "type": "likert",
+    "text": "我能准确地分辨自己正在经历什么样的情绪（比如能区分「失望」和「悲伤」）。",
+    "reverse": false
+  },
+  {
+    "id": 2,
+    "dim": "perceiving",
+    "sub": "自我觉察",
+    "type": "likert",
+    "text": "有时候我感到情绪涌动，却说不清楚自己到底怎么了。",
+    "reverse": true
+  },
+  {
+    "id": 3,
+    "dim": "perceiving",
+    "sub": "自我觉察",
+    "type": "likert",
+    "text": "当我的情绪发生变化时，我通常能立刻察觉到。",
+    "reverse": false
+  },
+  {
+    "id": 4,
+    "dim": "perceiving",
+    "sub": "他人觉察",
+    "type": "likert",
+    "text": "通过观察对方的表情和语气变化，我通常能判断出TA的真实情绪状态。",
+    "reverse": false
+  },
+  {
+    "id": 5,
+    "dim": "perceiving",
+    "sub": "他人觉察",
+    "type": "likert",
+    "text": "在社交场合中，我常常能感觉到气氛的微妙变化——比如谁不开心了、谁被冷落了。",
+    "reverse": false
+  },
+  {
+    "id": 6,
+    "dim": "perceiving",
+    "sub": "他人觉察",
+    "type": "situational",
+    "text": "一位同事在会议上对你的提议说「挺好的」，但语速很快，眼神回避，说完立刻转移话题。你觉得TA的真实态度是？",
+    "opts": [
+      {
+        "text": "真心觉得不错，只是比较忙",
+        "score": 1
+      },
+      {
+        "text": "其实不太认同或有顾虑，但没有直接说出来",
+        "score": 5
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "dim": "understanding",
+    "sub": "原因理解",
+    "type": "likert",
+    "text": "我能清楚地解释为什么自己在特定的场合会产生某种情绪。",
+    "reverse": false
+  },
+  {
+    "id": 8,
+    "dim": "understanding",
+    "sub": "原因理解",
+    "type": "likert",
+    "text": "当朋友告诉我TA的感受时，我通常能理解是什么导致了这种感受。",
+    "reverse": false
+  },
+  {
+    "id": 9,
+    "dim": "understanding",
+    "sub": "原因理解",
+    "type": "likert",
+    "text": "我有时会被自己的情绪反应搞糊涂，不太明白「我为什么会这样」。",
+    "reverse": true
+  },
+  {
+    "id": 10,
+    "dim": "understanding",
+    "sub": "复杂理解",
+    "type": "likert",
+    "text": "我理解一个人可以同时对同一件事感到既高兴又难过（比如毕业、送别）。",
+    "reverse": false
+  },
+  {
+    "id": 11,
+    "dim": "understanding",
+    "sub": "复杂理解",
+    "type": "likert",
+    "text": "我能预判某种情境下，大多数人会产生什么样的情绪反应。",
+    "reverse": false
+  },
+  {
+    "id": 12,
+    "dim": "understanding",
+    "sub": "复杂理解",
+    "type": "situational",
+    "text": "你的好友最近升职了，但TA看起来并不开心，反而有些焦虑。你觉得最可能的原因是？",
+    "opts": [
+      {
+        "text": "TA可能觉得自己能力不足以胜任新角色——冒充者综合征很常见",
+        "score": 5
+      },
+      {
+        "text": "TA可能对这个结果不满意，想要更高的职位",
+        "score": 1
+      }
+    ]
+  },
+  {
+    "id": 13,
+    "dim": "facilitating",
+    "sub": "决策辅助",
+    "type": "likert",
+    "text": "情绪帮助我判断什么事情是重要的、什么事情可以放一放。",
+    "reverse": false
+  },
+  {
+    "id": 14,
+    "dim": "facilitating",
+    "sub": "决策辅助",
+    "type": "likert",
+    "text": "做重要决定时，我会倾听自己的直觉感受，不只是依靠理性分析。",
+    "reverse": false
+  },
+  {
+    "id": 15,
+    "dim": "facilitating",
+    "sub": "决策辅助",
+    "type": "likert",
+    "text": "我觉得情绪只会干扰理性决策，所以做决定时应该尽量排除情绪。",
+    "reverse": true
+  },
+  {
+    "id": 16,
+    "dim": "facilitating",
+    "sub": "创造激发",
+    "type": "likert",
+    "text": "在好的情绪状态下，我的创造力和解决问题的能力明显更强。",
+    "reverse": false
+  },
+  {
+    "id": 17,
+    "dim": "facilitating",
+    "sub": "创造激发",
+    "type": "likert",
+    "text": "当我需要灵感时，我会主动调整自己的心情（比如听音乐、散步）来进入状态。",
+    "reverse": false
+  },
+  {
+    "id": 18,
+    "dim": "facilitating",
+    "sub": "创造激发",
+    "type": "situational",
+    "text": "你需要在明天之前完成一个创意方案，但现在感到焦虑、思路阻塞。你会怎么做？",
+    "opts": [
+      {
+        "text": "先暂停手上的工作，通过运动/音乐/散步来调整情绪，等状态好了再继续",
+        "score": 5
+      },
+      {
+        "text": "硬着头皮继续做，焦虑归焦虑，deadline最重要",
+        "score": 1
+      }
+    ]
+  },
+  {
+    "id": 19,
+    "dim": "managing",
+    "sub": "自我调节",
+    "type": "likert",
+    "text": "面对强烈的负面情绪（如愤怒、焦虑），我有有效的方法让自己平静下来。",
+    "reverse": false
+  },
+  {
+    "id": 20,
+    "dim": "managing",
+    "sub": "自我调节",
+    "type": "likert",
+    "text": "当事情不如预期时，我会陷入很长时间的沮丧，难以自拔。",
+    "reverse": true
+  },
+  {
+    "id": 21,
+    "dim": "managing",
+    "sub": "自我调节",
+    "type": "likert",
+    "text": "在压力情境下（如考试、面试），我能保持冷静，不让紧张影响发挥。",
+    "reverse": false
+  },
+  {
+    "id": 22,
+    "dim": "managing",
+    "sub": "他人调节",
+    "type": "likert",
+    "text": "当朋友或家人情绪低落时，我知道怎么安慰和陪伴能让TA们感觉好一些。",
+    "reverse": false
+  },
+  {
+    "id": 23,
+    "dim": "managing",
+    "sub": "他人调节",
+    "type": "likert",
+    "text": "在团队中发生冲突时，我能够帮助双方冷静下来，促进有效沟通。",
+    "reverse": false
+  },
+  {
+    "id": 24,
+    "dim": "managing",
+    "sub": "他人调节",
+    "type": "situational",
+    "text": "你和一位朋友约好了吃饭，但TA迟到了30分钟才来，看起来心情很糟。你会先做什么？",
+    "opts": [
+      {
+        "text": "先关心TA的状态：「你看起来不太对劲，发生了什么？」——先处理情绪，再说迟到的事",
+        "score": 5
+      },
+      {
+        "text": "表达自己的不满：「我等了半小时了，你怎么也不提前说一声？」——先处理自己的情绪",
+        "score": 1
+      }
+    ]
+  }
+]

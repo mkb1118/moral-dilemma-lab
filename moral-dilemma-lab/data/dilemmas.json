@@ -1,0 +1,314 @@
+[
+  {
+    "id": 1,
+    "title": "困境 01 · 失控的电车",
+    "scenario": "一辆失控的电车正冲向铁轨上的五个人。他们完全不知情，来不及逃离。你的手边有一个拉杆——拉下它，电车会转向另一条铁轨，但那上面站着一个人，一个和你一样正在回家路上的人。",
+    "context": "拉下它，你亲手改变了结果。不拉，你什么都没有做。但\"什么都不做\"也是一种选择——你选哪个？",
+    "choiceA": {
+      "text": "拉下拉杆",
+      "subtitle": "牺牲一人，拯救五人",
+      "scores": {
+        "utilitarian": 3,
+        "personal": -1,
+        "universal": 1,
+        "liberty": 0
+      }
+    },
+    "choiceB": {
+      "text": "不拉",
+      "subtitle": "不干预命运的轨迹",
+      "scores": {
+        "utilitarian": -2,
+        "personal": 1,
+        "universal": -1,
+        "liberty": 1
+      }
+    }
+  },
+  {
+    "id": 2,
+    "title": "困境 02 · 天桥上的抉择",
+    "scenario": "同一个场景——电车冲向五个人。但这次你站在天桥上，身边是一个陌生的健壮男子。如果把他推下去，他的身体足够挡住电车。这一次，你的手上会沾血。",
+    "context": "拉杆是抽象的动作，推人是一次亲手的暴力。逻辑上结果一样——但你的身体拒绝执行。这种\"拒绝\"是软弱，还是人性？",
+    "choiceA": {
+      "text": "推下陌生人",
+      "subtitle": "逻辑一致：一人换五人",
+      "scores": {
+        "utilitarian": 4,
+        "personal": -4,
+        "universal": 1,
+        "liberty": -2
+      }
+    },
+    "choiceB": {
+      "text": "无法下手",
+      "subtitle": "亲手伤害是另一回事",
+      "scores": {
+        "utilitarian": -3,
+        "personal": 3,
+        "universal": -1,
+        "liberty": 1
+      }
+    }
+  },
+  {
+    "id": 3,
+    "title": "困境 03 · 白色谎言",
+    "scenario": "你最好的朋友花了一个月准备的演出，今晚终于上台了。散场后她跑过来，眼里全是期待：\"怎么样怎么样！\"——说实话，演出很糟糕。但你知道过去一个月她每天练到凌晨。",
+    "context": "真相有时候是一种暴力，谎言有时候是一种温柔。你对谁说真话？对谁都一样吗？",
+    "choiceA": {
+      "text": "\"太棒了！\"",
+      "subtitle": "此刻她需要的是被看见，不是批评",
+      "scores": {
+        "utilitarian": 1,
+        "personal": 2,
+        "universal": -2,
+        "liberty": 0
+      }
+    },
+    "choiceB": {
+      "text": "温和地说出真实感受",
+      "subtitle": "真正的朋友有权利听到真相",
+      "scores": {
+        "utilitarian": -1,
+        "personal": -1,
+        "universal": 2,
+        "liberty": 1
+      }
+    }
+  },
+  {
+    "id": 4,
+    "title": "困境 04 · 沉默的同事",
+    "scenario": "你偶然发现一个平时对你很照顾的同事，在偷偷把公司核心数据卖给竞争对手。他家里有两个在上学的孩子，还有生病的母亲。你知道举报意味着什么——但公司里几百个无辜的同事也会因为数据泄露而受影响。",
+    "context": "忠义两难——对一个人的忠诚，和对待更多人的公平，有时候无法兼得。",
+    "choiceA": {
+      "text": "匿名举报",
+      "subtitle": "规则必须维护，无论代价多大",
+      "scores": {
+        "utilitarian": 2,
+        "personal": -1,
+        "universal": 3,
+        "liberty": -1
+      }
+    },
+    "choiceB": {
+      "text": "先私下和他谈谈",
+      "subtitle": "给人留一条回头路",
+      "scores": {
+        "utilitarian": 0,
+        "personal": 2,
+        "universal": -1,
+        "liberty": 1
+      }
+    }
+  },
+  {
+    "id": 5,
+    "title": "困境 05 · 五个病人和一个流浪者",
+    "scenario": "医院里有五个病人，分别需要心脏、肺、肝脏、肾脏和胰腺移植，否则都会在短期内死亡。这天来了一个流浪汉做常规体检——他的所有器官恰好匹配。如果现在\"解决\"他，五条命就保住了。",
+    "context": "这只是一个思想实验——但你的第一反应说明了很多。6条命和5条命——但额外的1条，你是\"主动夺走的\"。",
+    "choiceA": {
+      "text": "保护流浪汉",
+      "subtitle": "没有人应该成为别人的器官库",
+      "scores": {
+        "utilitarian": -4,
+        "personal": 2,
+        "universal": 2,
+        "liberty": 2
+      }
+    },
+    "choiceB": {
+      "text": "五个人的命更重",
+      "subtitle": "残酷的数学是残酷的，但它是真实的",
+      "scores": {
+        "utilitarian": 4,
+        "personal": -3,
+        "universal": 0,
+        "liberty": -2
+      }
+    }
+  },
+  {
+    "id": 6,
+    "title": "困境 06 · 你设计的自动驾驶",
+    "scenario": "你是一个自动驾驶算法的设计者。刹车失灵了，前方突然出现五个行人。唯一的选择是转向撞墙——但这样，车里的唯一乘客会死。那位乘客，是你自己。",
+    "context": "工程师的责任是保护\"绝大多数人\"——但你现在在写的就是决定自己生死的代码。你还会写\"最小化伤亡\"吗？",
+    "choiceA": {
+      "text": "设定为保护乘客",
+      "subtitle": "买车的人有权被保护",
+      "scores": {
+        "utilitarian": -2,
+        "personal": 1,
+        "universal": -2,
+        "liberty": 1
+      }
+    },
+    "choiceB": {
+      "text": "设定为最小化总伤亡",
+      "subtitle": "原则面前人人平等，包括我自己",
+      "scores": {
+        "utilitarian": 3,
+        "personal": -1,
+        "universal": 2,
+        "liberty": -1
+      }
+    }
+  },
+  {
+    "id": 7,
+    "title": "困境 07 · 安全与隐私",
+    "scenario": "一项新法案声称，通过监控所有人的通讯记录，可以预防70%的恶性犯罪。支持者说\"不做亏心事不怕鬼敲门\"，反对者说\"今天的监控，明天的镇压\"。",
+    "context": "你愿意交出多少自由，来换取多少安全？这个边界，由谁来划？",
+    "choiceA": {
+      "text": "支持监控",
+      "subtitle": "安全是自由的前提",
+      "scores": {
+        "utilitarian": 2,
+        "personal": 0,
+        "universal": -1,
+        "liberty": -3
+      }
+    },
+    "choiceB": {
+      "text": "反对监控",
+      "subtitle": "隐私权不容打折",
+      "scores": {
+        "utilitarian": -1,
+        "personal": 1,
+        "universal": 1,
+        "liberty": 3
+      }
+    }
+  },
+  {
+    "id": 8,
+    "title": "困境 08 · 一张支票的两种写法",
+    "scenario": "你有一笔200万的善款。选项A：为一个罕见病孩子支付一支救命药。他会活下去，你会看到他的笑容。选项B：在偏远地区建一个基础诊所，每年能救几百人——但你看不到那些脸。",
+    "context": "一个你能看到眼泪，几百个只在统计表上。理性和情感，这道题的答案取决于你相信\"善\"是什么。",
+    "choiceA": {
+      "text": "救那个孩子",
+      "subtitle": "每一个生命都值得被全力拯救",
+      "scores": {
+        "utilitarian": -3,
+        "personal": 3,
+        "universal": 1,
+        "liberty": 0
+      }
+    },
+    "choiceB": {
+      "text": "建诊所",
+      "subtitle": "几百条生命 > 一条生命",
+      "scores": {
+        "utilitarian": 3,
+        "personal": -2,
+        "universal": 1,
+        "liberty": 1
+      }
+    }
+  },
+  {
+    "id": 9,
+    "title": "困境 09 · 烟囱与饭碗",
+    "scenario": "你是一座工业城市的市长。城里最大的化工厂为两万人提供了工作岗位，但它的排污正在让周边河流中的重金属超标，导致癌症发病率以每年3%的速度上升。关闭工厂意味着两万个家庭失去收入，不关则意味着更多人生病。",
+    "context": "发展权与健康权——当它们冲突时，谁的优先级更高？这不是遥远的理论问题，而是正在全球成千上万个城市中发生的真实困境。",
+    "choiceA": {
+      "text": "分阶段关停工厂",
+      "subtitle": "短期阵痛，长期生命不可替代",
+      "scores": {
+        "utilitarian": 2,
+        "personal": -1,
+        "universal": 2,
+        "liberty": -1
+      }
+    },
+    "choiceB": {
+      "text": "维持工厂但强制整改",
+      "subtitle": "在保住饭碗的前提下推动改善",
+      "scores": {
+        "utilitarian": 0,
+        "personal": 2,
+        "universal": -1,
+        "liberty": 1
+      }
+    }
+  },
+  {
+    "id": 10,
+    "title": "困境 10 · 远方的后代",
+    "scenario": "一项气候法案要求从明年起大幅提高碳税，这意味着每个家庭每年将多支出约15%的收入。支持者说\"地球不是我们从父辈继承的，而是从子孙那里借来的\"。反对者说\"现在活着的人不应该为未来的人牺牲\"。",
+    "context": "代际正义是道德哲学中最棘手的问题之一——那些还没有出生的人，有权利吗？我们愿意为他们付出多少？",
+    "choiceA": {
+      "text": "支持法案",
+      "subtitle": "后代的权利也是权利，即使他们现在不能投票",
+      "scores": {
+        "utilitarian": 3,
+        "personal": -1,
+        "universal": 2,
+        "liberty": -2
+      }
+    },
+    "choiceB": {
+      "text": "反对法案",
+      "subtitle": "活着的人的需求优先——未来的技术会自己解决问题",
+      "scores": {
+        "utilitarian": -2,
+        "personal": 1,
+        "universal": -1,
+        "liberty": 2
+      }
+    }
+  },
+  {
+    "id": 11,
+    "title": "困境 11 · 完美的孩子",
+    "scenario": "基因编辑技术已经可以安全地修改人类胚胎——不仅仅是消除遗传病，还可以增强智力、外貌和运动能力。一对夫妇想用这项技术来确保他们的孩子拥有\"最好的起点\"。你会支持还是反对？",
+    "context": "从\"治疗疾病\"到\"增强能力\"，这条界线的两边都是人。当技术允许我们设计人类时，我们是否应该按下那个按钮？",
+    "choiceA": {
+      "text": "允许用于消除遗传病",
+      "subtitle": "减轻痛苦是人类的责任，但在\"设计婴儿\"前画一条红线",
+      "scores": {
+        "utilitarian": 1,
+        "personal": 1,
+        "universal": 2,
+        "liberty": 0
+      }
+    },
+    "choiceB": {
+      "text": "全面禁止基因编辑",
+      "subtitle": "无论初衷多好，\"扮演上帝\"的危险太大了",
+      "scores": {
+        "utilitarian": -1,
+        "personal": 0,
+        "universal": 3,
+        "liberty": -1
+      }
+    }
+  },
+  {
+    "id": 12,
+    "title": "困境 12 · 算法的天平",
+    "scenario": "你负责一个AI招聘系统。数据显示，如果让算法完全根据历史录取数据学习，它会自动偏向男性候选人，因为历史数据本身就是有偏的。你可以给算法加入一个\"公平修正\"，强制它在不同性别间的录用率接近——但这会略微降低整体录用者的平均绩效。",
+    "context": "效率与公平——AI没有偏见，但它会把人类的偏见学得一丝不差。修正这些偏见需要付出\"效率代价\"，你愿意吗？",
+    "choiceA": {
+      "text": "加入公平修正",
+      "subtitle": "公平比效率更重要——尤其是当不公平源自历史偏见时",
+      "scores": {
+        "utilitarian": -1,
+        "personal": 0,
+        "universal": 3,
+        "liberty": 1
+      }
+    },
+    "choiceB": {
+      "text": "不加修正，保留算法原始逻辑",
+      "subtitle": "算法的任务是找出最优候选人，而不是纠正社会历史",
+      "scores": {
+        "utilitarian": 2,
+        "personal": -1,
+        "universal": -2,
+        "liberty": 0
+      }
+    }
+  }
+]

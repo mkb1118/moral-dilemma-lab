@@ -11,170 +11,46 @@
 <title>决策风格分析</title>
 <link rel="stylesheet" href="../assets/psych-lab.css">
 <style>
-  :root {
-    --bg: #060b12; --card: #0c1520; --card-hover: #111d2c;
-    --cyan: #00e5ff; --amber: #f5a623; --white: #f0f4f8;
-    --dim: rgba(240,244,248,0.5); --border: rgba(240,244,248,0.06);
-    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    --mono: 'Cascadia Code', 'Fira Code', monospace;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: var(--bg); color: var(--white); font-family: var(--font);
-    min-height: 100vh;
-  }
-  body::before {
-    content: ''; position: fixed; inset: 0;
-    background: linear-gradient(90deg, var(--border) 1px, transparent 1px),
-                linear-gradient(0deg, var(--border) 1px, transparent 1px);
-    background-size: 60px 60px;
-    mask-image: radial-gradient(ellipse at 50% 30%, black 20%, transparent 60%);
-    pointer-events: none; z-index: 0;
-  }
-  .app { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 24px; }
-  .screen { display: none; flex-direction: column; align-items: center; }
-  .screen.active { display: flex; animation: fadeIn 0.4s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .app { max-width: 720px; }
+  #modeSelect {  width: 100%; }
+.mode-header .label { font-family: var(--mono); font-size: 10px; letter-spacing: 4px; color: var(--amber); margin-bottom: 8px; }
 
-  /* Welcome */
-  .welcome-icon {
-    width: 72px; height: 72px; border-radius: 50%; border: 1px solid var(--cyan);
-    display: flex; align-items: center; justify-content: center; font-size: 32px;
-    margin: 40px 0 28px;
-  }
-  .title-block { text-align: center; margin-bottom: 16px; }
-  .label {
-    font-family: var(--mono); font-size: 10px; letter-spacing: 4px;
-    color: var(--amber); text-transform: uppercase; margin-bottom: 8px;
-  }
-  .title-block h1 { font-size: 38px; font-weight: 200; letter-spacing: 2px; line-height: 1.3; }
-  .title-block h1 span { color: var(--cyan); font-weight: 400; }
-  .subtitle { color: var(--dim); font-size: 15px; font-weight: 300; text-align: center; max-width: 440px; line-height: 1.6; margin-bottom: 20px; }
-  .info-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    border: 1px solid rgba(240,244,248,0.1); border-radius: 20px;
-    padding: 6px 18px; font-family: var(--mono); font-size: 10px; color: var(--dim);
-    margin-bottom: 32px;
-  }
-  .info-badge span { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); }
+.mode-header h2 span { color: var(--cyan); font-weight: 400; }
+.mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; }
+.mode-card:hover { border-color: rgba(0,229,255,0.2); background: var(--card-hover); transform: translateY(-2px); }
+.mode-card-header { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; text-align: left; }
+.mode-icon { font-size: 36px; flex-shrink: 0; }
+.mode-stats { font-family: var(--mono); font-size: 10px; color: var(--dim); margin-bottom: 10px; }
+.mode-badge { display: inline-block; font-family: var(--mono); font-size: 9px; letter-spacing: 2px; padding: 3px 10px; border-radius: 10px; margin-top: 10px; }
+.mode-badge.pro { color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
+  .pro-features { font-size: 11px; color: var(--dim); margin-top: 10px; line-height: 1.6; text-align: left; padding-left: 16px; }
+  #quiz { }
 
-  .btn {
-    font-family: var(--font); padding: 14px 40px; border-radius: 8px; border: none;
-    font-size: 15px; cursor: pointer; transition: all 0.3s; letter-spacing: 1px;
-  }
-  .btn.primary { background: var(--cyan); color: #060b12; font-weight: 600; }
-  .btn.primary:hover { box-shadow: 0 0 24px rgba(0,229,255,0.3); transform: translateY(-1px); }
-  .btn.back {
-    background: transparent; border: 1px solid rgba(240,244,248,0.15); color: var(--dim);
-    font-size: 13px; padding: 8px 20px; margin-bottom: 16px; align-self: flex-start;
-  }
-  .btn.back:hover { border-color: var(--cyan); color: var(--white); }
-  .btn.secondary { background: transparent; border: 1px solid rgba(240,244,248,0.2); color: var(--white); }
-  .btn.secondary:hover { border-color: var(--cyan); }
-
-  /* Quiz */
-  #quiz { align-items: stretch; }
-  .progress-wrap { margin-bottom: 24px; }
-  .progress-info { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; color: var(--dim); margin-bottom: 8px; }
-  .progress-track { height: 2px; background: rgba(240,244,248,0.06); border-radius: 2px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--cyan); border-radius: 2px; transition: width 0.3s; width: 0%; }
-
-  .q-card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-    padding: 32px; transition: all 0.3s;
-  }
-  .q-scenario {
-    font-family: var(--mono); font-size: 10px; letter-spacing: 3px;
-    color: var(--amber); margin-bottom: 16px;
-  }
-  .q-text { font-size: 16px; font-weight: 300; line-height: 1.7; margin-bottom: 24px; }
-
-  .choice-btn {
-    display: block; width: 100%;
-    background: rgba(240,244,248,0.03); border: 1px solid rgba(240,244,248,0.08);
-    border-radius: 8px; padding: 16px 20px; color: var(--white); font-size: 14px;
-    cursor: pointer; transition: all 0.25s; text-align: left; font-family: var(--font);
-    line-height: 1.5; margin-bottom: 10px;
-  }
+  .choice-btn { display: block; width: 100%; background: rgba(240,244,248,0.03); border: 1px solid rgba(240,244,248,0.08); border-radius: 8px; padding: 16px 20px; color: var(--white); font-size: 14px; cursor: pointer; transition: all 0.25s; text-align: left; font-family: var(--font); line-height: 1.5; margin-bottom: 10px; }
   .choice-btn:hover { background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.2); }
   .choice-btn.selected { background: rgba(0,229,255,0.1); border-color: var(--cyan); }
-
   .q-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
   .nav-hint { font-family: var(--mono); font-size: 10px; color: var(--dim); }
 
-  /* Results */
-  #results { align-items: stretch; }
-  .results-header { text-align: center; margin-bottom: 32px; }
-  .results-header .label { margin-bottom: 4px; }
-  .results-header h2 { font-size: 28px; font-weight: 200; letter-spacing: 2px; }
-  .results-header h2 span { color: var(--cyan); font-weight: 400; }
-
-  .primary-card {
-    background: var(--card); border: 1px solid rgba(0,229,255,0.2); border-radius: 12px;
-    padding: 36px; text-align: center; margin-bottom: 24px;
-  }
-  .primary-icon { font-size: 48px; margin-bottom: 12px; }
-  .primary-name { font-size: 22px; font-weight: 400; color: var(--cyan); letter-spacing: 2px; }
-  .primary-subtitle { font-size: 13px; color: var(--dim); margin-top: 6px; font-weight: 300; }
-  .primary-score { font-family: var(--mono); font-size: 42px; color: var(--cyan); font-weight: 200; margin-top: 12px; }
-  .primary-desc { font-size: 14px; color: var(--dim); line-height: 1.7; margin-top: 16px; font-weight: 300; }
-
-  .section-label {
-    font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: var(--amber);
-    margin: 28px 0 12px; text-transform: uppercase;
-  }
-
-  .style-card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-    padding: 22px; margin-bottom: 10px;
-  }
+  #results { }
+  .primary-card { background: var(--card); border: 1px solid rgba(0,229,255,0.2); border-radius: 12px; padding: 36px; text-align: center; margin-bottom: 24px; }
+.primary-name { font-size: 22px; font-weight: 400; color: var(--cyan); letter-spacing: 2px; }
+.primary-score { font-family: var(--mono); font-size: 42px; color: var(--cyan); font-weight: 200; margin-top: 12px; }
+.style-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 22px; margin-bottom: 10px; }
   .style-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
   .style-name { font-size: 15px; font-weight: 400; display: flex; align-items: center; gap: 8px; }
   .style-score { font-family: var(--mono); font-size: 18px; color: var(--cyan); font-weight: 300; }
   .style-bar-wrap { height: 4px; background: rgba(240,244,248,0.06); border-radius: 2px; overflow: hidden; margin-bottom: 4px; }
   .style-bar-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
   .style-desc { font-size: 12px; color: var(--dim); line-height: 1.6; font-weight: 300; }
-
-  .combo-card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-    padding: 28px; margin-bottom: 20px; border-left: 2px solid var(--amber);
-    font-size: 14px; line-height: 1.8; font-weight: 300; color: var(--dim);
-  }
-
-  .insight-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-  .insight-card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-    padding: 22px; font-size: 13px; line-height: 1.7; font-weight: 300; color: var(--dim);
-  }
-  .insight-card h4 { font-size: 15px; font-weight: 400; color: var(--white); margin-bottom: 10px; }
-
-  .growth-card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-    padding: 28px; margin-bottom: 24px; border-left: 2px solid var(--cyan);
-    font-size: 13px; line-height: 1.8; font-weight: 300; color: var(--dim);
-  }
-  .growth-card h4 { font-size: 16px; font-weight: 400; color: var(--white); margin-bottom: 12px; }
-
-  .cite-card {
-    background: transparent; border: 1px solid rgba(240,244,248,0.04); border-radius: 8px;
-    padding: 18px 22px; margin-bottom: 24px; font-size: 11px; color: var(--dim); line-height: 1.7;
-    font-family: var(--mono);
-  }
-
-  .action-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
-  .footer-note { text-align: center; color: var(--dim); font-size: 11px; font-weight: 300; opacity: 0.5; margin-top: 20px; }
-
-  .toast {
-    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
-    background: var(--card); border: 1px solid var(--cyan); color: var(--white);
-    padding: 12px 28px; border-radius: 8px; font-size: 13px; z-index: 99;
-    animation: fadeIn 0.3s;
-  }
+  .combo-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 20px; border-left: 2px solid var(--amber); font-size: 14px; line-height: 1.8; font-weight: 300; color: var(--dim); }
+.insight-card h4 { font-size: 15px; font-weight: 400; color: var(--white); margin-bottom: 10px; }
+.growth-card h4 { font-size: 16px; font-weight: 400; color: var(--white); margin-bottom: 12px; }
+  .cite-card { background: transparent; border: 1px solid rgba(240,244,248,0.04); border-radius: 8px; padding: 18px 22px; margin-bottom: 24px; font-size: 11px; color: var(--dim); line-height: 1.7; font-family: var(--mono); }
 
   @media (max-width: 600px) {
     .insight-row { grid-template-columns: 1fr; }
     .primary-score { font-size: 32px; }
-    .q-card { padding: 20px; }
   }
 </style>
 </head>
@@ -185,12 +61,12 @@
   <div class="screen active" id="welcome">
     <div class="welcome-icon">🎯</div>
     <div class="title-block">
-      <div class="label">Decision Style · GDMS Framework</div>
+      <div class="label">选择模式</div>
       <h1>决策风格<br><span>分析</span></h1>
     </div>
     <p class="subtitle">基于 Scott & Bruce (1995) 通用决策风格模型，从理性、直觉、依赖、回避、冲动五个维度剖析你的决策DNA。没有"最好"的风格——只有最了解自己的决策者。</p>
     <div class="info-badge"><span></span> 25 题 · 约 5 分钟 · Scott & Bruce GDMS 模型</div>
-    <button class="btn primary" onclick="startTest()">开始分析 →</button>
+    <div class="action-row"><button class="btn primary" id="startBtn">开始</button><a class="btn secondary" href="../index.html">返回</a></div>
     <div class="footer-note" style="margin-top:28px;">⚠️ 本测试为自我认知工具，不构成心理诊断</div>
   </div>
 
@@ -200,7 +76,7 @@
       <div class="progress-info"><span id="progNum">1 / 25</span><span id="progPct">0%</span></div>
       <div class="progress-track"><div class="progress-fill" id="progBar"></div></div>
     </div>
-    <button class="btn back" id="btnBack" onclick="goBack()" style="visibility:hidden;">← 上一题</button>
+    <button class="btn back" id="btnBack" id="backBtn" style="visibility:hidden;">← 上一题</button>
     <div class="q-card" id="qCard">
       <div class="q-scenario" id="qScenario"></div>
       <div class="q-text" id="qText"></div>
@@ -212,8 +88,8 @@
   <!-- RESULTS -->
   <div class="screen" id="results">
     <div class="results-header">
-      <div class="label">Decision Style Profile</div>
-      <h2>你的决策<span>风格画像</span></h2>
+      <div class="label">选择模式</div>
+      <h2>请选择测试模式</h2>
     </div>
 
     <div class="primary-card" id="primaryCard"></div>
@@ -245,8 +121,8 @@
       <a class="lab-home-link" href="../cognitive-bias/index.html">继续实验 →</a>
     </div>
     <div class="action-row">
-      <button class="btn primary" onclick="restartTest()">重新分析</button>
-      <button class="btn secondary" onclick="shareResults()">📤 分享结果</button>
+      <button class="btn primary" id="restartBtn">重新分析</button>
+      <button class="btn secondary" id="shareBtn">📤 分享结果</button>
     </div>
     <div style="text-align:center;margin:16px 0 32px;">
       <a href="../index.html" style="color:var(--dim);font-family:var(--mono);font-size:11px;text-decoration:none;border:1px solid rgba(240,244,248,0.1);padding:6px 16px;border-radius:4px;transition:all 0.2s;">🏠 返回测试广场</a>
@@ -417,8 +293,17 @@ const questions = [
 // ── State ──
 let currentQ = 0;
 let answers = {}; // {questionId: optionIndex}
+const PROGRESS_KEY = 'psych-lab-decision-style';
+  PsychLabSync.init('decision-style');
 
 // ── Navigation ──
+  function initEvents() {
+    document.getElementById('startBtn')?.addEventListener('click', startTest);
+    document.getElementById('backBtn')?.addEventListener('click', goBack);
+    document.getElementById('restartBtn')?.addEventListener('click', restartTest);
+    document.getElementById('shareBtn')?.addEventListener('click', shareResults);
+  }
+
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -427,6 +312,7 @@ function showScreen(id) {
 
 function startTest() {
   currentQ = 0; answers = {};
+  PsychLabSync.reset(); PsychLabSync.start("standard");
   showScreen('quiz'); renderQuestion();
 }
 
@@ -440,6 +326,7 @@ function renderQuestion() {
   document.getElementById('progNum').textContent = `${currentQ+1} / ${questions.length}`;
   document.getElementById('progPct').textContent = `${Math.round((currentQ/questions.length)*100)}%`;
   document.getElementById('progBar').style.width = `${((currentQ)/questions.length)*100}%`;
+  if (window.PsychLab) PsychLab.syncProgressBar(document.getElementById('progBar'));
   document.getElementById('qScenario').textContent = `SCENARIO ${currentQ+1}`;
   document.getElementById('qText').textContent = q.text;
 
@@ -453,6 +340,7 @@ function renderQuestion() {
     const btn = document.createElement('button');
     btn.className = 'choice-btn';
     btn.textContent = opt.text;
+    btn.setAttribute('aria-label', `${String.fromCharCode(65+i)}：${opt.text.substring(0, 60)}`);
     if (answers[q.id] === i) btn.classList.add('selected');
     btn.onclick = () => {
       answers[q.id] = i;
@@ -471,7 +359,7 @@ function renderQuestion() {
 
 function advanceIfReady() {
   if (answers[questions[currentQ].id] != null) {
-    if (currentQ < questions.length - 1) { currentQ++; renderQuestion(); }
+    if (currentQ < questions.length - 1) { currentQ++; renderQuestion(); if (window.PsychLab) PsychLab.saveProgress(PROGRESS_KEY, { currentQ: currentQ, answers: answers, total: questions.length }); }
     else { showResults(); }
   }
 }
@@ -512,6 +400,8 @@ function calcScores() {
 
 // ── Results ──
 function showResults() {
+  PsychLabSync.complete(styleScores, primaryDesc || "").catch(function(){});
+  PsychLab.clearProgress(PROGRESS_KEY);
   showScreen('results');
   const scores = calcScores();
   const primary = STYLE_INFO[scores.primary];
@@ -668,7 +558,7 @@ function generateGrowth(scores) {
 }
 
 // ── Actions ──
-function restartTest() { currentQ = 0; answers = {}; showScreen('welcome'); }
+function restartTest() { PsychLab.clearProgress(PROGRESS_KEY); currentQ = 0; answers = {}; showScreen('welcome'); }
 
 function shareResults() {
   const scores = calcScores();
@@ -691,5 +581,20 @@ function showToast(msg) {
 }
 </script>
 <script src="../assets/psych-lab.js"></script>
+<script src="../assets/api-client.js"></script>
+<script src="../assets/psych-lab-sync.js"></script>
+<script>
+(function () {
+  var saved = PsychLab.loadProgress(PROGRESS_KEY);
+  if (!saved || saved.resultsShown) return;
+  var welcomeEl = document.getElementById('welcome');
+  PsychLab.injectResumePrompt(welcomeEl, PROGRESS_KEY, saved,
+    function onContinue(s) { currentQ = s.currentQ; answers = s.answers; showScreen('quiz'); renderQuestion(); },
+    function onRestart() { restartTest(); }
+  );
+})();
+
+  initEvents();
+  ;</script>
 </body>
 </html>

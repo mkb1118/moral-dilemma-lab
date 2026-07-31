@@ -11,40 +11,9 @@
 <title>核心价值观排序</title>
 <link rel="stylesheet" href="../assets/psych-lab.css">
 <style>
-  :root {
-    --bg: #060b12; --card: #0c1520; --card-hover: #111d2c;
-    --cyan: #00e5ff; --amber: #f5a623; --white: #f0f4f8;
-    --dim: rgba(240,244,248,0.5); --border: rgba(240,244,248,0.06);
-    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    --mono: 'Cascadia Code', 'Fira Code', monospace;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg); color: var(--white); font-family: var(--font); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-  body::before { content: ''; position: fixed; inset: 0; background: linear-gradient(90deg, var(--border) 1px, transparent 1px), linear-gradient(0deg, var(--border) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%); pointer-events: none; z-index: 0; }
-  .app { position: relative; z-index: 1; width: 100%; max-width: 760px; padding: 24px; }
-  .screen { display: none; flex-direction: column; align-items: center; animation: fadeIn 0.5s; }
-  .screen.active { display: flex; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } }
-
-  .welcome-icon { width: 72px; height: 72px; border: 2px solid var(--cyan); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 28px; font-size: 32px; }
-  .title-block { text-align: center; margin-bottom: 12px; }
-  .title-block .label { font-family: var(--mono); font-size: 10px; letter-spacing: 4px; color: var(--amber); margin-bottom: 12px; }
-  .title-block h1 { font-size: 38px; font-weight: 200; letter-spacing: 2px; }
-  .title-block h1 span { color: var(--cyan); font-weight: 400; }
-  .subtitle { color: var(--dim); font-size: 15px; font-weight: 300; text-align: center; max-width: 460px; line-height: 1.6; margin-bottom: 20px; }
-
-  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 32px; border: 1px solid rgba(240,244,248,0.15); border-radius: 4px; background: transparent; color: var(--white); font-family: var(--mono); font-size: 13px; letter-spacing: 1px; cursor: pointer; transition: all 0.3s; }
-  .btn:hover { border-color: var(--cyan); background: rgba(0,229,255,0.05); }
-  .btn.primary { background: rgba(0,229,255,0.08); border-color: var(--cyan); }
-  .btn.primary:hover { background: rgba(0,229,255,0.15); }
-  .btn:disabled { opacity: 0.25; pointer-events: none; }
-
-  /* Tier zones */
   .tier-section { width: 100%; margin-bottom: 16px; }
   .tier-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
   .tier-icon { font-size: 16px; }
-  .tier-name { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--amber); text-transform: uppercase; }
-  .tier-count { font-family: var(--mono); font-size: 11px; color: var(--dim); }
   .tier-zone { min-height: 70px; border: 1px dashed rgba(240,244,248,0.08); border-radius: 10px; padding: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; transition: all 0.3s; }
   .tier-zone.core { border-color: rgba(0,229,255,0.2); background: rgba(0,229,255,0.02); }
   .tier-zone.important { border-color: rgba(240,244,248,0.06); }
@@ -57,20 +26,13 @@
   .value-chip .vc-name { font-size: 13px; }
   .value-chip .vc-desc { font-size: 10px; color: var(--dim); margin-left: 4px; display: none; }
   .pool-item .vc-desc { display: inline; }
-
   .pool { display: flex; flex-wrap: wrap; gap: 8px; }
 
-  /* Rank step */
   .rank-hint { font-family: var(--mono); font-size: 11px; color: var(--cyan); margin-bottom: 16px; }
   .rank-zone { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
   .rank-card { display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s; }
   .rank-card:hover { border-color: var(--cyan); }
   .rank-pos { font-family: var(--mono); font-size: 18px; color: var(--amber); min-width: 28px; }
-
-  /* Results */
-  .results-header { text-align: center; margin-bottom: 24px; }
-  .results-header .label { font-family: var(--mono); font-size: 10px; letter-spacing: 4px; color: var(--amber); margin-bottom: 8px; }
-  .results-header h2 { font-size: 28px; font-weight: 200; }
 
   .full-rank { width: 100%; display: flex; flex-direction: column; gap: 6px; margin-bottom: 24px; }
   .full-rank-item { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 8px; }
@@ -86,16 +48,7 @@
   .insight-block .i-title { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--amber); margin-bottom: 8px; }
   .insight-block .i-text { font-size: 14px; color: var(--dim); line-height: 1.7; font-weight: 300; }
 
-  .action-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 16px; margin-bottom: 8px; }
-  .footer-note { font-family: var(--mono); font-size: 9px; color: var(--dim); opacity: 0.4; text-align: center; margin-top: 8px; }
-
-  .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); background: var(--card); border: 1px solid var(--cyan); color: var(--cyan); padding: 10px 20px; border-radius: 6px; font-family: var(--mono); font-size: 12px; z-index: 100; animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards; pointer-events: none; }
-  @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } }
-  @keyframes toastOut { to { opacity: 0; transform: translateX(-50%) translateY(-10px); } }
-
   @media (max-width: 600px) {
-    .app { padding: 16px; }
-    .title-block h1 { font-size: 28px; }
     .value-chip .vc-desc { display: none; }
   }
 </style>
@@ -111,7 +64,8 @@
       <h1>核心价值观<br><span>排序</span></h1>
     </div>
     <p class="subtitle">基于Schwartz价值观理论，将12个普世价值分入三个层级。不是选最重要的——而是诚实地看见：在不同价值冲突时，你内心真正的优先级是什么。</p>
-    <button class="btn primary" onclick="startTest()">开始 →</button>
+    <div class="info-badge"><span></span> 12 项价值排序 · 约 3 分钟 · Schwartz 框架</div>
+    <div class="action-row"><button class="btn primary" id="startBtn">开始</button><a class="btn secondary" href="../index.html">返回</a></div>
   </div>
 
   <!-- STEP 1: Three-tier sorting -->
@@ -130,15 +84,15 @@
       <div class="tier-header"><span class="tier-icon">👋</span><span class="tier-name">一般价值</span><span class="tier-count">（剩余 4 个 —— 目前优先级较低）</span></div>
       <div class="tier-zone less" id="zoneLess"></div>
     </div>
-    <button class="btn primary" id="btnNext" disabled onclick="goToRank()">下一步：排序核心价值 →</button>
+    <button class="btn primary" id="btnNext" disabled id="goRankBtn">下一步：排序核心价值 →</button>
   </div>
 
   <!-- STEP 2: Rank core values -->
   <div class="screen" id="rank">
     <div class="rank-hint">👇 点击两个卡片交换位置，排出你最重要的顺序</div>
     <div class="rank-zone" id="rankZone"></div>
-    <button class="btn primary" onclick="showResults()">查看结果 →</button>
-    <button class="btn" onclick="backToSort()">← 重新分层</button>
+    <button class="btn primary" id="showResultsBtn">查看结果 →</button>
+    <button class="btn" id="backSortBtn">← 重新分层</button>
   </div>
 
   <!-- RESULTS -->
@@ -188,11 +142,12 @@
       <a class="lab-home-link" href="../moral-dilemma-lab/index.html">继续实验 →</a>
     </div>
     <div class="action-row">
-      <button class="btn primary" onclick="restartTest()">重新排序</button>
-      <button class="btn" onclick="shareResults()">📤 分享结果</button>
+      <button class="btn primary" id="restartBtn">重新排序</button>
+      <button class="btn" id="shareBtn">📤 分享结果</button>
     </div>
     <div style="text-align:center;margin-bottom:16px;"><a href="../index.html" style="color:var(--dim);font-family:var(--mono);font-size:11px;text-decoration:none;border:1px solid rgba(240,244,248,0.1);padding:6px 16px;border-radius:4px;">🏠 返回测试广场</a></div>
     <p class="footer-note">基于 Schwartz (1992) 价值观理论改编 · 价值观无优劣，只有优先级</p>
+    <div class="info-badge"><span></span> 12 项价值排序 · 约 3 分钟 · Schwartz 框架</div>
   </div>
 </div>
 
@@ -214,14 +169,34 @@ const VALUES = [
 
 // State: each value is in one of 3 tiers: 'core', 'important', 'less'
 let tiers = { core: [], important: [], less: VALUES.map(v => v.id) };
-let coreRank = []; // ordered core IDs
+let coreRank = [];`r
+  PsychLabSync.init('values-sort');
+  PsychLabSync.init('values-sort'); // ordered core IDs
+
+
+  function initEvents() {
+    document.getElementById('startBtn')?.addEventListener('click', startTest);
+    document.getElementById('goRankBtn')?.addEventListener('click', goToRank);
+    document.getElementById('showResultsBtn')?.addEventListener('click', showResults);
+    document.getElementById('backSortBtn')?.addEventListener('click', backToSort);
+    document.getElementById('restartBtn')?.addEventListener('click', restartTest);
+    document.getElementById('shareBtn')?.addEventListener('click', shareResults);
+    // Delegated events for dynamic buttons
+    document.addEventListener('click', function(e) {
+      var t = e.target.closest('[data-vs="cycleTier"]');
+      if (t) cycleTier(t.dataset.id || t.getAttribute('data-id'));
+      var s = e.target.closest('[data-vs="swapCore"]');
+      if (s) swapCoreRank(parseInt(s.dataset.idx || s.getAttribute('data-idx'), 10));
+    });
+  }
 
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-function startTest() {
+function startTest() {`r
+  PsychLabSync.reset(); PsychLabSync.start("standard");
   tiers = { core: [], important: [], less: VALUES.map(v => v.id) };
   coreRank = [];
   showScreen('sort');
@@ -231,6 +206,7 @@ function startTest() {
 function getV(id) { return VALUES.find(v => v.id === id); }
 
 function renderTiers() {
+  const tierLabelMap = { core: '核心', important: '重要', less: '一般' };
   ['core','important','less'].forEach(tier => {
     const zone = document.getElementById(`zone${tier[0].toUpperCase()+tier.slice(1)}`);
     const ids = tiers[tier];
@@ -240,9 +216,9 @@ function renderTiers() {
     zone.className = `tier-zone ${tier}${isFull ? ' full' : ''}`;
     zone.innerHTML = ids.map(id => {
       const v = getV(id);
-      return `<div class="value-chip" onclick="cycleTier('${id}')">${v.icon} ${v.name}</div>`;
+      return `<div class="value-chip" data-vs="cycleTier" aria-label="${v.name}，当前在${tierLabelMap[tier]}层级，点击切换到下一层级">${v.icon} ${v.name}</div>`;
     }).join('') + (tier !== 'less' && ids.length < max
-      ? `<div class="value-chip" style="border-style:dashed;opacity:0.3;pointer-events:none;">+ 点击下方添加</div>` : '');
+      ? `<div class="value-chip" style="border-style:dashed;opacity:0.3;pointer-events:none;" aria-hidden="true">+ 点击下方添加</div>` : '');
   });
 
   document.getElementById('btnNext').disabled = tiers.core.length !== 4 || tiers.important.length !== 4;
@@ -282,7 +258,8 @@ function goToRank() {
 function renderRank() {
   document.getElementById('rankZone').innerHTML = coreRank.map((id, i) => {
     const v = getV(id);
-    return `<div class="rank-card" onclick="swapCoreRank(${i})">
+    const swapHint = i > 0 ? '，点击可上移一位' : '，点击可将后面一位换上来';
+    return `<div class="rank-card" data-vs="swapCore" aria-label="第${i+1}位：${v.name}${swapHint}">
       <span class="rank-pos">#${i + 1}</span>
       <span>${v.icon} ${v.name}</span>
       <span style="font-size:11px;color:var(--dim);margin-left:auto;">${v.short}</span>
@@ -303,6 +280,7 @@ function backToSort() { showScreen('sort'); renderTiers(); }
 // RESULTS
 // ============================================
 function showResults() {
+  PsychLabSync.complete({coreRank: coreRank, tiers: tiers}, "核心价值观排序").catch(function(){});
   const fullOrder = [
     ...coreRank.map(id => ({ id, tier: 'core' })),
     ...tiers.important.map(id => ({ id, tier: 'important' })),
@@ -544,7 +522,10 @@ function restartTest() {
   coreRank = [];
   showScreen('welcome');
 }
-</script>
+
+  initEvents();</script>
 <script src="../assets/psych-lab.js"></script>
+<script src="../assets/api-client.js"></script>
+<script src="../assets/psych-lab-sync.js"></script>
 </body>
 </html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 编排演示</title>
+<script src="assets/ai-client.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .shell {
+    width: 100%;
+    max-width: 860px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #21262d;
+    border-bottom: 1px solid #30363d;
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot.r { background: #ff5f57; }
+  .dot.y { background: #febc2e; }
+  .dot.g { background: #28c840; }
+  .bar span { margin-left: 10px; font-size: 13px; color: #8b949e; }
+  .content { padding: 24px; }
+  h1 { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+  textarea {
+    width: 100%;
+    min-height: 96px;
+    background: #0d1117;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    resize: vertical;
+  }
+  .row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  select, button {
+    padding: 9px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    border: 1px solid #30363d;
+    background: #21262d;
+    color: #e6edf3;
+  }
+  button { background: #238636; border-color: #238636; cursor: pointer; font-weight: 600; }
+  button:hover { background: #2ea043; }
+  button:disabled { opacity: .55; cursor: wait; }
+  .meta { margin-top: 12px; font-size: 12px; color: #8b949e; min-height: 18px; }
+  .answer {
+    margin-top: 12px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 14px;
+    white-space: pre-wrap;
+    line-height: 1.7;
+    font-size: 14px;
+    min-height: 90px;
+  }
+  .steps { margin-top: 12px; font-size: 12px; color: #8b949e; }
+  .steps div { padding: 5px 0; border-top: 1px dashed #21262d; }
+  .err { color: #f85149; }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="bar">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span>AI Orchestrator</span>
+    </div>
+    <div class="content">
+      <h1>多模型编排</h1>
+      <textarea id="prompt" placeholder="输入问题..."></textarea>
+      <div class="row">
+        <select id="strategy">
+          <option value="router">router 自动路由</option>
+          <option value="pipeline">pipeline 流水线</option>
+          <option value="debate">debate 多模型辩论</option>
+          <option value="cascade">cascade 级联省钱</option>
+          <option value="parallel">parallel 并行择优</option>
+        </select>
+        <button id="go">发送</button>
+      </div>
+      <div class="meta" id="meta"></div>
+      <div class="answer" id="answer"></div>
+      <div class="steps" id="steps"></div>
+    </div>
+  </div>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    $("go").addEventListener("click", async () => {
+      const prompt = $("prompt").value.trim();
+      if (!prompt) return;
+      const go = $("go");
+      go.disabled = true;
+      $("answer").textContent = "请求中...";
+      $("meta").textContent = "";
+      $("steps").innerHTML = "";
+      try {
+        const res = await aiAsk(prompt, { strategy: $("strategy").value });
+        $("answer").textContent = res.answer;
+        $("meta").textContent = `策略 ${res.strategy} | 成本等级 ${res.total_cost_rank} | 耗时 ${res.duration_ms}ms`;
+        $("steps").innerHTML = res.steps.map(s =>
+          `<div>[${s.label}] ${s.model}${s.error ? " - 失败" : ""}</div>`
+        ).join("");
+      } catch (e) {
+        $("answer").innerHTML = `<span class="err">${e.message}</span>`;
+      } finally {
+        go.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

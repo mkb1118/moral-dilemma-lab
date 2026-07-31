@@ -1,0 +1,38 @@
+{
+  "perceiving": {
+    "name": "情绪感知",
+    "icon": "👁️",
+    "sub": [
+      "自我觉察",
+      "他人觉察"
+    ],
+    "order": 1
+  },
+  "understanding": {
+    "name": "情绪理解",
+    "icon": "🧠",
+    "sub": [
+      "原因理解",
+      "复杂理解"
+    ],
+    "order": 2
+  },
+  "facilitating": {
+    "name": "情绪运用",
+    "icon": "💡",
+    "sub": [
+      "决策辅助",
+      "创造激发"
+    ],
+    "order": 3
+  },
+  "managing": {
+    "name": "情绪管理",
+    "icon": "⚖️",
+    "sub": [
+      "自我调节",
+      "他人调节"
+    ],
+    "order": 4
+  }
+}

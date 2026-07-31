@@ -10,46 +10,9 @@
 <meta name="twitter:card" content="summary">
 <title>心理测试广场 · Psychology Lab</title>
 <link rel="stylesheet" href="assets/psych-lab.css">
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { min-height: 100vh; }
-  .route-panel {
-    margin-bottom: 30px;
-    border: 1px solid var(--lab-border);
-    border-radius: 22px;
-    padding: 22px;
-    background: rgba(12,21,32,.52);
-  }
-  .route-title {
-    font-family: var(--lab-mono);
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: var(--lab-amber);
-    text-transform: uppercase;
-    margin-bottom: 14px;
-  }
-  .route-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  .route-card {
-    border: 1px solid var(--lab-border);
-    border-radius: 16px;
-    padding: 16px;
-    background: rgba(255,255,255,.018);
-  }
-  .route-card strong { display: block; font-size: 15px; font-weight: 420; margin-bottom: 6px; }
-  .route-card span { color: var(--lab-muted); font-size: 12px; line-height: 1.6; }
-  .footer {
-    text-align: center;
-    margin-top: 48px;
-    font-family: var(--lab-mono);
-    font-size: 10px;
-    color: var(--lab-muted);
-    letter-spacing: 1px;
-    opacity: .58;
-  }
-  @media (max-width: 720px) { .route-grid { grid-template-columns: 1fr; } }
-</style>
 </head>
 <body>
+<nav class="lab-auth-bar" id="authBar"></nav>
 <main class="lab-home">
   <section class="lab-hero" aria-labelledby="pageTitle">
     <div class="lab-hero-panel">
@@ -148,8 +111,145 @@
     </div>
   </section>
 
+<!-- Auth Modal -->
+<div class="lab-modal-overlay hidden" id="authModalOverlay">
+  <div class="lab-modal">
+    <h3 id="authModalTitle"><span id="authModalAction">登录</span> PsychLab</h3>
+    <div class="field"><label for="authNickname">昵称</label><input type="text" id="authNickname" placeholder="你的昵称" maxlength="20" autocomplete="nickname"></div>
+    <div class="field"><label for="authPassword">密码</label><input type="password" id="authPassword" placeholder="至少 6 位" maxlength="64" autocomplete="current-password"></div>
+    <div class="modal-error" id="authError"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="authCancelBtn">取消</button>
+      <button class="btn-submit" id="authSubmitBtn">登录</button>
+    </div>
+    <div class="modal-switch"><span id="authSwitchText">没有账号？</span> <a id="authSwitchLink" href="#">注册</a></div>
+  </div>
+</div>
   <div class="footer">6项测试已全部上线 · 纯前端 · 无需下载 · 仅供自我探索</div>
 </main>
+<script src="assets/api-client.js"></script>
 <script src="assets/psych-lab.js"></script>
+
+<script>
+(function() {
+  var isLoginMode = true;
+  var overlay = document.getElementById('authModalOverlay');
+  var elTitle = document.getElementById('authModalAction');
+  var elSubmit = document.getElementById('authSubmitBtn');
+  var elSwitchText = document.getElementById('authSwitchText');
+  var elSwitchLink = document.getElementById('authSwitchLink');
+  var elError = document.getElementById('authError');
+  var elNick = document.getElementById('authNickname');
+  var elPass = document.getElementById('authPassword');
+
+  function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function updateAuthBar() {
+    var bar = document.getElementById('authBar');
+    if (PsychLabAPI.isLoggedIn()) {
+      var user = PsychLabAPI.getUser();
+      var name = (user && user.nickname) || '用户';
+      bar.innerHTML = '<div class="lab-user-menu" id="userMenu">' +
+        '<div class="user-trigger" id="userTrigger">' + escHtml(name) + ' <span style="font-size:10px;">▼</span></div>' +
+        '<div class="user-dropdown">' +
+          '<a href="#" id="menuHistory">📋 测试历史</a>' +
+          '<div class="sep"></div>' +
+          '<button id="menuLogout">退出登录</button>' +
+        '</div></div>';
+      setTimeout(function() {
+        var menu = document.getElementById('userMenu');
+        var trig = document.getElementById('userTrigger');
+        if (!trig) return;
+        trig.addEventListener('click', function(e) { e.preventDefault(); menu.classList.toggle('open'); });
+        document.addEventListener('click', function(e) { if (!menu.contains(e.target)) menu.classList.remove('open'); });
+        var l = document.getElementById('menuLogout');
+        if (l) l.addEventListener('click', function(e) { e.preventDefault(); PsychLabAPI.logout(); updateAuthBar(); });
+        var h = document.getElementById('menuHistory');
+        if (h) h.addEventListener('click', function(e) { e.preventDefault(); menu.classList.remove('open'); window.location.href = 'user-center/index.html'; });
+      }, 0);
+    } else {
+      bar.innerHTML = '<button class="lab-auth-btn" id="showLoginBtn">登录</button>' +
+        '<button class="lab-auth-btn primary" id="showRegisterBtn">注册</button>';
+      setTimeout(function() {
+        var lb = document.getElementById('showLoginBtn');
+        var rb = document.getElementById('showRegisterBtn');
+        if (lb) lb.addEventListener('click', function() { openModal(true); });
+        if (rb) rb.addEventListener('click', function() { openModal(false); });
+      }, 0);
+    }
+  }
+
+  function setMode(isLogin) {
+    isLoginMode = isLogin;
+    elTitle.textContent = isLogin ? '登录' : '注册';
+    elSubmit.textContent = isLogin ? '登录' : '注册';
+    elSwitchText.textContent = isLogin ? '没有账号？' : '已有账号？';
+    elSwitchLink.textContent = isLogin ? '注册' : '登录';
+    elError.textContent = '';
+  }
+
+  function openModal(isLogin) {
+    setMode(isLogin);
+    overlay.classList.remove('hidden');
+    elNick.value = ''; elPass.value = ''; elError.textContent = '';
+    setTimeout(function() { elNick.focus(); }, 100);
+  }
+
+  function closeModal() { overlay.classList.add('hidden'); }
+
+  async function handleSubmit() {
+    var nick = elNick.value.trim();
+    var pass = elPass.value;
+    if (!nick) { elError.textContent = '请输入昵称'; return; }
+    if (pass.length < 6) { elError.textContent = '密码至少 6 位'; return; }
+    elError.textContent = ''; elSubmit.disabled = true; elSubmit.textContent = '…';
+    try {
+      if (isLoginMode) { await PsychLabAPI.login(nick, pass); }
+      else { await PsychLabAPI.register(nick, pass); }
+      closeModal(); updateAuthBar();
+    } catch (e) {
+      elError.textContent = e.message || '操作失败，请重试';
+    } finally {
+      elSubmit.disabled = false;
+      elSubmit.textContent = isLoginMode ? '登录' : '注册';
+    }
+  }
+
+  document.getElementById('authCancelBtn').addEventListener('click', closeModal);
+  document.getElementById('authSubmitBtn').addEventListener('click', handleSubmit);
+  elSwitchLink.addEventListener('click', function(e) { e.preventDefault(); setMode(!isLoginMode); });
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && !overlay.classList.contains('hidden')) closeModal(); });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !overlay.classList.contains('hidden') && document.activeElement === elPass) { handleSubmit(); }
+  });
+  window.addEventListener('psychlab:logout', function() { updateAuthBar(); });
+  updateAuthBar();
+// Intercept test card clicks: require login, redirect after auth
+var _pendingHref = null;
+document.querySelectorAll('.lab-test-card').forEach(function(card) {
+  card.addEventListener('click', function(e) {
+    if (!PsychLabAPI.isLoggedIn()) {
+      e.preventDefault();
+      _pendingHref = card.getAttribute('href');
+      setMode(false);
+      overlay.classList.remove('hidden');
+      elNick.value = ''; elPass.value = ''; elError.textContent = '';
+      setTimeout(function() { elNick.focus(); }, 100);
+    }
+  });
+});
+// After auth completes, redirect
+var _origClose = closeModal;
+closeModal = function() {
+  _origClose();
+  if (PsychLabAPI.isLoggedIn() && _pendingHref) {
+    var href = _pendingHref;
+    _pendingHref = null;
+    window.location.href = href;
+  }
+};
+})();
+</script>
 </body>
 </html>

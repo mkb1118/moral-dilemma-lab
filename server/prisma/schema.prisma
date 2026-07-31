@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String         @id @default(uuid())
+  wxOpenid     String?        @unique
+  nickname     String?
+  avatarUrl    String?
+  passwordHash String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  sessions     TestSession[]
+  favorites    UserFavorite[]
+}
+
+model TestType {
+  id          String        @id
+  name        String
+  description String?
+  modes       String[]
+  questions   Json?
+  createdAt   DateTime      @default(now())
+  sessions    TestSession[]
+}
+
+model TestSession {
+  id           String           @id @default(uuid())
+  userId       String
+  testTypeId   String
+  mode         String
+  status       String           @default("in_progress")
+  startedAt    DateTime         @default(now())
+  completedAt  DateTime?
+  answers      SessionAnswer[]
+  result       TestResult?
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testType     TestType         @relation(fields: [testTypeId], references: [id])
+  favorites    UserFavorite[]
+
+  @@index([userId, testTypeId])
+}
+
+model SessionAnswer {
+  id         String      @id @default(uuid())
+  sessionId  String
+  questionId String
+  answer     Json
+  answeredAt DateTime    @default(now())
+  session    TestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, questionId])
+}
+
+model TestResult {
+  id        String      @id @default(uuid())
+  sessionId String      @unique
+  scores    Json
+  summary   String?
+  createdAt DateTime    @default(now())
+  session   TestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model UserFavorite {
+  id        String      @id @default(uuid())
+  userId    String
+  sessionId String
+  createdAt DateTime    @default(now())
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session   TestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sessionId])
+}

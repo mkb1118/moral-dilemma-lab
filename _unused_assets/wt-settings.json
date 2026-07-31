@@ -1,0 +1,81 @@
+{
+    "$help": "https://aka.ms/terminal-documentation",
+    "$schema": "https://aka.ms/terminal-profiles-schema",
+    "defaultProfile": "{d1efa8e2-299b-533c-871a-9af2b336b61e}",
+    "copyOnSelect": false,
+    "copyFormatting": "none",
+    "theme": "dark",
+    "useAcrylicInTabRow": true,
+    "profiles":
+    {
+        "defaults":
+        {
+            "colorScheme": "One Half Dark",
+            "cursorShape": "bar",
+            "font":
+            {
+                "face": "JetBrains Mono",
+                "size": 12
+            },
+            "opacity": 92,
+            "padding": "12, 8, 12, 8",
+            "useAcrylic": false
+        },
+        "list":
+        [
+            {
+                "guid": "{d1efa8e2-299b-533c-871a-9af2b336b61e}",
+                "name": "Git Bash",
+                "commandline": "D:\\Program Files\\Git\\bin\\bash.exe --login",
+                "icon": "D:\\Program Files\\Git\\mingw64\\share\\git\\git-for-windows.ico",
+                "startingDirectory": "E:\\my project",
+                "backgroundImage": "E:\\my project\\terminal-bg.png",
+                "backgroundImageOpacity": 0.4,
+                "backgroundImageStretchMode": "uniformToFill",
+                "tabTitle": "Claude Code"
+            },
+            {
+                "guid": "{2093eb87-963a-564d-a935-a1dc62eb9e86}",
+                "name": "PowerShell",
+                "commandline": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                "startingDirectory": "%USERPROFILE%",
+                "backgroundImage": "E:\\my project\\terminal-bg.png",
+                "backgroundImageOpacity": 0.4,
+                "backgroundImageStretchMode": "uniformToFill"
+            },
+            {
+                "guid": "{47fadde5-5387-5e13-a689-31eab24f3746}",
+                "name": "命令提示符",
+                "commandline": "C:\\Windows\\System32\\cmd.exe",
+                "startingDirectory": "%USERPROFILE%",
+                "backgroundImage": "E:\\my project\\terminal-bg.png",
+                "backgroundImageOpacity": 0.4,
+                "backgroundImageStretchMode": "uniformToFill"
+            }
+        ]
+    },
+    "schemes":
+    [
+        {
+            "name": "One Half Dark",
+            "black": "#282c34",
+            "red": "#e06c75",
+            "green": "#98c379",
+            "yellow": "#e5c07b",
+            "blue": "#61afef",
+            "purple": "#c678dd",
+            "cyan": "#56b6c2",
+            "white": "#dcdfe4",
+            "brightBlack": "#5a6374",
+            "brightRed": "#e06c75",
+            "brightGreen": "#98c379",
+            "brightYellow": "#e5c07b",
+            "brightBlue": "#61afef",
+            "brightPurple": "#c678dd",
+            "brightCyan": "#56b6c2",
+            "brightWhite": "#dcdfe4",
+            "background": "#0a0a0f",
+            "foreground": "#dcdfe4"
+        }
+    ]
+}

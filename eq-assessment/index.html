@@ -11,175 +11,53 @@
 <title>情绪智力深度评估</title>
 <link rel="stylesheet" href="../assets/psych-lab.css">
 <style>
-  :root {
-    --bg: #060b12; --card: #0c1520; --card-hover: #111d2c;
-    --cyan: #00e5ff; --amber: #f5a623; --white: #f0f4f8;
-    --dim: rgba(240,244,248,0.5); --border: rgba(240,244,248,0.06);
-    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    --mono: 'Cascadia Code', 'Fira Code', monospace;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg); color: var(--white); font-family: var(--font); min-height: 100vh; }
-  body::before {
-    content: ''; position: fixed; inset: 0;
-    background: linear-gradient(90deg, var(--border) 1px, transparent 1px),
-                linear-gradient(0deg, var(--border) 1px, transparent 1px);
-    background-size: 60px 60px;
-    mask-image: radial-gradient(ellipse at 50% 30%, black 20%, transparent 60%);
-    pointer-events: none; z-index: 0;
-  }
-  .app { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 24px; }
-  .screen { display: none; flex-direction: column; align-items: center; }
-  .screen.active { display: flex; animation: fadeIn 0.4s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  #modeSelect { }
+.mode-header .label { font-family: var(--mono); font-size: 10px; letter-spacing: 4px; color: var(--amber); margin-bottom: 8px; }
 
-  .welcome-icon { width: 72px; height: 72px; border-radius: 50%; border: 1px solid var(--cyan); display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 40px 0 28px; }
-  .title-block { text-align: center; margin-bottom: 16px; }
-  .label { font-family: var(--mono); font-size: 10px; letter-spacing: 4px; color: var(--amber); text-transform: uppercase; margin-bottom: 8px; }
-  .title-block h1 { font-size: 38px; font-weight: 200; letter-spacing: 2px; line-height: 1.3; }
-  .title-block h1 span { color: var(--cyan); font-weight: 400; }
-  .subtitle { color: var(--dim); font-size: 15px; font-weight: 300; text-align: center; max-width: 440px; line-height: 1.6; margin-bottom: 20px; }
-  .info-badge { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(240,244,248,0.1); border-radius: 20px; padding: 6px 18px; font-family: var(--mono); font-size: 10px; color: var(--dim); margin-bottom: 32px; }
-  .info-badge span { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); }
-
-  .btn { font-family: var(--font); padding: 14px 40px; border-radius: 8px; border: none; font-size: 15px; cursor: pointer; transition: all 0.3s; letter-spacing: 1px; }
-  .btn.primary { background: var(--cyan); color: #060b12; font-weight: 600; }
-  .btn.primary:hover { box-shadow: 0 0 24px rgba(0,229,255,0.3); transform: translateY(-1px); }
-  .btn.back { background: transparent; border: 1px solid rgba(240,244,248,0.15); color: var(--dim); font-size: 13px; padding: 8px 20px; margin-bottom: 16px; }
-  .btn.back:hover { border-color: var(--cyan); color: var(--white); }
-  .btn.secondary { background: transparent; border: 1px solid rgba(240,244,248,0.2); color: var(--white); }
-  .btn.secondary:hover { border-color: var(--cyan); }
-
-  #modeSelect { align-items: stretch; }
-  .mode-header { text-align: center; margin-bottom: 32px; }
-  .mode-header h2 { font-size: 24px; font-weight: 200; letter-spacing: 2px; }
-  .mode-header h2 span { color: var(--cyan); font-weight: 400; }
-  .mode-header p { color: var(--dim); font-size: 13px; margin-top: 8px; font-weight: 300; }
-  .mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .mode-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 32px 24px; text-align: center; cursor: pointer; transition: all 0.3s; text-decoration: none; color: var(--white); }
-  .mode-card:hover { border-color: rgba(0,229,255,0.2); background: var(--card-hover); transform: translateY(-2px); }
-  .mode-card.pro:hover { border-color: rgba(245,166,35,0.3); }
-  .mode-icon { font-size: 40px; margin-bottom: 14px; }
-  .mode-name { font-size: 18px; font-weight: 400; letter-spacing: 1px; margin-bottom: 4px; }
-  .mode-stats { font-family: var(--mono); font-size: 10px; color: var(--dim); margin-bottom: 10px; }
-  .mode-desc { font-size: 12px; color: var(--dim); line-height: 1.5; font-weight: 300; }
-  .mode-badge { display: inline-block; font-family: var(--mono); font-size: 9px; letter-spacing: 2px; padding: 3px 10px; border-radius: 10px; margin-top: 10px; }
-  .mode-badge.light { color: var(--cyan); border: 1px solid rgba(0,229,255,0.3); }
-  .mode-badge.pro { color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
+.mode-header h2 span { color: var(--cyan); font-weight: 400; }
+.mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; }
+.mode-card:hover { border-color: rgba(0,229,255,0.2); background: var(--card-hover); transform: translateY(-2px); }
+.mode-card-header { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; text-align: left; font-size: 36px; }
+.mode-icon { font-size: 36px !important; width: 36px; height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.mode-stats { font-family: var(--mono); font-size: 10px; color: var(--dim); margin-bottom: 10px; }
+.mode-badge { display: inline-block; font-family: var(--mono); font-size: 9px; letter-spacing: 2px; padding: 3px 10px; border-radius: 10px; margin-top: 10px; }
+.mode-badge.pro { color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
   .pro-features { font-size: 11px; color: var(--dim); margin-top: 10px; line-height: 1.6; text-align: left; padding-left: 16px; }
 
-  #quiz { align-items: stretch; }
-  .progress-wrap { margin-bottom: 24px; }
-  .progress-info { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; color: var(--dim); margin-bottom: 8px; }
-  .progress-track { height: 2px; background: rgba(240,244,248,0.06); border-radius: 2px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--cyan); border-radius: 2px; transition: width 0.3s; width: 0%; }
-
-  .deep-transition { text-align: center; padding: 40px 20px; }
+  #quiz { }
+  .deep-transition {  padding: 40px 20px; }
   .deep-transition .deep-icon { font-size: 48px; margin-bottom: 16px; }
   .deep-transition h3 { font-size: 20px; font-weight: 300; margin-bottom: 8px; }
   .deep-transition h3 span { color: var(--amber); }
-  .deep-transition p { color: var(--dim); font-size: 14px; line-height: 1.6; font-weight: 300; }
-  .deep-modules { text-align: left; margin: 16px 0; display: inline-block; }
-  .deep-modules div { font-size: 13px; color: var(--dim); padding: 3px 0; }
+  .deep-transition p { color: var(--dim); font-size: 13px; font-weight: 300; }
 
-  .q-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 32px; transition: all 0.3s; }
-  .q-category { font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: var(--amber); text-transform: uppercase; margin-bottom: 16px; }
-  .q-text { font-size: 17px; font-weight: 300; line-height: 1.6; margin-bottom: 28px; }
-  .options { display: flex; flex-direction: column; gap: 10px; }
-  .opt-btn { background: rgba(240,244,248,0.03); border: 1px solid rgba(240,244,248,0.08); border-radius: 8px; padding: 14px 20px; color: var(--white); font-size: 14px; cursor: pointer; transition: all 0.25s; text-align: left; font-family: var(--font); display: flex; align-items: center; gap: 12px; }
-  .opt-btn:hover { background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.2); }
-  .opt-btn.selected { background: rgba(0,229,255,0.1); border-color: var(--cyan); }
-  .opt-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(240,244,248,0.2); flex-shrink: 0; transition: all 0.25s; }
-  .opt-btn.selected .opt-dot { background: var(--cyan); border-color: var(--cyan); }
-  .choice-btn { background: rgba(240,244,248,0.03); border: 1px solid rgba(240,244,248,0.08); border-radius: 8px; padding: 16px 20px; color: var(--white); font-size: 14px; cursor: pointer; transition: all 0.25s; text-align: left; font-family: var(--font); line-height: 1.5; }
+  .dim-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 22px; margin-bottom: 10px; }
+  .dim-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .dim-name { font-size: 16px; font-weight: 400; display: flex; align-items: center; gap: 8px; }
+  .dim-score { font-family: var(--mono); font-size: 18px; color: var(--cyan); font-weight: 300; }
+  .dim-bar-wrap { height: 4px; background: rgba(240,244,248,0.06); border-radius: 2px; overflow: hidden; margin-bottom: 4px; }
+  .dim-bar-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
+  .dim-desc { font-size: 12px; color: var(--dim); line-height: 1.6; font-weight: 300; }
+
+.score-big { font-family: var(--mono); font-size: 56px; font-weight: 200; color: var(--cyan); }
+.insight-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 22px; font-size: 13px; line-height: 1.7; font-weight: 300; color: var(--dim); }
+.trigger-map { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 16px; }
+
+.growth-card h4 { font-size: 16px; font-weight: 400; color: var(--white); margin-bottom: 12px; }
+  .summary-card { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 20px; border-left: 2px solid var(--cyan); }
+
+  .choice-btn { display: block; width: 100%; background: rgba(240,244,248,0.03); border: 1px solid rgba(240,244,248,0.08); border-radius: 8px; padding: 16px 20px; color: var(--white); font-size: 14px; cursor: pointer; transition: all 0.25s; text-align: left; font-family: var(--font); line-height: 1.5; margin-bottom: 10px; }
   .choice-btn:hover { background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.2); }
   .choice-btn.selected { background: rgba(0,229,255,0.1); border-color: var(--cyan); }
-  .q-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
-  .nav-hint { font-family: var(--mono); font-size: 10px; color: var(--dim); }
 
-  #results { align-items: stretch; }
-  .results-header { text-align: center; margin-bottom: 32px; }
-  .results-header .label { margin-bottom: 4px; }
-  .results-header h2 { font-size: 28px; font-weight: 200; letter-spacing: 2px; }
-  .results-header h2 span { color: var(--cyan); font-weight: 400; }
-  .version-tag { display: inline-block; font-family: var(--mono); font-size: 9px; letter-spacing: 2px; padding: 2px 10px; border-radius: 8px; margin-top: 6px; }
-  .version-tag.pro { color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
-  .version-tag.light { color: var(--cyan); border: 1px solid rgba(0,229,255,0.3); }
+  .scale { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .scale-btn { flex: 1; min-width: 60px; padding: 12px 8px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--dim); font-size: 13px; cursor: pointer; transition: all 0.25s;  min-height: 44px; font-family: var(--font); }
+  .scale-btn:hover { border-color: var(--cyan); color: var(--white); background: rgba(0,229,255,0.05); }
+  .scale-btn.selected { border-color: var(--cyan); background: rgba(0,229,255,0.1); color: var(--cyan); }
 
-  .score-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 36px; text-align: center; margin-bottom: 24px; }
-  .score-big { font-size: 72px; font-weight: 200; color: var(--cyan); line-height: 1; }
-  .score-label { font-size: 14px; color: var(--dim); margin-top: 8px; font-weight: 300; }
-  .score-level { display: inline-block; margin-top: 12px; padding: 4px 16px; border-radius: 12px; font-family: var(--mono); font-size: 10px; letter-spacing: 2px; }
-  .score-level.high { color: var(--cyan); border: 1px solid rgba(0,229,255,0.3); }
-  .score-level.mid { color: #7ec8e3; border: 1px solid rgba(126,200,227,0.3); }
-  .score-level.low { color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
+#results { }
 
-  .summary-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 24px; border-left: 2px solid var(--cyan); font-size: 14px; line-height: 1.8; font-weight: 300; color: var(--dim); }
-  .section-label { font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: var(--amber); margin: 28px 0 12px; text-transform: uppercase; }
 
-  .dim-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 12px; }
-  .dim-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-  .dim-name { font-size: 16px; font-weight: 400; display: flex; align-items: center; gap: 10px; }
-  .dim-icon { font-size: 22px; }
-  .dim-score { font-family: var(--mono); font-size: 20px; color: var(--cyan); font-weight: 300; }
-  .dim-bar-wrap { height: 4px; background: rgba(240,244,248,0.06); border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
-  .dim-bar-fill { height: 100%; background: var(--cyan); border-radius: 2px; transition: width 1s ease; }
-  .dim-labels { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 9px; color: var(--dim); margin-bottom: 14px; }
-  .dim-desc { font-size: 13px; color: var(--dim); line-height: 1.7; font-weight: 300; }
-  .sub-row { display: flex; gap: 16px; margin-top: 14px; }
-  .sub-item { flex: 1; }
-  .sub-name { font-size: 11px; color: var(--dim); margin-bottom: 4px; }
-  .sub-bar-wrap { height: 3px; background: rgba(240,244,248,0.06); border-radius: 2px; overflow: hidden; }
-  .sub-bar-fill { height: 100%; background: rgba(0,229,255,0.4); border-radius: 2px; transition: width 1s ease; }
-  .sub-val { font-family: var(--mono); font-size: 10px; color: var(--dim); text-align: right; margin-top: 2px; }
-
-  .insight-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-  .insight-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 22px; font-size: 13px; line-height: 1.7; font-weight: 300; color: var(--dim); }
-  .insight-card h4 { font-size: 15px; font-weight: 400; color: var(--white); margin-bottom: 10px; }
-
-  .trigger-map { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 20px; }
-  .trigger-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-  .trigger-icon { font-size: 20px; width: 32px; text-align: center; flex-shrink: 0; }
-  .trigger-info { flex: 1; }
-  .trigger-name { font-size: 14px; font-weight: 400; margin-bottom: 2px; }
-  .trigger-desc { font-size: 12px; color: var(--dim); }
-  .trigger-bar-wrap { width: 80px; height: 3px; background: rgba(240,244,248,0.06); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
-  .trigger-bar-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
-  .trigger-level { font-family: var(--mono); font-size: 9px; width: 56px; flex-shrink: 0; }
-
-  .strategy-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px 22px; margin-bottom: 8px; display: flex; align-items: center; gap: 14px; }
-  .strategy-icon { font-size: 20px; flex-shrink: 0; }
-  .strategy-info { flex: 1; }
-  .strategy-name { font-size: 14px; font-weight: 400; margin-bottom: 2px; }
-  .strategy-hint { font-size: 11px; color: var(--dim); }
-  .strategy-score { font-family: var(--mono); font-size: 14px; flex-shrink: 0; }
-
-  .stage-path { margin-bottom: 20px; }
-  .stage-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 22px; margin-bottom: 10px; position: relative; }
-  .stage-card.current { border-color: rgba(0,229,255,0.3); }
-  .stage-num { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 12px; margin-right: 10px; }
-  .stage-num.done { background: rgba(0,229,255,0.15); color: var(--cyan); }
-  .stage-num.active { background: var(--cyan); color: #060b12; }
-  .stage-num.next { background: rgba(240,244,248,0.05); color: var(--dim); }
-  .stage-title { font-size: 15px; font-weight: 400; }
-  .stage-desc { font-size: 12px; color: var(--dim); margin-top: 6px; line-height: 1.6; margin-left: 38px; }
-
-  .growth-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 24px; border-left: 2px solid var(--amber); font-size: 13px; line-height: 1.8; font-weight: 300; color: var(--dim); }
-  .growth-card h4 { font-size: 16px; font-weight: 400; color: var(--white); margin-bottom: 12px; }
-  .cite-card { background: transparent; border: 1px solid rgba(240,244,248,0.04); border-radius: 8px; padding: 18px 22px; margin-bottom: 24px; font-size: 11px; color: var(--dim); line-height: 1.7; font-family: var(--mono); }
-  .action-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
-  .footer-note { text-align: center; color: var(--dim); font-size: 11px; font-weight: 300; opacity: 0.5; margin-top: 20px; }
-  .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); background: var(--card); border: 1px solid var(--cyan); color: var(--white); padding: 12px 28px; border-radius: 8px; font-size: 13px; z-index: 99; animation: fadeIn 0.3s; }
-
-  @media (max-width: 600px) {
-    .insight-row { grid-template-columns: 1fr; }
-    .mode-cards { grid-template-columns: 1fr; }
-    .sub-row { flex-direction: column; gap: 8px; }
-    .score-big { font-size: 56px; }
-    .q-card { padding: 20px; }
-    .trigger-row { flex-wrap: wrap; }
-    .strategy-card { flex-wrap: wrap; }
-  }
 </style>
 </head>
 <body>
@@ -189,25 +67,25 @@
   <div class="screen active" id="welcome">
     <div class="welcome-icon">🎭</div>
     <div class="title-block">
-      <div class="label">Emotional Intelligence · MSCEIT + Goleman</div>
+      <div class="label">选择模式</div>
       <h1>情绪智力<br><span>深度评估</span></h1>
     </div>
     <p class="subtitle">基于 Mayer-Salovey-Caruso 能力模型与 Goleman 混合模型。轻量版快速了解全貌，专业版提供全方位深度分析——包含情绪调节策略、共情能力、触发地图等扩展维度。</p>
     <div class="info-badge"><span></span> 轻量 24 题 · 专业 54 题 · 能力 + 特质双模型</div>
-    <button class="btn primary" onclick="showModeSelect()">开始评估 →</button>
+    <div class="action-row"><button class="btn primary" id="modeBtn">开始</button><a class="btn secondary" href="../index.html">返回</a></div>
     <div class="footer-note" style="margin-top:28px;">本测试为自我评估工具，不构成临床诊断</div>
   </div>
 
   <!-- MODE SELECTION -->
   <div class="screen" id="modeSelect">
     <div class="mode-header">
-      <h2>选择你的<span>测试深度</span></h2>
-      <p>两种模式使用相同的核心题库。专业版额外增加 30 道深度分析题和 8 个专属报告模块。</p>
+      <div class="label">选择模式</div>
+      <h2>请选择测试模式</h2>
+      <p>轻量版快速评估，专业版深度分析</p>
     </div>
     <div class="mode-cards">
-      <div class="mode-card" onclick="startTest(false)">
-        <div class="mode-icon">🚀</div>
-        <div class="mode-name">轻量版</div>
+      <div class="mode-card" id="startLiteBtn">
+        <div class="mode-card-header"><div class="mode-icon" style="font-size:36px">🚀</div><div class="mode-card-title"><div class="mode-name">轻量版</div></div></div>
         <div class="mode-stats">24 题 · 约 5 分钟</div>
         <div class="mode-desc">基于 MSCEIT 能力模型的四维核心评估，快速精准地了解你的情绪智力全貌。</div>
         <div class="mode-badge light">核心评估</div>
@@ -220,9 +98,8 @@
           + 针对性提升策略
         </div>
       </div>
-      <div class="mode-card pro" onclick="startTest(true)">
-        <div class="mode-icon">🔬</div>
-        <div class="mode-name">专业版</div>
+      <div class="mode-card pro" id="startProBtn">
+        <div class="mode-card-header"><div class="mode-icon" style="font-size:36px">🔬</div><div class="mode-card-title"><div class="mode-name">专业版</div></div></div>
         <div class="mode-stats">54 题 · 约 15 分钟</div>
         <div class="mode-desc">全方位深度分析。包含情绪调节策略、共情能力、触发地图、情绪表达、发展背景等扩展维度。</div>
         <div class="mode-badge pro">深度分析</div>
@@ -238,7 +115,7 @@
         </div>
       </div>
     </div>
-    <button class="btn back" onclick="showScreen('welcome')" style="margin-top:24px;">← 返回</button>
+    <button class="btn back" id="homeBtn" style="margin-top:24px;">← 返回</button>
   </div>
 
   <!-- QUIZ -->
@@ -247,7 +124,7 @@
       <div class="progress-info"><span id="progNum">1 / 24</span><span id="progPct">0%</span></div>
       <div class="progress-track"><div class="progress-fill" id="progBar"></div></div>
     </div>
-    <button class="btn back" id="btnBack" onclick="goBack()" style="visibility:hidden;">← 上一题</button>
+    <button class="btn back" id="btnBack" id="backBtn" style="visibility:hidden;">← 上一题</button>
     <div class="q-card" id="qCard">
       <div class="q-category" id="qCat"></div>
       <div class="q-text" id="qText"></div>
@@ -259,8 +136,8 @@
   <!-- RESULTS -->
   <div class="screen" id="results">
     <div class="results-header">
-      <div class="label">EQ Profile Report</div>
-      <h2>你的情绪<span>智力画像</span></h2>
+      <div class="label">选择模式</div>
+      <h2>请选择测试模式</h2>
       <div class="version-tag" id="versionTag"></div>
     </div>
     <div class="score-card">
@@ -339,8 +216,8 @@
       <a class="lab-home-link" href="../moral-dilemma-lab/index.html">继续实验 →</a>
     </div>
     <div class="action-row">
-      <button class="btn primary" onclick="restartTest()">重新评估</button>
-      <button class="btn secondary" onclick="shareResults()">📤 分享结果</button>
+      <button class="btn primary" id="restartBtn">重新评估</button>
+      <button class="btn secondary" id="shareBtn">📤 分享结果</button>
     </div>
     <div style="text-align:center;margin:16px 0 32px;">
       <a href="../index.html" style="color:var(--dim);font-family:var(--mono);font-size:11px;text-decoration:none;border:1px solid rgba(240,244,248,0.1);padding:6px 16px;border-radius:4px;transition:all 0.2s;">🏠 返回测试广场</a>
@@ -468,10 +345,22 @@ let currentQ = 0;
 let answers = {};
 let isPro = false;
 let questions = [];
+const PROGRESS_KEY = 'psych-lab-eq';
+  PsychLabSync.init('eq-assessment');
 
 // ═══════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════
+  function initEvents() {
+    document.getElementById('modeBtn')?.addEventListener('click', showModeSelect);
+    document.getElementById('startLiteBtn')?.addEventListener('click', function() { startTest(false); });
+    document.getElementById('startProBtn')?.addEventListener('click', function() { startTest(true); });
+    document.getElementById('homeBtn')?.addEventListener('click', function() { showScreen('welcome'); });
+    document.getElementById('backBtn')?.addEventListener('click', goBack);
+    document.getElementById('restartBtn')?.addEventListener('click', restartTest);
+    document.getElementById('shareBtn')?.addEventListener('click', shareResults);
+  }
+
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -480,7 +369,8 @@ function showScreen(id) {
 
 function showModeSelect() { showScreen('modeSelect'); }
 
-function startTest(proMode) {
+function startTest(proMode) {`r
+  PsychLabSync.reset(); PsychLabSync.start(proMode ? "pro" : "lite");
   isPro = proMode;
   questions = isPro ? [...baseQuestions, ...proQuestions] : [...baseQuestions];
   currentQ = 0;
@@ -501,6 +391,7 @@ function renderQuestion() {
   document.getElementById('progNum').textContent = `${currentQ+1} / ${total}`;
   document.getElementById('progPct').textContent = `${Math.round((currentQ/total)*100)}%`;
   document.getElementById('progBar').style.width = `${((currentQ)/total)*100}%`;
+  if (window.PsychLab) PsychLab.syncProgressBar(document.getElementById('progBar'));
 
   const card = document.getElementById('qCard');
 
@@ -519,6 +410,7 @@ function renderQuestion() {
       const btn = document.createElement('button');
       btn.className = 'choice-btn';
       btn.textContent = opt.text;
+      btn.setAttribute('aria-label', `选项${i+1}：${opt.text.substring(0, 60)}`);
       if (answers[q.id] === i) btn.classList.add('selected');
       btn.onclick = (() => {
         answers[q.id] = i;
@@ -533,6 +425,7 @@ function renderQuestion() {
       const btn = document.createElement('button');
       btn.className = 'opt-btn';
       btn.innerHTML = `<span class="opt-dot"></span>${likertLabels[i-1]}`;
+      btn.setAttribute('aria-label', `${likertLabels[i-1]}（第${currentQ+1}/${total}题）`);
       if (answers[q.id] === i) btn.classList.add('selected');
       btn.onclick = (() => {
         const val = i;
@@ -556,6 +449,7 @@ function advanceIfReady() {
     if (currentQ < questions.length - 1) {
       currentQ++;
       renderQuestion();
+      if (window.PsychLab) PsychLab.saveProgress(PROGRESS_KEY, { isPro: isPro, currentQ: currentQ, answers: answers, total: questions.length });
     } else {
       showResults();
     }
@@ -678,6 +572,8 @@ function calcScores() {
 // RESULTS DISPLAY
 // ═══════════════════════════════════════
 function showResults() {
+  PsychLabSync.complete(dimScores, summaryText || "").catch(function(){});
+  PsychLab.clearProgress(PROGRESS_KEY);
   showScreen('results');
   const scores = calcScores();
 
@@ -1201,7 +1097,7 @@ function generateGrowth(scores) {
 // ═══════════════════════════════════════
 // ACTIONS
 // ═══════════════════════════════════════
-function restartTest() { currentQ = 0; answers = {}; showScreen('welcome'); }
+function restartTest() { PsychLab.clearProgress(PROGRESS_KEY); currentQ = 0; answers = {}; showScreen('welcome'); }
 
 function shareResults() {
   const scores = calcScores();
@@ -1226,5 +1122,20 @@ function showToast(msg) {
 }
 </script>
 <script src="../assets/psych-lab.js"></script>
+<script src="../assets/api-client.js"></script>
+<script src="../assets/psych-lab-sync.js"></script>
+<script>
+(function () {
+  var saved = PsychLab.loadProgress(PROGRESS_KEY);
+  if (!saved || saved.resultsShown) return;
+  var welcomeEl = document.getElementById('welcome');
+  PsychLab.injectResumePrompt(welcomeEl, PROGRESS_KEY, saved,
+    function onContinue(s) { isPro = s.isPro; questions = isPro ? [].concat(baseQuestions, proQuestions) : [].concat(baseQuestions); currentQ = s.currentQ; answers = s.answers; showScreen('quiz'); renderQuestion(); },
+    function onRestart() { restartTest(); }
+  );
+})();
+
+  initEvents();
+  ;</script>
 </body>
 </html>

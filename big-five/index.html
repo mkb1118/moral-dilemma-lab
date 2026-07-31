@@ -11,288 +11,50 @@
 <title>大五人格评测 · OCEAN</title>
 <link rel="stylesheet" href="../assets/psych-lab.css">
 <style>
-  :root {
-    --bg: #060b12; --card: #0c1520; --card-hover: #111d2c;
-    --cyan: #00e5ff; --amber: #f5a623; --white: #f0f4f8;
-    --dim: rgba(240,244,248,0.5); --border: rgba(240,244,248,0.06);
-    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    --mono: 'Cascadia Code', 'Fira Code', monospace;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: var(--bg); color: var(--white); font-family: var(--font);
-    min-height: 100vh; display: flex; align-items: center; justify-content: center;
-  }
-  body::before {
-    content: ''; position: fixed; inset: 0;
-    background: linear-gradient(90deg, var(--border) 1px, transparent 1px),
-                linear-gradient(0deg, var(--border) 1px, transparent 1px);
-    background-size: 60px 60px;
-    mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
-    pointer-events: none; z-index: 0;
-  }
-  .app { position: relative; z-index: 1; width: 100%; max-width: 720px; padding: 24px; }
-
-  /* Screens */
-  .screen { display: none; flex-direction: column; align-items: center; animation: fadeIn 0.5s ease; }
-  .screen.active { display: flex; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-
-  /* Welcome */
-  .welcome-icon {
-    width: 72px; height: 72px; border: 2px solid var(--cyan); border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; margin-bottom: 28px;
-    font-size: 30px;
-  }
-  .title-block { text-align: center; margin-bottom: 12px; }
-  .title-block .label { font-family: var(--mono); font-size: 10px; letter-spacing: 4px; color: var(--amber); margin-bottom: 12px; }
-  .title-block h1 { font-size: 38px; font-weight: 200; letter-spacing: 2px; }
-  .title-block h1 span { color: var(--cyan); font-weight: 400; }
-  .subtitle { color: var(--dim); font-size: 15px; font-weight: 300; text-align: center; max-width: 460px; line-height: 1.6; margin-bottom: 16px; }
-  .info-badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 6px 16px; border: 1px solid var(--border); border-radius: 20px;
-    font-family: var(--mono); font-size: 11px; color: var(--dim); margin-bottom: 32px;
-  }
-  .info-badge span { width: 5px; height: 5px; background: var(--cyan); border-radius: 50%; }
-
-  /* Buttons */
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 12px 32px; border: 1px solid rgba(240,244,248,0.15); border-radius: 4px;
-    background: transparent; color: var(--white); font-family: var(--mono);
-    font-size: 13px; letter-spacing: 1px; cursor: pointer; transition: all 0.3s;
-  }
-  .btn:hover { border-color: var(--cyan); background: rgba(0,229,255,0.05); }
-  .btn.primary { background: rgba(0,229,255,0.08); border-color: var(--cyan); }
-  .btn.primary:hover { background: rgba(0,229,255,0.15); }
-
-  /* ===== MODE SELECTION ===== */
-  .mode-select { text-align: center; width: 100%; }
-  .mode-select .label { font-family: var(--mono); font-size: 10px; letter-spacing: 4px; color: var(--amber); margin-bottom: 8px; }
-  .mode-select h2 { font-size: 26px; font-weight: 200; margin-bottom: 6px; }
-  .mode-select .mode-subtitle { color: var(--dim); font-size: 13px; font-weight: 300; margin-bottom: 32px; }
-  .mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; }
-  .mode-card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-    padding: 28px 24px; text-align: left; cursor: pointer; transition: all 0.3s;
-    position: relative;
-  }
-  .mode-card:hover {
-    border-color: rgba(0,229,255,0.25); background: var(--card-hover);
-    transform: translateY(-2px);
-  }
-  .mode-card .mode-icon { font-size: 32px; margin-bottom: 12px; display: block; }
+  .app { max-width: 720px; }
+.mode-header .label { font-family: var(--mono); font-size: 10px; letter-spacing: 4px; color: var(--amber); margin-bottom: 8px; }
+.mode-header h2 span { color: var(--cyan); font-weight: 400; }
+  .mode-header .mode-subtitle { color: var(--dim); font-size: 13px; font-weight: 300; margin-bottom: 32px; }
+.mode-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px 24px; text-align: left; cursor: pointer; transition: all 0.3s; position: relative; }
+  .mode-card:hover { border-color: rgba(0,229,255,0.25); background: var(--card-hover); transform: translateY(-2px); }
+  .mode-card .mode-card-header { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; text-align: left; }
+.mode-icon { font-size: 36px; flex-shrink: 0; }
   .mode-card .mode-name { font-size: 18px; font-weight: 400; margin-bottom: 4px; }
-  .mode-card .mode-badge {
-    display: inline-block; font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
-    padding: 2px 10px; border-radius: 10px; margin-bottom: 14px;
-  }
+  .mode-card .mode-badge { display: inline-block; font-family: var(--mono); font-size: 9px; letter-spacing: 2px; padding: 2px 10px; border-radius: 10px; margin-bottom: 14px; }
   .mode-card .mode-badge.light { color: var(--cyan); border: 1px solid rgba(0,229,255,0.3); }
   .mode-card .mode-badge.pro { color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
   .mode-card .mode-time { font-family: var(--mono); font-size: 10px; color: var(--dim); margin-bottom: 14px; }
   .mode-features { list-style: none; }
-  .mode-features li {
-    font-size: 12px; color: var(--dim); padding: 3px 0; font-weight: 300;
-    position: relative; padding-left: 14px;
-  }
+  .mode-features li { font-size: 12px; color: var(--dim); padding: 3px 0; font-weight: 300; position: relative; padding-left: 14px; }
   .mode-features li::before { content: '+'; position: absolute; left: 0; color: var(--dim); font-family: var(--mono); font-size: 9px; }
 
-  /* Progress */
-  .progress-wrap { width: 100%; margin-bottom: 28px; }
-  .progress-info { display: flex; justify-content: space-between; margin-bottom: 6px; font-family: var(--mono); font-size: 10px; color: var(--dim); }
-  .progress-track { width: 100%; height: 2px; background: var(--border); border-radius: 1px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--cyan); transition: width 0.3s; border-radius: 1px; }
-
-  /* Question card */
-  .q-card {
-    width: 100%; background: var(--card); border: 1px solid var(--border);
-    border-radius: 10px; padding: 36px; margin-bottom: 24px; position: relative;
-  }
-  .q-card::before { content: ''; position: absolute; top: 0; left: 36px; right: 36px; height: 1px; background: linear-gradient(90deg, transparent, rgba(0,229,255,0.1), transparent); }
-  .q-trait { font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: var(--amber); margin-bottom: 16px; text-transform: uppercase; }
-  .q-text { font-size: 19px; font-weight: 300; line-height: 1.6; margin-bottom: 28px; }
-
-  /* Scale */
   .scale { display: flex; justify-content: space-between; gap: 8px; }
-  .scale-btn {
-    flex: 1; padding: 14px 8px; background: transparent; border: 1px solid var(--border);
-    border-radius: 8px; color: var(--dim); font-family: var(--font); font-size: 13px;
-    cursor: pointer; transition: all 0.2s; text-align: center;
-  }
+  .scale-btn { flex: 1; padding: 14px 8px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--dim); font-family: var(--font); font-size: 13px; cursor: pointer; transition: all 0.25s; text-align: center; min-height: 44px; }
   .scale-btn:hover { border-color: var(--cyan); color: var(--white); background: rgba(0,229,255,0.05); }
-  .scale-btn.selected { border-color: var(--cyan); color: var(--cyan); background: rgba(0,229,255,0.08); }
+  .scale-btn.selected { border-color: var(--cyan); background: rgba(0,229,255,0.1); color: var(--cyan); }
+  .q-nav { display: flex; align-items: center; width: 100%; }
 
-  /* Results */
-  .results-header { text-align: center; margin-bottom: 32px; }
-  .results-header .label { font-family: var(--mono); font-size: 10px; letter-spacing: 4px; color: var(--amber); margin-bottom: 8px; }
-  .results-header h2 { font-size: 28px; font-weight: 200; }
-  .results-header .mode-tag {
-    display: inline-block; margin-top: 8px; font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
-    padding: 2px 10px; border-radius: 10px;
-  }
-  .results-header .mode-tag.light { color: var(--cyan); border: 1px solid rgba(0,229,255,0.25); }
-  .results-header .mode-tag.pro { color: var(--amber); border: 1px solid rgba(245,166,35,0.25); }
+  .trait-card { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin-bottom: 10px; }
+  .trait-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .trait-name { font-size: 16px; font-weight: 400; display: flex; align-items: center; gap: 8px; }
+  .trait-score { font-family: var(--mono); font-size: 18px; color: var(--cyan); font-weight: 300; }
+  .trait-bar-wrap { height: 4px; background: rgba(240,244,248,0.06); border-radius: 2px; overflow: hidden; margin-bottom: 4px; }
+  .trait-bar-fill { height: 100%; background: var(--cyan); border-radius: 2px; transition: width 1s ease; width: 0%; }
+  .trait-desc { font-size: 12px; color: var(--dim); line-height: 1.6; font-weight: 300; }
 
-  .trait-card {
-    width: 100%; background: var(--card); border: 1px solid var(--border);
-    border-radius: 10px; padding: 24px 28px; margin-bottom: 12px;
-  }
-  .trait-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
-  .trait-name { font-size: 16px; font-weight: 400; display: flex; align-items: center; gap: 10px; }
-  .trait-score { font-family: var(--mono); font-size: 12px; color: var(--cyan); }
-  .trait-bar-wrap { width: 100%; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
-  .trait-bar-fill { height: 100%; border-radius: 3px; transition: width 1.2s ease; }
-  .trait-bar-fill.high { background: var(--cyan); }
-  .trait-bar-fill.mid { background: rgba(0,229,255,0.5); }
-  .trait-bar-fill.low { background: rgba(245,166,35,0.5); }
-  .trait-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--dim); font-family: var(--mono); }
-  .trait-desc { font-size: 13px; color: var(--dim); line-height: 1.6; font-weight: 300; margin-top: 8px; }
+.primary-icon { font-size: 48px; margin-bottom: 16px; }
+.primary-subtitle { font-size: 14px; color: var(--dim); margin-top: 6px; font-weight: 300; }
+.combo-card { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 20px; border-left: 2px solid var(--amber); color: var(--dim); font-size: 14px; line-height: 1.8; font-weight: 300; }
+.facet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .facet-item { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .facet-item .facet-name { font-size: 12px; color: var(--dim); margin-bottom: 4px; }
+  .facet-item .facet-score { font-family: var(--mono); font-size: 14px; color: var(--cyan); display: flex; justify-content: space-between; align-items: center; }
+  .facet-item .sub-bar-wrap { height: 3px; background: rgba(240,244,248,0.04); border-radius: 2px; overflow: hidden; margin-top: 4px; width: 60%; margin-left: auto; }
+  .facet-item .sub-bar-fill { height: 100%; background: rgba(0,229,255,0.5); border-radius: 2px; transition: width 1s ease; }
 
-  .summary-card {
-    width: 100%; background: var(--card); border: 1px solid var(--border);
-    border-radius: 10px; padding: 28px; margin-bottom: 28px; text-align: center;
-    border-left: 2px solid var(--cyan);
-  }
-  .summary-title { font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: var(--amber); margin-bottom: 10px; }
-  .summary-text { font-size: 15px; line-height: 1.7; color: var(--dim); font-weight: 300; text-align: left; }
+.growth-card h4 { font-size: 16px; font-weight: 400; color: var(--white); margin-bottom: 12px; }
 
-  .action-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
-  .footer-note { font-family: var(--mono); font-size: 9px; color: var(--dim); opacity: 0.4; text-align: center; }
-
-  .toast {
-    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
-    background: var(--card); border: 1px solid var(--cyan); color: var(--cyan);
-    padding: 10px 20px; border-radius: 6px; font-family: var(--mono); font-size: 12px;
-    z-index: 100; animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards;
-    pointer-events: none;
-  }
-  @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } }
-  @keyframes toastOut { to { opacity: 0; transform: translateX(-50%) translateY(-10px); } }
-
-  /* Back button */
-  .q-nav { display: flex; align-items: center; margin-bottom: 12px; width: 100%; }
-  .btn-back {
-    background: transparent; border: 1px solid var(--border); border-radius: 4px;
-    color: var(--dim); font-family: var(--mono); font-size: 12px;
-    padding: 8px 16px; cursor: pointer; transition: all 0.2s;
-  }
-  .btn-back:hover { border-color: var(--cyan); color: var(--cyan); }
-
-  /* Insight row */
-  .insight-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-bottom: 16px; }
-  .insight-card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-    padding: 20px 24px;
-  }
-  .insight-title {
-    font-family: var(--mono); font-size: 10px; letter-spacing: 2px;
-    color: var(--amber); margin-bottom: 8px; text-transform: uppercase;
-  }
-  .insight-content {
-    color: var(--dim); font-size: 13px; line-height: 1.6; font-weight: 300;
-  }
-
-  /* Growth card */
-  .growth-card {
-    width: 100%; background: var(--card); border: 1px solid var(--border);
-    border-radius: 10px; padding: 20px 24px; margin-bottom: 28px;
-    border-left: 2px solid rgba(0,229,255,0.3);
-  }
-  .growth-title {
-    font-family: var(--mono); font-size: 10px; letter-spacing: 2px;
-    color: var(--cyan); margin-bottom: 8px; text-transform: uppercase;
-  }
-  .growth-content {
-    color: var(--dim); font-size: 13px; line-height: 1.6; font-weight: 300;
-  }
-
-  /* Sub-facets */
-  .sub-facets { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
-  .sub-facet { margin-bottom: 8px; }
-  .sub-header { display: flex; justify-content: space-between; margin-bottom: 3px; }
-  .sub-name { font-size: 11px; color: var(--dim); }
-  .sub-score { font-family: var(--mono); font-size: 10px; color: var(--dim); opacity: 0.6; }
-  .sub-bar-wrap { width: 100%; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
-  .sub-bar-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
-  .sub-bar-fill.high { background: var(--cyan); }
-  .sub-bar-fill.mid { background: rgba(0,229,255,0.4); }
-  .sub-bar-fill.low { background: rgba(245,166,35,0.4); }
-
-  .tag-inline {
-    display: inline-block; padding: 3px 10px; border-radius: 12px;
-    font-family: var(--mono); font-size: 10px; margin: 2px;
-    border: 1px solid rgba(0,229,255,0.2); color: var(--cyan);
-  }
-
-  /* Pro-only result sections */
-  .pro-section {
-    width: 100%; background: var(--card); border: 1px solid var(--border);
-    border-radius: 10px; padding: 24px 28px; margin-bottom: 16px;
-  }
-  .pro-section-header {
-    font-family: var(--mono); font-size: 10px; letter-spacing: 3px;
-    color: var(--amber); margin-bottom: 12px; text-transform: uppercase;
-  }
-  .pro-section h3 { font-size: 17px; font-weight: 400; margin-bottom: 12px; }
-  .pro-section p { font-size: 13px; color: var(--dim); line-height: 1.7; font-weight: 300; margin-bottom: 10px; }
-
-  /* Facet panorama */
-  .facet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .facet-item {
-    background: rgba(240,244,248,0.03); border: 1px solid var(--border);
-    border-radius: 8px; padding: 14px 16px;
-  }
-  .facet-item .facet-name { font-size: 13px; font-weight: 400; margin-bottom: 4px; }
-  .facet-item .facet-level {
-    font-family: var(--mono); font-size: 10px; margin-bottom: 6px;
-  }
-  .facet-item .facet-level.high { color: var(--cyan); }
-  .facet-item .facet-level.mid { color: var(--dim); }
-  .facet-item .facet-level.low { color: var(--amber); }
-  .facet-item .facet-bar-wrap { width: 100%; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
-  .facet-item .facet-bar-fill { height: 100%; border-radius: 2px; transition: width 1.2s ease; }
-  .facet-item .facet-bar-fill.high { background: var(--cyan); }
-  .facet-item .facet-bar-fill.mid { background: rgba(0,229,255,0.4); }
-  .facet-item .facet-bar-fill.low { background: rgba(245,166,35,0.4); }
-  .facet-item .facet-tip { font-size: 11px; color: var(--dim); opacity: 0.7; line-height: 1.5; }
-
-  /* Combo table */
-  .combo-item {
-    padding: 10px 0; border-bottom: 1px solid var(--border);
-    display: flex; gap: 12px; align-items: flex-start;
-  }
-  .combo-item:last-child { border-bottom: none; }
-  .combo-tags { flex-shrink: 0; }
-  .combo-tags .tag-inline { font-size: 9px; }
-  .combo-text { font-size: 13px; color: var(--dim); line-height: 1.6; font-weight: 300; }
-
-  /* Academic refs */
-  .ref-list { list-style: none; }
-  .ref-list li {
-    font-size: 11px; color: var(--dim); opacity: 0.6; line-height: 1.7;
-    padding: 2px 0; font-weight: 300;
-  }
-
-  /* Pro badge inline */
-  .pro-badge-inline {
-    display: inline-block; font-family: var(--mono); font-size: 8px; letter-spacing: 2px;
-    color: var(--amber); border: 1px solid rgba(245,166,35,0.3);
-    padding: 1px 8px; border-radius: 8px; margin-left: 8px; vertical-align: middle;
-  }
-
-  @media (max-width: 600px) {
-    .mode-cards { grid-template-columns: 1fr; }
-    .facet-grid { grid-template-columns: 1fr; }
-    .insight-row { grid-template-columns: 1fr; }
-    .app { padding: 16px; }
-    .q-card { padding: 24px; }
-    .q-card::before { left: 24px; right: 24px; }
-    .q-text { font-size: 16px; }
-    .title-block h1 { font-size: 28px; }
-    .scale { flex-wrap: wrap; }
-    .scale-btn { flex: none; width: calc(20% - 7px); font-size: 12px; padding: 10px 4px; }
-  }
+  @media (max-width: 600px) { .facet-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -303,27 +65,26 @@
   <div class="screen active" id="welcome">
     <div class="welcome-icon">🌊</div>
     <div class="title-block">
-      <div class="label">Big Five · OCEAN Model</div>
+      <div class="label">选择模式</div>
       <h1>大五人格<br><span>深度评测</span></h1>
     </div>
     <p class="subtitle">
       基于心理学界最受认可的人格模型（Goldberg, 1990; Costa & McCrae, 1992），从开放性、尽责性、外向性、宜人性、情绪稳定性五个核心维度描绘你的人格全貌。这不是「对号入座」，而是一面镜子。
     </p>
     <div class="info-badge"><span></span> 双模式可选 · 基于IPIP科学量表</div>
-    <button class="btn primary" onclick="showModeSelect()">开始测评 →</button>
+    <div class="action-row"><button class="btn primary" id="modeBtn">开始</button><a class="btn secondary" href="../index.html">返回</a></div>
   </div>
 
   <!-- ============ MODE SELECTION ============ -->
   <div class="screen" id="modeSelect">
-    <div class="mode-select">
-      <div class="label">Select Mode</div>
-      <h2>选择测评模式</h2>
-      <p class="mode-subtitle">两种深度，同一种科学严谨</p>
+    <div class="mode-header">
+      <div class="label">选择模式</div>
+      <h2>请选择测试模式</h2>
+      <p>轻量版快速评估，专业版深度分析</p>
       <div class="mode-cards">
         <!-- Light -->
-        <div class="mode-card" onclick="startTest(false)">
-          <span class="mode-icon">🌤️</span>
-          <div class="mode-name">轻量版</div>
+        <div class="mode-card" id="startLiteBtn">
+          <div class="mode-card-header"><span class="mode-icon">🌤️</span><div class="mode-card-title"><div class="mode-name">轻量版</div></div></div>
           <span class="mode-badge light">Quick Assessment</span>
           <div class="mode-time">⏱ 25题 · 约5分钟</div>
           <ul class="mode-features">
@@ -335,9 +96,8 @@
           </ul>
         </div>
         <!-- Pro -->
-        <div class="mode-card" onclick="startTest(true)">
-          <span class="mode-icon">🔬</span>
-          <div class="mode-name">专业版</div>
+        <div class="mode-card" id="startProBtn">
+          <div class="mode-card-header"><span class="mode-icon">🔬</span><div class="mode-card-title"><div class="mode-name">专业版</div></div></div>
           <span class="mode-badge pro">Deep Analysis</span>
           <div class="mode-time">⏱ 55题 · 约15分钟</div>
           <ul class="mode-features">
@@ -350,7 +110,7 @@
           </ul>
         </div>
       </div>
-      <button class="btn" style="margin-top:20px;" onclick="showScreen('welcome')">← 返回</button>
+      <button class="btn" style="margin-top:20px;" id="homeBtn">← 返回</button>
     </div>
   </div>
 
@@ -361,7 +121,7 @@
       <div class="progress-track"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
     </div>
     <div class="q-nav">
-      <button class="btn-back" id="btnBack" onclick="goBack()" style="visibility:hidden;">← 上一题</button>
+      <button class="btn back" id="btnBack" id="backBtn" style="visibility:hidden;">← 上一题</button>
       <div style="flex:1;"></div>
     </div>
     <div class="q-card" id="qCard">
@@ -374,8 +134,8 @@
   <!-- ============ RESULTS ============ -->
   <div class="screen" id="results">
     <div class="results-header">
-      <div class="label">OCEAN Profile</div>
-      <h2>你的人格画像</h2>
+      <div class="label">选择模式</div>
+      <h2>请选择测试模式</h2>
       <div class="mode-tag" id="modeTag"></div>
     </div>
     <div class="summary-card">
@@ -443,8 +203,8 @@
       <a class="lab-home-link" href="../values-sort/index.html">继续实验 →</a>
     </div>
     <div class="action-row">
-      <button class="btn primary" onclick="restartTest()">重新测试</button>
-      <button class="btn" onclick="shareResults()">📤 分享结果</button>
+      <button class="btn primary" id="restartBtn">重新测试</button>
+      <button class="btn" id="shareBtn">📤 分享结果</button>
     </div>
     <div style="text-align:center;margin-bottom:16px;"><a href="../index.html" style="color:var(--dim);font-family:var(--mono);font-size:11px;text-decoration:none;border:1px solid rgba(240,244,248,0.1);padding:6px 16px;border-radius:4px;transition:all 0.2s;">🏠 返回测试广场</a></div>
     <p class="footer-note">基于 IPIP 量表改编 · 仅供自我探索，非临床诊断</p>
@@ -460,6 +220,7 @@ let isPro = false;
 let questions = [];
 let currentQ = 0;
 let answers = [];
+let currentSessionId = null;
 let isAdvancing = false;
 let resultsShown = false;
 
@@ -583,6 +344,20 @@ const PRO_EXTRA = [
 ];
 
 // ============================================
+  function initEvents() {
+    document.getElementById('modeBtn')?.addEventListener('click', showModeSelect);
+    document.getElementById('startLiteBtn')?.addEventListener('click', function() { startTest(false); });
+    document.getElementById('startProBtn')?.addEventListener('click', function() { startTest(true); });
+    document.getElementById('homeBtn')?.addEventListener('click', function() { showScreen('welcome'); });
+    document.getElementById('backBtn')?.addEventListener('click', goBack);
+    document.getElementById('restartBtn')?.addEventListener('click', restartTest);
+    document.getElementById('shareBtn')?.addEventListener('click', shareResults);
+    document.getElementById('quiz')?.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-q="answer"]');
+      if (btn) answer(parseInt(btn.dataset.idx || btn.getAttribute('data-idx'), 10), btn);
+    });
+  }
+
 // SCREEN NAVIGATION
 // ============================================
 function showScreen(id) {
@@ -603,6 +378,8 @@ function startTest(proMode) {
   }
   currentQ = 0;
   answers = [];
+  currentSessionId = null;
+  PsychLabAPI.startSession('big-five', isPro ? 'pro' : 'lite').then(function(s) { currentSessionId = s ? s.id : null; });
   isAdvancing = false;
   resultsShown = false;
   showScreen('quiz');
@@ -623,7 +400,7 @@ function renderQuestion() {
   const scaleEl = document.getElementById('scale');
   const labels = ['非常不同意', '不同意', '中立', '同意', '非常同意'];
   scaleEl.innerHTML = labels.map((l, i) => `
-    <button class="scale-btn" onclick="answer(${i + 1}, this)">${l}</button>
+    <button class="scale-btn" data-q="answer">${l}</button>
   `).join('');
 
   // Animate card
@@ -652,6 +429,7 @@ function answer(score, btn) {
   btn.classList.add('selected');
 
   answers[currentQ] = { questionId: q.id, score: score };
+  PsychLabAPI.answerQuestion(currentSessionId, q.id, score);
 
   setTimeout(() => {
     if (resultsShown) return;
@@ -1082,6 +860,7 @@ function generateWellbeing(scores) {
 function showResults() {
   const scores = calcScores();
   const O=scores.O, C=scores.C, E=scores.E, A=scores.A, N=scores.N;
+  PsychLabAPI.finishSession(currentSessionId, { O: scores.O, C: scores.C, E: scores.E, A: scores.A, N: scores.N, subs: scores._subs }, 'big-five ' + (isPro ? 'pro' : 'lite'));
 
   // Mode tag
   const modeTag = document.getElementById('modeTag');
@@ -1200,7 +979,12 @@ function restartTest() {
   currentQ = 0; answers = [];
   showScreen('welcome');
 }
-</script>
+
+  initEvents();</script>
 <script src="../assets/psych-lab.js"></script>
+<script src="../assets/api-client.js"></script>
+<script src="../assets/psych-lab-sync.js"></script>
+
+<script src="../assets/api-client.js"></script>
 </body>
 </html>
