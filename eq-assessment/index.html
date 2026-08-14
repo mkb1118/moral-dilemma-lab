@@ -10,6 +10,9 @@
 <meta name="twitter:card" content="summary">
 <title>情绪智力深度评估</title>
 <link rel="stylesheet" href="../assets/psych-lab.css">
+<script src="../assets/psych-lab.js"></script>
+<script src="../assets/api-client.js"></script>
+<script src="../assets/psych-lab-sync.js"></script>
 <style>
   #modeSelect { }
 .mode-header .label { font-family: var(--mono); font-size: 10px; letter-spacing: 4px; color: var(--amber); margin-bottom: 8px; }
@@ -231,110 +234,17 @@
 // ═══════════════════════════════════════
 // DIMENSION INFO
 // ═══════════════════════════════════════
-const DIM_INFO = {
-  perceiving: { name:'情绪感知', icon:'👁️', sub:['自我觉察','他人觉察'], order:1 },
-  understanding: { name:'情绪理解', icon:'🧠', sub:['原因理解','复杂理解'], order:2 },
-  facilitating: { name:'情绪运用', icon:'💡', sub:['决策辅助','创造激发'], order:3 },
-  managing: { name:'情绪管理', icon:'⚖️', sub:['自我调节','他人调节'], order:4 }
-};
+let DIM_INFO = null;
 
 // ═══════════════════════════════════════
 // BASE QUESTIONS (24 items — both modes)
 // ═══════════════════════════════════════
-const baseQuestions = [
-  // 情绪感知 (Perceiving) - 6 items
-  { id:1, dim:'perceiving', sub:'自我觉察', type:'likert', text:'我能准确地分辨自己正在经历什么样的情绪（比如能区分「失望」和「悲伤」）。', reverse:false },
-  { id:2, dim:'perceiving', sub:'自我觉察', type:'likert', text:'有时候我感到情绪涌动，却说不清楚自己到底怎么了。', reverse:true },
-  { id:3, dim:'perceiving', sub:'自我觉察', type:'likert', text:'当我的情绪发生变化时，我通常能立刻察觉到。', reverse:false },
-  { id:4, dim:'perceiving', sub:'他人觉察', type:'likert', text:'通过观察对方的表情和语气变化，我通常能判断出TA的真实情绪状态。', reverse:false },
-  { id:5, dim:'perceiving', sub:'他人觉察', type:'likert', text:'在社交场合中，我常常能感觉到气氛的微妙变化——比如谁不开心了、谁被冷落了。', reverse:false },
-  { id:6, dim:'perceiving', sub:'他人觉察', type:'situational', text:'一位同事在会议上对你的提议说「挺好的」，但语速很快，眼神回避，说完立刻转移话题。你觉得TA的真实态度是？',
-    opts:[{ text:'真心觉得不错，只是比较忙', score:1 },{ text:'其实不太认同或有顾虑，但没有直接说出来', score:5 }]},
-
-  // 情绪理解 (Understanding) - 6 items
-  { id:7, dim:'understanding', sub:'原因理解', type:'likert', text:'我能清楚地解释为什么自己在特定的场合会产生某种情绪。', reverse:false },
-  { id:8, dim:'understanding', sub:'原因理解', type:'likert', text:'当朋友告诉我TA的感受时，我通常能理解是什么导致了这种感受。', reverse:false },
-  { id:9, dim:'understanding', sub:'原因理解', type:'likert', text:'我有时会被自己的情绪反应搞糊涂，不太明白「我为什么会这样」。', reverse:true },
-  { id:10, dim:'understanding', sub:'复杂理解', type:'likert', text:'我理解一个人可以同时对同一件事感到既高兴又难过（比如毕业、送别）。', reverse:false },
-  { id:11, dim:'understanding', sub:'复杂理解', type:'likert', text:'我能预判某种情境下，大多数人会产生什么样的情绪反应。', reverse:false },
-  { id:12, dim:'understanding', sub:'复杂理解', type:'situational', text:'你的好友最近升职了，但TA看起来并不开心，反而有些焦虑。你觉得最可能的原因是？',
-    opts:[{ text:'TA可能觉得自己能力不足以胜任新角色——冒充者综合征很常见', score:5 },{ text:'TA可能对这个结果不满意，想要更高的职位', score:1 }]},
-
-  // 情绪运用 (Facilitating) - 6 items
-  { id:13, dim:'facilitating', sub:'决策辅助', type:'likert', text:'情绪帮助我判断什么事情是重要的、什么事情可以放一放。', reverse:false },
-  { id:14, dim:'facilitating', sub:'决策辅助', type:'likert', text:'做重要决定时，我会倾听自己的直觉感受，不只是依靠理性分析。', reverse:false },
-  { id:15, dim:'facilitating', sub:'决策辅助', type:'likert', text:'我觉得情绪只会干扰理性决策，所以做决定时应该尽量排除情绪。', reverse:true },
-  { id:16, dim:'facilitating', sub:'创造激发', type:'likert', text:'在好的情绪状态下，我的创造力和解决问题的能力明显更强。', reverse:false },
-  { id:17, dim:'facilitating', sub:'创造激发', type:'likert', text:'当我需要灵感时，我会主动调整自己的心情（比如听音乐、散步）来进入状态。', reverse:false },
-  { id:18, dim:'facilitating', sub:'创造激发', type:'situational', text:'你需要在明天之前完成一个创意方案，但现在感到焦虑、思路阻塞。你会怎么做？',
-    opts:[{ text:'先暂停手上的工作，通过运动/音乐/散步来调整情绪，等状态好了再继续', score:5 },{ text:'硬着头皮继续做，焦虑归焦虑，deadline最重要', score:1 }]},
-
-  // 情绪管理 (Managing) - 6 items
-  { id:19, dim:'managing', sub:'自我调节', type:'likert', text:'面对强烈的负面情绪（如愤怒、焦虑），我有有效的方法让自己平静下来。', reverse:false },
-  { id:20, dim:'managing', sub:'自我调节', type:'likert', text:'当事情不如预期时，我会陷入很长时间的沮丧，难以自拔。', reverse:true },
-  { id:21, dim:'managing', sub:'自我调节', type:'likert', text:'在压力情境下（如考试、面试），我能保持冷静，不让紧张影响发挥。', reverse:false },
-  { id:22, dim:'managing', sub:'他人调节', type:'likert', text:'当朋友或家人情绪低落时，我知道怎么安慰和陪伴能让TA们感觉好一些。', reverse:false },
-  { id:23, dim:'managing', sub:'他人调节', type:'likert', text:'在团队中发生冲突时，我能够帮助双方冷静下来，促进有效沟通。', reverse:false },
-  { id:24, dim:'managing', sub:'他人调节', type:'situational', text:'你和一位朋友约好了吃饭，但TA迟到了30分钟才来，看起来心情很糟。你会先做什么？',
-    opts:[{ text:'先关心TA的状态：「你看起来不太对劲，发生了什么？」——先处理情绪，再说迟到的事', score:5 },{ text:'表达自己的不满：「我等了半小时了，你怎么也不提前说一声？」——先处理自己的情绪', score:1 }]}
-];
+let baseQuestions = null;
 
 // ═══════════════════════════════════════
 // PRO QUESTIONS (30 items — pro mode only)
 // ═══════════════════════════════════════
-const proQuestions = [
-  // ── 情绪触发点扩展 (6 items: 4 original + 2 new) ──
-  { id:'t1', tag:'触发点', type:'situational', text:'一位你很尊重的人对你努力了很久的作品给出了尖锐的公开批评。你的第一反应更接近？',
-    opts:[{ text:'内心非常震动——需要一段时间才能消化这种被否定的感觉。这种批评会在我脑海里反复出现。', trigger:'criticism', score:5 },{ text:'有点不舒服但不至于影响太大——我能把「对作品的批评」和「对我这个人的否定」分开看待。', trigger:'criticism', score:1 }]},
-  { id:'t2', tag:'触发点', type:'situational', text:'你精心计划了一个月的旅行/项目，出发前一天被告知所有安排都取消了，而且不是你的责任。你的内心反应是？',
-    opts:[{ text:'非常焦虑和沮丧——失控的感觉让我难以忍受。我可能会反复回想「要是当时怎样怎样就好了」。', trigger:'uncertainty', score:5 },{ text:'失望但能接受——计划赶不上变化。我会重新规划，把注意力放在「接下来怎么办」上。', trigger:'uncertainty', score:1 }]},
-  { id:'t3', tag:'触发点', type:'situational', text:'你在社交媒体上看到同龄人（同学/同事）晒出了远超过你的成就。你的感受更接近？',
-    opts:[{ text:'一阵强烈的焦虑和自我怀疑——「我是不是落后了？我是不是不够好？」需要一些时间才能恢复平静。', trigger:'comparison', score:5 },{ text:'为TA高兴，同时对自己的节奏保持信心——每个人都有自己的时间线，社交媒体展示的只是片段。', trigger:'comparison', score:1 }]},
-  { id:'t4', tag:'触发点', type:'situational', text:'在一次重要家庭讨论中，有人用激烈的语气质疑你的选择。你的反应更接近？',
-    opts:[{ text:'被激怒或感到受伤——可能会提高音量回应，或者干脆沉默以对（但内心翻涌）。', trigger:'conflict', score:5 },{ text:'虽然不舒服，但可以保持冷静——我会尝试理解对方为何这么说，然后清晰表达自己的立场。', trigger:'conflict', score:1 }]},
-  { id:'t5', tag:'触发点', type:'situational', text:'你向一个在意的人表达了善意或邀请，但被对方冷淡地拒绝了。你内心的感受更接近？',
-    opts:[{ text:'感到被刺痛——可能会反复想「是不是我做错了什么」「TA是不是不喜欢我」。这种被拒绝的感觉会持续影响我的情绪。', trigger:'rejection', score:5 },{ text:'有点失落但能理解——每个人都有自己的状态和原因。我会告诉自己这不是对我整个人的否定。', trigger:'rejection', score:1 }]},
-  { id:'t6', tag:'触发点', type:'situational', text:'你为一个重要目标（考试/面试/项目）付出了大量努力，但结果远不如预期。你的反应更接近？',
-    opts:[{ text:'非常沮丧，可能陷入自我否定——「我是不是能力不行？」「努力有什么用？」需要较长时间消化。', trigger:'failure', score:5 },{ text:'失望但不崩溃——我会分析原因，看看哪里可以改进。失败是成长的一部分，不是终点。', trigger:'failure', score:1 }]},
-
-  // ── 情绪调节策略 (8 Likert items, based on CERQ) ──
-  { id:'r1', tag:'调节策略', type:'likert', text:'当遇到负面情绪时，我会尝试从不同的角度看待问题，找到积极或中性的一面。', sub:'认知重评', reverse:false },
-  { id:'r2', tag:'调节策略', type:'likert', text:'我通常会把情绪压在心里，不让别人看出来我在想什么或感受什么。', sub:'表达抑制', reverse:true },
-  { id:'r3', tag:'调节策略', type:'likert', text:'我会反复回想让我不开心的事情，一遍又一遍地在脑海里重播那些画面和对话，难以停下来。', sub:'反刍思维', reverse:true },
-  { id:'r4', tag:'调节策略', type:'likert', text:'遇到让我不舒服的情绪，我会尽量不去想它——转移注意力到别的事情上，假装它不存在。', sub:'情绪回避', reverse:true },
-  { id:'r5', tag:'调节策略', type:'likert', text:'我能够接纳自己的负面情绪——它们是人类体验的一部分，不需要被消除或掩盖。', sub:'情绪接纳', reverse:false },
-  { id:'r6', tag:'调节策略', type:'likert', text:'当情绪困扰我时，我会主动采取行动去解决问题的根源，而不只是处理情绪本身。', sub:'问题解决', reverse:false },
-  { id:'r7', tag:'调节策略', type:'likert', text:'我会向信任的人倾诉我的情绪困扰，寻求理解和支持——分享本身就让我感觉好一些。', sub:'社会支持', reverse:false },
-  { id:'r8', tag:'调节策略', type:'likert', text:'我练习观察自己的情绪而不被它们带走——像一个旁观者一样客观地看待内心的波动。', sub:'正念觉察', reverse:false },
-
-  // ── 共情能力 (6 items: 3 Likert + 3 situational, based on IRI) ──
-  { id:'e1', tag:'共情能力', type:'likert', text:'在与人交流时，我会有意识地尝试站在对方的角度看问题，即使我不同意TA的观点。', sub:'观点采择', reverse:false },
-  { id:'e2', tag:'共情能力', type:'likert', text:'看到别人痛苦或难过，我内心会自然地产生同情和想要帮助的冲动。', sub:'共情关注', reverse:false },
-  { id:'e3', tag:'共情能力', type:'likert', text:'当身边的人处于强烈的痛苦或危机中时，我自己也会感到非常不安和焦虑，甚至不知道该怎么帮助TA。', sub:'个人痛苦', reverse:true },
-  { id:'e4', tag:'共情能力', type:'situational', text:'一位同事在会议上提出了一个你认为有明显问题的方案，但TA看起来非常兴奋和投入。你会怎么做？',
-    opts:[{ text:'先肯定TA的热情和努力，然后用提问的方式温和地引出你的顾虑——「这个方向很有趣，你有没有考虑过X情况？」', emp:'perspective', score:5 },{ text:'直接指出方案的问题——真诚比客气更重要，拖久了反而浪费大家时间。', emp:'direct', score:1 }]},
-  { id:'e5', tag:'共情能力', type:'situational', text:'朋友向你倾诉工作上的委屈，你已经听TA说过类似的事情很多次了。你会？',
-    opts:[{ text:'耐心听完，先共情——「听起来真的很让人沮丧，你一直在面对这个情况。」然后再温和地问TA是否准备了应对方案。', emp:'concern', score:5 },{ text:'直接给出建议——「这个问题你已经说了很多次了，我觉得你应该直接找领导谈一谈。」情绪上的反复可能是行动力的问题。', emp:'direct', score:1 }]},
-  { id:'e6', tag:'共情能力', type:'likert', text:'即使别人不明确说出来，我也常常能感觉到TA当时的情绪状态——比如紧张、不安或者期待。', sub:'共情准确', reverse:false },
-
-  // ── 情绪表达 (4 Likert items) ──
-  { id:'x1', tag:'情绪表达', type:'likert', text:'我会恰当地向身边的人表达我的情绪感受——不管是开心的还是不开心的。', sub:'表达开放', reverse:false },
-  { id:'x2', tag:'情绪表达', type:'likert', text:'当我需要谈论自己的情绪时，我能比较准确地用语言描述出来，让对方理解我的状态。', sub:'情绪沟通', reverse:false },
-  { id:'x3', tag:'情绪表达', type:'likert', text:'在亲近的人面前展示脆弱或不安让我感到很不舒服——我宁愿自己消化。', sub:'脆弱回避', reverse:true },
-  { id:'x4', tag:'情绪表达', type:'likert', text:'在大多数社交场合中，我会根据情况调整情绪的外在表现——即使内心翻涌，表面也能保持平静。', sub:'情绪修饰', reverse:true },
-
-  // ── 情绪颗粒度 (2 items, existing) ──
-  { id:'g1', tag:'颗粒度', type:'likert', text:'我能用丰富的词汇来描述自己的情绪状态——不只是「开心/难过」，而是能区分「欣慰、释然、满足、兴奋、期待」或「失望、委屈、不甘、焦虑、羞耻」等更精准的感受。', reverse:false },
-  { id:'g2', tag:'颗粒度', type:'likert', text:'当别人问我「你感觉怎么样」时，我通常能给出一两个具体的情绪词，而不是笼统地说「还行」或「不太好」。', reverse:false },
-
-  // ── 情绪信念 (2 items, existing) ──
-  { id:'m1', tag:'信念', type:'likert', text:'我相信情绪智力是可以通过学习和练习来提升的——它不是固定不变的「天赋」，而是一套可以持续发展的技能。', reverse:false },
-  { id:'m2', tag:'信念', type:'likert', text:'当我感到不舒服的情绪时，我的第一反应是去理解它（为什么会出现？它在告诉我什么？），而不是回避或压抑它。', reverse:false },
-
-  // ── 情绪发展背景 (2 items) ──
-  { id:'b1', tag:'情绪背景', type:'likert', text:'在我的成长环境中，家庭成员能够开放地表达各种情绪——包括难过、愤怒和脆弱。', sub:'童年表达', reverse:false },
-  { id:'b2', tag:'情绪背景', type:'likert', text:'目前我的生活中有至少一两个可以安全地分享深层情绪的人——在TA们面前我不需要伪装。', sub:'支持系统', reverse:false }
-];
+let proQuestions = null;
 
 const likertLabels = ['非常不符合','比较不符合','一般/中立','比较符合','非常符合'];
 
@@ -369,7 +279,7 @@ function showScreen(id) {
 
 function showModeSelect() { showScreen('modeSelect'); }
 
-function startTest(proMode) {`r
+function startTest(proMode) {
   PsychLabSync.reset(); PsychLabSync.start(proMode ? "pro" : "lite");
   isPro = proMode;
   questions = isPro ? [...baseQuestions, ...proQuestions] : [...baseQuestions];
@@ -1121,9 +1031,6 @@ function showToast(msg) {
   setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 2500);
 }
 </script>
-<script src="../assets/psych-lab.js"></script>
-<script src="../assets/api-client.js"></script>
-<script src="../assets/psych-lab-sync.js"></script>
 <script>
 (function () {
   var saved = PsychLab.loadProgress(PROGRESS_KEY);
@@ -1135,7 +1042,21 @@ function showToast(msg) {
   );
 })();
 
+(async function () {
+  try {
+    var __d = await Promise.all([
+      PsychLab.loadData('data/dim-info.json'),
+      PsychLab.loadData('data/base-questions.json'),
+      PsychLab.loadData('data/pro-questions.json')
+    ]);
+    DIM_INFO = __d[0];
+    baseQuestions = __d[1];
+    proQuestions = __d[2];
+  } catch (err) {
+    console.error('加载题目数据失败：', err);
+    if (window.PsychLab) PsychLab.showToast('题目数据加载失败，请通过 http://127.0.0.1:3000 访问');
+  }
   initEvents();
-  ;</script>
+})();</script>
 </body>
 </html>

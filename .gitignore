@@ -4,3 +4,17 @@ node_modules/
 *.log
 .env
 
+# 与「心理测试广场」无关的内容，部署/提交时排除
+.obsidian/
+.claude/
+.claudian/
+.agents/
+ai-orchestrator/
+xianyu-bot/
+psychology-videos/
+piano-assistant/
+scripts/
+未命名.base
+*.base
+design-philosophy.md
+

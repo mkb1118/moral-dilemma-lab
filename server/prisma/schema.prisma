@@ -23,7 +23,6 @@ model TestType {
   name        String
   description String?
   modes       String[]
-  questions   Json?
   createdAt   DateTime      @default(now())
   sessions    TestSession[]
 }

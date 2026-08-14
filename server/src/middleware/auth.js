@@ -1,6 +1,9 @@
 const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = process.env.JWT_SECRET || "psychlab-dev-secret-change-me";
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("缺少 JWT_SECRET 环境变量，请在 server/.env 中配置");
+}
 
 function signToken(user) {
   return jwt.sign({ sub: user.id, nickname: user.nickname }, JWT_SECRET, {

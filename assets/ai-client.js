@@ -7,7 +7,7 @@
  *   console.log(res.answer);
  */
 
-const AI_SERVICE_URL = "http://127.0.0.1:8010";
+const AI_SERVICE_URL = window.PSYCHLAB_AI_URL || "http://127.0.0.1:8010";
 
 async function aiAsk(prompt, options = {}) {
   const { strategy = "router", system = "" } = options;

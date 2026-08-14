@@ -1,0 +1,28 @@
+# 敏感/无关内容不进镜像
+.git
+.gitignore
+.obsidian
+.claude
+.claudian
+.agents
+**/.env
+**/.env.example
+**/node_modules
+**/*.log
+
+# 与本项目无关的目录（缩小镜像体积）
+ai-orchestrator
+xianyu-bot
+scripts
+psychology-videos
+piano-assistant
+00-项目文档
+未命名.base
+*.base
+design-philosophy.md
+README.md
+
+# 本部署文件本身无需进镜像
+Dockerfile
+.dockerignore
+render.yaml

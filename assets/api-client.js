@@ -3,7 +3,8 @@
 // Dual-mode: backend when logged in, localStorage when offline
 // ============================================
 (function () {
-  var API_BASE = 'http://127.0.0.1:3000/api';
+  // 同源默认 /api；可在加载前用 window.PSYCHLAB_API_BASE 覆盖
+  var API_BASE = window.PSYCHLAB_API_BASE || '/api';
 
   function apiHeaders() {
     var headers = { 'Content-Type': 'application/json' };

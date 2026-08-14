@@ -111,118 +111,14 @@
   </div>
 </div>
 
-<!-- Auth Modal -->
-<div class="lab-modal-overlay hidden" id="authModalOverlay">
-  <div class="lab-modal">
-    <h3 id="authModalTitle"><span id="authModalAction">登录</span> PsychLab</h3>
-    <div class="field"><label for="authNickname">昵称</label><input type="text" id="authNickname" placeholder="你的昵称" maxlength="20" autocomplete="nickname"></div>
-    <div class="field"><label for="authPassword">密码</label><input type="password" id="authPassword" placeholder="至少 6 位" maxlength="64" autocomplete="current-password"></div>
-    <div class="modal-error" id="authError"></div>
-    <div class="modal-actions">
-      <button class="btn-cancel" id="authCancelBtn">取消</button>
-      <button class="btn-submit" id="authSubmitBtn">登录</button>
-    </div>
-    <div class="modal-switch"><span id="authSwitchText">没有账号？</span> <a id="authSwitchLink" href="#">注册</a></div>
-  </div>
-</div>
-
 <script src="../assets/api-client.js"></script>
 <script src="../assets/psych-lab.js"></script>
+<script src="../assets/auth.js"></script>
 <script>
 (function() {
-  var isLoginMode = true;
-  var overlay = document.getElementById("authModalOverlay");
-  var elTitle = document.getElementById("authModalAction");
-  var elSubmit = document.getElementById("authSubmitBtn");
-  var elSwitchText = document.getElementById("authSwitchText");
-  var elSwitchLink = document.getElementById("authSwitchLink");
-  var elError = document.getElementById("authError");
-  var elNick = document.getElementById("authNickname");
-  var elPass = document.getElementById("authPassword");
-
-  function escHtml(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-
-  function updateAuthBar() {
-    var bar = document.getElementById("authBar");
-    if (PsychLabAPI.isLoggedIn()) {
-      var user = PsychLabAPI.getUser();
-      var name = (user && user.nickname) || "用户";
-      bar.innerHTML = '<div class="lab-user-menu" id="userMenu">' +
-        '<div class="user-trigger" id="userTrigger">' + escHtml(name) + ' <span style="font-size:10px;">▼</span></div>' +
-        '<div class="user-dropdown">' +
-          '<a href="#" id="menuHistory">📋 测试历史</a>' +
-          '<div class="sep"></div>' +
-          '<button id="menuLogout">退出登录</button>' +
-        '</div></div>';
-      setTimeout(function() {
-        var menu = document.getElementById("userMenu");
-        var trig = document.getElementById("userTrigger");
-        if (!trig) return;
-        trig.addEventListener("click", function(e) { e.preventDefault(); menu.classList.toggle("open"); });
-        document.addEventListener("click", function(e) { if (!menu.contains(e.target)) menu.classList.remove("open"); });
-        var l = document.getElementById("menuLogout");
-        if (l) l.addEventListener("click", function(e) { e.preventDefault(); PsychLabAPI.logout(); updateAuthBar(); loadHistory(); });
-        var h = document.getElementById("menuHistory");
-        if (h) h.addEventListener("click", function(e) { e.preventDefault(); menu.classList.remove("open"); });
-      }, 0);
-    } else {
-      bar.innerHTML = '<button class="lab-auth-btn" id="showLoginBtn">登录</button>' +
-        '<button class="lab-auth-btn primary" id="showRegisterBtn">注册</button>';
-      setTimeout(function() {
-        var lb = document.getElementById("showLoginBtn");
-        var rb = document.getElementById("showRegisterBtn");
-        if (lb) lb.addEventListener("click", function() { openModal(true); });
-        if (rb) rb.addEventListener("click", function() { openModal(false); });
-      }, 0);
-    }
-  }
-
-  function setMode(isLogin) {
-    isLoginMode = isLogin;
-    elTitle.textContent = isLogin ? "登录" : "注册";
-    elSubmit.textContent = isLogin ? "登录" : "注册";
-    elSwitchText.textContent = isLogin ? "没有账号？" : "已有账号？";
-    elSwitchLink.textContent = isLogin ? "注册" : "登录";
-    elError.textContent = "";
-  }
-
-  function openModal(isLogin) {
-    setMode(isLogin);
-    overlay.classList.remove("hidden");
-    elNick.value = ""; elPass.value = ""; elError.textContent = "";
-    setTimeout(function() { elNick.focus(); }, 100);
-  }
-
-  function closeModal() { overlay.classList.add("hidden"); }
-
-  async function handleSubmit() {
-    var nick = elNick.value.trim();
-    var pass = elPass.value;
-    if (!nick) { elError.textContent = "请输入昵称"; return; }
-    if (pass.length < 6) { elError.textContent = "密码至少 6 位"; return; }
-    elError.textContent = ""; elSubmit.disabled = true; elSubmit.textContent = "…";
-    try {
-      if (isLoginMode) { await PsychLabAPI.login(nick, pass); }
-      else { await PsychLabAPI.register(nick, pass); }
-      closeModal(); updateAuthBar(); loadHistory();
-    } catch (e) {
-      elError.textContent = e.message || "操作失败，请重试";
-    } finally {
-      elSubmit.disabled = false;
-      elSubmit.textContent = isLoginMode ? "登录" : "注册";
-    }
-  }
-
-  document.getElementById("authCancelBtn").addEventListener("click", closeModal);
-  document.getElementById("authSubmitBtn").addEventListener("click", handleSubmit);
-  elSwitchLink.addEventListener("click", function(e) { e.preventDefault(); setMode(!isLoginMode); });
-  overlay.addEventListener("click", function(e) { if (e.target === overlay) closeModal(); });
-  document.addEventListener("keydown", function(e) { if (e.key === "Escape" && !overlay.classList.contains("hidden")) closeModal(); });
-  document.addEventListener("keydown", function(e) {
-    if (e.key === "Enter" && !overlay.classList.contains("hidden") && document.activeElement === elPass) { handleSubmit(); }
-  });
-  window.addEventListener("psychlab:logout", function() { updateAuthBar(); loadHistory(); });
-  document.getElementById("promptLoginBtn").addEventListener("click", function() { openModal(true); });
+  PsychLabAuth.init({ onAuthenticated: loadHistory });
+  window.addEventListener("psychlab:logout", loadHistory);
+  document.getElementById("promptLoginBtn").addEventListener("click", function() { PsychLabAuth.openAuthModal(true); });
 
   function formatDate(d) {
     if (!d) return "";
@@ -270,18 +166,19 @@
 
     loadingEl.classList.remove("hidden");
     try {
-      var data = await PsychLabAPI.apiFetch("/users/me/history", {});
+      var data = await PsychLabAPI.getHistory();
+      var items = (data && Array.isArray(data.items)) ? data.items : (Array.isArray(data) ? data : []);
       loadingEl.classList.add("hidden");
 
-      if (!data || !data.length) {
+      if (!items.length) {
         emptyEl.classList.remove("hidden");
         countEl.textContent = "";
         return;
       }
 
-      countEl.textContent = data.length + " 条记录";
+      countEl.textContent = items.length + " 条记录";
       listEl.innerHTML = "";
-      data.forEach(function(s) {
+      items.forEach(function(s) {
         var icon = testIcons[s.testTypeId] || "📋";
         var name = (s.testType && s.testType.name) || s.testTypeId || "未知测试";
         var mode = s.mode || "light";
@@ -339,12 +236,12 @@
           var sid = favBtn.dataset.sid;
           try {
             if (faved[sid]) {
-              await PsychLabAPI.apiFetch("/users/favorites/" + sid, { method: "DELETE" });
+              await PsychLabAPI.removeFavorite(sid);
               faved[sid] = false;
               favBtn.classList.remove("faved");
               favBtn.textContent = "☆";
             } else {
-              await PsychLabAPI.apiFetch("/users/favorites/" + sid, { method: "POST" });
+              await PsychLabAPI.addFavorite(sid);
               faved[sid] = true;
               favBtn.classList.add("faved");
               favBtn.textContent = "★";
@@ -363,7 +260,6 @@
   }
 
   document.getElementById("retryBtn").addEventListener("click", loadHistory);
-  updateAuthBar();
   loadHistory();
 })();
 </script>

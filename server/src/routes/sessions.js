@@ -1,28 +1,26 @@
 const express = require("express");
 const prisma = require("../lib/prisma");
 const { requireAuth } = require("../middleware/auth");
+const { schemas, validate } = require("../lib/validation");
 
 const router = express.Router();
 router.use(requireAuth);
 
 // 创建会话
-router.post("/", async (req, res) => {
+router.post("/", async (req, res, next) => {
   try {
-    const { testTypeId, mode } = req.body || {};
-    if (!testTypeId || !mode) {
-      return res.status(400).json({ error: "缺少 testTypeId 或 mode" });
-    }
+    const { testTypeId, mode } = validate(schemas.createSession, req.body);
     const session = await prisma.testSession.create({
       data: { userId: req.userId, testTypeId, mode },
     });
-    res.json(session);
+    res.status(201).json(session);
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    next(e);
   }
 });
 
 // 提交单题答案
-router.post("/:id/answer", async (req, res) => {
+router.post("/:id/answer", async (req, res, next) => {
   try {
     const session = await prisma.testSession.findFirst({
       where: { id: req.params.id, userId: req.userId },
@@ -31,10 +29,7 @@ router.post("/:id/answer", async (req, res) => {
     if (session.status !== "in_progress") {
       return res.status(400).json({ error: "会话已完成" });
     }
-    const { questionId, answer } = req.body || {};
-    if (!questionId || answer === undefined) {
-      return res.status(400).json({ error: "缺少 questionId 或 answer" });
-    }
+    const { questionId, answer } = validate(schemas.answer, req.body);
     const saved = await prisma.sessionAnswer.upsert({
       where: { sessionId_questionId: { sessionId: session.id, questionId: String(questionId) } },
       update: { answer },
@@ -42,12 +37,12 @@ router.post("/:id/answer", async (req, res) => {
     });
     res.json(saved);
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    next(e);
   }
 });
 
 // 完成会话并保存结果
-router.post("/:id/complete", async (req, res) => {
+router.post("/:id/complete", async (req, res, next) => {
   try {
     const session = await prisma.testSession.findFirst({
       where: { id: req.params.id, userId: req.userId },
@@ -55,8 +50,7 @@ router.post("/:id/complete", async (req, res) => {
     });
     if (!session) return res.status(404).json({ error: "会话不存在" });
 
-    const { scores, summary } = req.body || {};
-    if (!scores) return res.status(400).json({ error: "缺少 scores" });
+    const { scores, summary } = validate(schemas.complete, req.body);
 
     await prisma.testSession.update({
       where: { id: session.id },
@@ -69,12 +63,12 @@ router.post("/:id/complete", async (req, res) => {
     });
     res.json({ sessionId: session.id, result });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    next(e);
   }
 });
 
 // 查询会话详情（含答案与结果）
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req, res, next) => {
   try {
     const session = await prisma.testSession.findFirst({
       where: { id: req.params.id, userId: req.userId },
@@ -83,7 +77,7 @@ router.get("/:id", async (req, res) => {
     if (!session) return res.status(404).json({ error: "会话不存在" });
     res.json(session);
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    next(e);
   }
 });
 

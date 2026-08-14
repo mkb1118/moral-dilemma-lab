@@ -2,6 +2,16 @@
 (function () {
   var announcerEl = null;
   var announcerTimer = 0;
+  var _dataCache = {};
+
+  // 加载共享数据 JSON（相对页面路径），带内存缓存；供各测试页与后端同源复用
+  async function loadData(url) {
+    if (_dataCache[url] !== undefined) return _dataCache[url];
+    var res = await fetch(url);
+    if (!res.ok) throw new Error('加载数据失败：' + url + ' (HTTP ' + res.status + ')');
+    _dataCache[url] = await res.json();
+    return _dataCache[url];
+  }
 
   function ensureAnnouncer() {
     if (announcerEl) return announcerEl;
@@ -218,6 +228,7 @@
     decoratePage: decoratePage,
     saveProgress: saveProgress,
     loadProgress: loadProgress,
+    loadData: loadData,
     clearProgress: clearProgress,
     hasProgress: hasProgress,
     injectResumePrompt: injectResumePrompt
