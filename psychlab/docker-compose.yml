@@ -1,0 +1,38 @@
+# ============================================================
+# 国内云服务器一键部署（需已安装 Docker + Docker Compose）
+# 用法：在项目根目录执行  docker compose up -d --build
+# ⚠️ 先把下面两处密码改成你自己的！
+# ============================================================
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: psychlab
+      POSTGRES_PASSWORD: 改成你自己的数据库密码
+      POSTGRES_DB: psychlab
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U psychlab -d psychlab"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://psychlab:改成你自己的数据库密码@db:5432/psychlab
+      JWT_SECRET: 改成你自己的强随机字符串
+      PORT: 3000
+    ports:
+      # 用 3000 端口对外（国内未备案时 80/443 常被限制，高端口更稳）
+      - "3000:3000"
+
+volumes:
+  db-data:

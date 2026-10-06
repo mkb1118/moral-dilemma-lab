@@ -18,3 +18,9 @@ scripts/
 *.base
 design-philosophy.md
 
+# 与「心理测试广场」无关，且体积大或含隐私，不入库
+birthday-heart/
+birthday-sister/
+deepseek-harness/
+_docx/
+新建文件夹/

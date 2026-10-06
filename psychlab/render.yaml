@@ -1,17 +1,17 @@
 # ============================================================
-# Render 一键部署蓝图
+# Render 一键部署蓝图（副本）
 #
-# ⚠️ 这个文件必须放在【仓库根目录】
-#    Render 默认只从仓库根目录读取 render.yaml。新版虽然支持把 Blueprint
-#    放到子目录，但要在 Render 后台手动指定路径，不如放根目录省事。
+# 真正的 Blueprint 在【仓库根目录】的 render.yaml —— Render 默认只从
+# 仓库根目录读取它。这份副本保留在这里只是为了「部署配置跟项目放在一起」
+# 好找，内容与根目录那份完全一致。
 #
-# ⚠️ dockerContext / dockerfilePath 都相对【仓库根目录】解析
-#    不是相对本文件所在的位置。项目代码重组后都在 psychlab/ 下，
-#    所以这两个路径必须带 psychlab/ 前缀——写错的话 Render 找不到
-#    Dockerfile，部署会直接失败。
+# ⚠️ 两份必须保持同步，否则会互相矛盾。
 #
-# 用法：把本仓库推到 GitHub → render.com → New → Blueprint → 选仓库
-#      Render 会自动创建下面的 PostgreSQL 数据库 + Web 服务
+# ⚠️ 关键：dockerContext / dockerfilePath 一律相对【仓库根目录】解析，
+#    不是相对本文件所在位置。所以路径要写 ./psychlab/... 而不是 ./...
+#    写错的话 Render 找不到 Dockerfile，部署直接失败。
+#
+# 用法：仓库推到 GitHub → render.com → New → Blueprint → 选仓库
 # ============================================================
 
 databases:

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>用户中心 · Psychology Lab</title>
+<link rel="stylesheet" href="../assets/psych-lab.css">
+<style>
+  .uc-app { max-width: 820px; margin: 0 auto; padding: 32px 24px 48px; }
+  .uc-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 32px; flex-wrap: wrap; gap: 12px; }
+  .uc-header h1 { font-size: 28px; font-weight: 200; letter-spacing: 2px; }
+  .uc-header h1 span { color: var(--lab-cyan); font-weight: 400; }
+  .uc-count { font-family: var(--lab-mono); font-size: 11px; color: var(--lab-muted); }
+
+  .uc-empty { text-align: center; padding: 64px 24px; }
+  .uc-empty .empty-icon { font-size: 56px; margin-bottom: 20px; }
+  .uc-empty h2 { font-size: 20px; font-weight: 300; margin-bottom: 10px; }
+  .uc-empty p { color: var(--lab-muted); font-size: 14px; margin-bottom: 28px; }
+  .uc-login-prompt { text-align: center; padding: 80px 24px; }
+  .uc-login-prompt .prompt-icon { font-size: 48px; margin-bottom: 16px; }
+  .uc-login-prompt h2 { font-size: 22px; font-weight: 300; margin-bottom: 8px; }
+  .uc-login-prompt p { color: var(--lab-muted); font-size: 14px; margin-bottom: 24px; }
+
+  .session-list { display: flex; flex-direction: column; gap: 12px; }
+  .session-card {
+    background: var(--lab-card); border: 1px solid var(--lab-border);
+    border-radius: 14px; padding: 22px 24px; transition: all 0.25s;
+    cursor: pointer; position: relative; overflow: hidden;
+  }
+  .session-card:hover { border-color: var(--lab-cyan-line); transform: translateY(-2px); }
+  .session-card::after {
+    content: ""; position: absolute; top: 0; left: 22px; right: 22px;
+    height: 1px; background: linear-gradient(90deg, transparent, rgba(0,229,255,.14), transparent);
+  }
+  .session-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .session-info { display: flex; align-items: center; gap: 14px; }
+  .session-icon { font-size: 28px; flex-shrink: 0; }
+  .session-name { font-size: 17px; font-weight: 400; }
+  .session-meta { font-family: var(--lab-mono); font-size: 10px; color: var(--lab-muted); letter-spacing: 1px; }
+  .session-mode {
+    display: inline-block; font-family: var(--lab-mono); font-size: 9px;
+    letter-spacing: 2px; padding: 2px 10px; border-radius: 10px;
+  }
+  .session-mode.light { color: var(--lab-cyan); border: 1px solid rgba(0,229,255,0.25); }
+  .session-mode.pro { color: var(--lab-amber); border: 1px solid rgba(245,166,35,0.25); }
+  .session-date { font-family: var(--lab-mono); font-size: 10px; color: var(--lab-muted); }
+  .session-status {
+    font-family: var(--lab-mono); font-size: 9px; letter-spacing: 2px;
+    padding: 2px 10px; border-radius: 10px;
+  }
+  .session-status.completed { color: var(--lab-green); border: 1px solid rgba(74,222,128,0.25); }
+  .session-status.in_progress { color: var(--lab-amber); border: 1px solid rgba(245,166,35,0.25); }
+  .session-score { font-family: var(--lab-mono); font-size: 14px; color: var(--lab-cyan); }
+  .session-summary { font-size: 12px; color: var(--lab-muted); line-height: 1.6; margin-top: 10px; display: none; }
+  .session-card.expanded .session-summary { display: block; }
+  .session-actions { display: flex; gap: 8px; align-items: center; }
+  .btn-fav {
+    background: transparent; border: 1px solid var(--lab-border);
+    border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 14px;
+    transition: all 0.2s; color: var(--lab-muted);
+  }
+  .btn-fav:hover { border-color: var(--lab-amber); }
+  .btn-fav.faved { border-color: var(--lab-amber); background: rgba(245,166,35,0.1); }
+
+  .uc-loading { text-align: center; padding: 48px; }
+  .uc-loading .loader { width: 32px; height: 32px; border: 2px solid var(--lab-border); border-top-color: var(--lab-cyan); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 14px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .uc-loading p { color: var(--lab-muted); font-family: var(--lab-mono); font-size: 11px; letter-spacing: 2px; }
+
+  .uc-error { text-align: center; padding: 48px; }
+  .uc-error p { color: var(--lab-red); font-size: 14px; margin-bottom: 16px; }
+
+  @media (max-width: 600px) {
+    .uc-app { padding: 20px 14px; }
+    .uc-header h1 { font-size: 24px; }
+    .session-card { padding: 16px; }
+    .session-top { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<nav class="lab-auth-bar" id="authBar"></nav>
+
+<div class="uc-app">
+  <div class="uc-header">
+    <h1>我的<span>测试历史</span></h1>
+    <span class="uc-count" id="sessionCount"></span>
+  </div>
+
+  <div class="uc-login-prompt hidden" id="loginPrompt">
+    <div class="prompt-icon">🔐</div>
+    <h2>请先登录</h2>
+    <p>登录后可以查看你的测试历史和结果</p>
+    <button class="btn primary" id="promptLoginBtn">登录 / 注册</button>
+  </div>
+
+  <div class="uc-loading" id="loading"><div class="loader"></div><p>LOADING</p></div>
+  <div class="uc-error hidden" id="errorState"><p id="errorMsg"></p><button class="btn" id="retryBtn">重试</button></div>
+
+  <div class="uc-empty hidden" id="emptyState">
+    <div class="empty-icon">📭</div>
+    <h2>还没有测试记录</h2>
+    <p>去广场开始你的第一个心理实验吧</p>
+    <a class="btn primary" href="../index.html">前往测试广场</a>
+  </div>
+
+  <div class="session-list hidden" id="sessionList"></div>
+
+  <div style="text-align:center;margin-top:36px;">
+    <a href="../index.html" class="lab-home-link">← 返回测试广场</a>
+  </div>
+</div>
+
+<script src="../assets/api-client.js"></script>
+<script src="../assets/psych-lab.js"></script>
+<script src="../assets/auth.js"></script>
+<script>
+(function() {
+  PsychLabAuth.init({ onAuthenticated: loadHistory });
+  window.addEventListener("psychlab:logout", loadHistory);
+  document.getElementById("promptLoginBtn").addEventListener("click", function() { PsychLabAuth.openAuthModal(true); });
+
+  function formatDate(d) {
+    if (!d) return "";
+    var dt = new Date(d);
+    var y = dt.getFullYear();
+    var m = String(dt.getMonth() + 1).padStart(2, "0");
+    var day = String(dt.getDate()).padStart(2, "0");
+    var h = String(dt.getHours()).padStart(2, "0");
+    var min = String(dt.getMinutes()).padStart(2, "0");
+    return y + "-" + m + "-" + day + " " + h + ":" + min;
+  }
+
+  var testIcons = {
+    "moral-dilemma-lab": "🧠", "big-five": "🌊", "cognitive-bias": "🔍",
+    "eq-assessment": "🎭", "decision-style": "🎯", "values-sort": "🧭"
+  };
+
+  var testPages = {
+    "moral-dilemma-lab": "../测试广场/moral-dilemma-lab/index.html",
+    "big-five": "../测试广场/big-five/index.html",
+    "cognitive-bias": "../测试广场/cognitive-bias/index.html",
+    "eq-assessment": "../测试广场/eq-assessment/index.html",
+    "decision-style": "../测试广场/decision-style/index.html",
+    "values-sort": "../测试广场/values-sort/index.html"
+  };
+
+  var faved = {};
+
+  async function loadHistory() {
+    var listEl = document.getElementById("sessionList");
+    var loadingEl = document.getElementById("loading");
+    var emptyEl = document.getElementById("emptyState");
+    var errorEl = document.getElementById("errorState");
+    var loginEl = document.getElementById("loginPrompt");
+    var countEl = document.getElementById("sessionCount");
+
+    listEl.classList.add("hidden"); emptyEl.classList.add("hidden");
+    errorEl.classList.add("hidden"); loginEl.classList.add("hidden");
+
+    if (!PsychLabAPI.isLoggedIn()) {
+      loadingEl.classList.add("hidden");
+      loginEl.classList.remove("hidden");
+      return;
+    }
+
+    loadingEl.classList.remove("hidden");
+    try {
+      var data = await PsychLabAPI.getHistory();
+      var items = (data && Array.isArray(data.items)) ? data.items : (Array.isArray(data) ? data : []);
+      loadingEl.classList.add("hidden");
+
+      if (!items.length) {
+        emptyEl.classList.remove("hidden");
+        countEl.textContent = "";
+        return;
+      }
+
+      countEl.textContent = items.length + " 条记录";
+      listEl.innerHTML = "";
+      items.forEach(function(s) {
+        var icon = testIcons[s.testTypeId] || "📋";
+        var name = (s.testType && s.testType.name) || s.testTypeId || "未知测试";
+        var mode = s.mode || "light";
+        var modeLabel = mode === "pro" ? "专业版" : "轻量版";
+        var dateLabel = s.completedAt ? formatDate(s.completedAt) : formatDate(s.startedAt);
+        var status = s.status || "in_progress";
+        var statusLabel = status === "completed" ? "已完成" : "进行中";
+        var scoreHtml = "";
+        if (s.result && s.result.scores) {
+          var scores = s.result.scores;
+          if (typeof scores === "object") {
+            var parts = [];
+            Object.keys(scores).slice(0, 3).forEach(function(k) {
+              var v = scores[k];
+              if (typeof v === "number") parts.push(k + ": " + v);
+            });
+            if (parts.length) scoreHtml = '<span class="session-score">' + parts.join(" · ") + "</span>";
+          }
+        }
+        if (!scoreHtml && s.result && s.result.summary) {
+          scoreHtml = '<span class="session-score">' + s.result.summary.slice(0, 60) + "</span>";
+        }
+
+        var isFaved = !!faved[s.id];
+        var card = document.createElement("div");
+        card.className = "session-card";
+        card.innerHTML =
+          '<div class="session-top">' +
+            '<div class="session-info">' +
+              '<span class="session-icon">' + icon + "</span>" +
+              '<div>' +
+                '<div class="session-name">' + name + "</div>" +
+                '<div class="session-meta">' +
+                  '<span class="session-mode ' + mode + '">' + modeLabel + "</span> · " +
+                  '<span class="session-date">' + dateLabel + "</span>" +
+                  ' · <span class="session-status ' + status + '">' + statusLabel + "</span>" +
+                "</div>" +
+              "</div>" +
+            "</div>" +
+            '<div class="session-actions">' +
+              scoreHtml +
+              '<button class="btn-fav' + (isFaved ? " faved" : "") + '" data-sid="' + s.id + '">' + (isFaved ? "★" : "☆") + "</button>" +
+            "</div>" +
+          "</div>" +
+          (s.result && s.result.summary ? '<div class="session-summary">' + s.result.summary + "</div>" : "");
+
+        card.addEventListener("click", function(e) {
+          if (e.target.closest(".btn-fav")) return;
+          card.classList.toggle("expanded");
+        });
+
+        var favBtn = card.querySelector(".btn-fav");
+        favBtn.addEventListener("click", async function(e) {
+          e.stopPropagation();
+          var sid = favBtn.dataset.sid;
+          try {
+            if (faved[sid]) {
+              await PsychLabAPI.removeFavorite(sid);
+              faved[sid] = false;
+              favBtn.classList.remove("faved");
+              favBtn.textContent = "☆";
+            } else {
+              await PsychLabAPI.addFavorite(sid);
+              faved[sid] = true;
+              favBtn.classList.add("faved");
+              favBtn.textContent = "★";
+            }
+          } catch (err) {}
+        });
+
+        listEl.appendChild(card);
+      });
+      listEl.classList.remove("hidden");
+    } catch (e) {
+      loadingEl.classList.add("hidden");
+      errorEl.classList.remove("hidden");
+      document.getElementById("errorMsg").textContent = e.message || "加载失败";
+    }
+  }
+
+  document.getElementById("retryBtn").addEventListener("click", loadHistory);
+  loadHistory();
+})();
+</script>
+</body>
+</html>
